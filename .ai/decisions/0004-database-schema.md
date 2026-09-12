@@ -49,6 +49,24 @@ use, and `voice.md` says name things as the user recognises them. Superseded col
 Settled at the same time (see ADR 0011): studios share clients studio-wide,
 `client.coach_id` records who owns the relationship.
 
+## Deferred, but decided — 2026-09-13
+
+Two schema shapes are committed to now and implemented when the tables they affect are
+built. Both are cheap at creation time and a migration afterwards. See the moat analysis
+for why they matter commercially.
+
+**1. Outcome data is coach-attributable.** Every `set_log`, adherence figure and
+measurement must be attributable to the coach who prescribed it and aggregatable across a
+coach's whole history — that is what turns logged data into a coach's *verified track
+record*, which is the one moat that compounds and cannot be carried to a competitor.
+Implement when `workout_session` / `set_log` are created.
+
+**2. Training data hangs off `user`, not only `client`.** A `client` row belongs to one
+studio; a person may be coached by several over time. Attaching training history to the
+user means it follows them between coaches, which is the only genuine network effect
+available in this category. `client.user_id` is already nullable, which is the half of
+this that the roster module must preserve. Implement when the training tables are created.
+
 ## Open
 - Can a coach's custom exercise or food be promoted to the global library? If yes,
   `promoted_from_id` is needed before v3.
