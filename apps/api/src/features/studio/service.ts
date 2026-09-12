@@ -3,6 +3,7 @@ import { newId, schema } from "@traiv/db";
 import { and, asc, eq, isNull } from "drizzle-orm";
 import { db } from "../../db.js";
 import { forbidden, notFound } from "../../errors.js";
+import { newJoinCode } from "../client/join.js";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0] | typeof db;
 
@@ -46,6 +47,7 @@ export async function createDefaultStudio(tx: Tx, user: { id: string; name: stri
     slug: studioSlug(user.name),
     name: displayName,
     tier: "free",
+    joinCode: newJoinCode(),
   });
 
   await tx.insert(schema.memberships).values({

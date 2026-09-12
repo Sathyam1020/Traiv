@@ -1,32 +1,24 @@
 import { newId, schema } from "@traiv/db";
-import { desc, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../db.js";
-import { matches } from "../../lib/crypto.js";
 import { requestChallenge, toE164, verifyChallenge } from "../auth/service.js";
 import { activateStudio, listStudios, resolveActiveStudio, studioSlug } from "./service.js";
 
 const A = "7910000001";
 const B = "7910000002";
 
-async function codeFor(tenDigits: string) {
-  const [row] = await db
-    .select()
-    .from(schema.authChallenges)
-    .where(eq(schema.authChallenges.phone, toE164(tenDigits)))
-    .orderBy(desc(schema.authChallenges.createdAt))
-    .limit(1);
-  if (!row) throw new Error("no challenge");
-  for (let i = 0; i < 1_000_000; i++) {
-    const c = i.toString().padStart(6, "0");
-    if (matches(c, row.codeHash)) return c;
-  }
-  throw new Error("code not recovered");
+async function codeFor(phone: string) {
+  const res = await requestChallenge({ phone });
+  if (!res.code) throw new Error("console transport expected in tests");
+  return res.code;
 }
 
 async function signUp(phone: string, name: string) {
-  await requestChallenge({ phone, name });
-  return verifyChallenge({ phone, code: await codeFor(phone) });
+  // One challenge only: a second would supersede this one and drop the pending name.
+  const res = await requestChallenge({ phone, name });
+  if (!res.code) throw new Error("console transport expected in tests");
+  return verifyChallenge({ phone, code: res.code });
 }
 
 async function wipe() {

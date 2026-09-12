@@ -1,4 +1,4 @@
-import { index, pgEnum, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { boolean, index, pgEnum, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { users } from "./user.js";
 
 export const studioTier = pgEnum("studio_tier", ["free", "starter", "pro", "studio"]);
@@ -31,12 +31,21 @@ export const studios = pgTable(
     brandLogoUrl: text(),
     brandColor: text(),
 
+    // Shown as a QR and a link in settings. Anyone who opens it joins this studio, so
+    // it is rotatable — a code that leaks onto social media can be replaced without
+    // changing the studio slug — and has a kill switch.
+    joinCode: text().notNull(),
+    joinEnabled: boolean().notNull().default(true),
+
     timezone: text().notNull().default("Asia/Kolkata"),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     deletedAt: timestamp({ withTimezone: true }),
   },
-  (t) => [uniqueIndex("studio_slug_key").on(t.slug)],
+  (t) => [
+    uniqueIndex("studio_slug_key").on(t.slug),
+    uniqueIndex("studio_join_code_key").on(t.joinCode),
+  ],
 );
 
 /** Staff of a studio. The junction that lets one person work across several. */

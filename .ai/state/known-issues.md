@@ -15,6 +15,23 @@ What happens · Why it isn't fixed yet · Workaround
 
 None. No code exists yet.
 
+## Open
+
+### The test suite takes 8.5 minutes, and it is the database's distance
+Found 2026-09-13 · Severity: medium · Area: testing
+
+Tests run against Neon in **us-east-2** from India. A single query round trip measures
+**~328ms**, so a scenario doing thirty sequential statements legitimately costs ten
+seconds. 48 tests take 509s.
+
+Nothing is wrong with the tests — the latency is structural. Teardown has already been
+collapsed into one data-modifying CTE, which helped, and the OTP is now returned directly
+under the console transport instead of being recovered by brute force.
+
+**The real fix is a local Postgres for tests** (Docker), which would put the suite in the
+seconds. Deferred because it adds infrastructure; revisit when the wait starts costing
+more than the setup would.
+
 ## Risks being carried deliberately
 
 These aren't bugs — they're accepted trade-offs to revisit at the stated trigger.

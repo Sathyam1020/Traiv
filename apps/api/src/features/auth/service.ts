@@ -65,7 +65,17 @@ export async function requestChallenge(input: {
       .update(schema.authChallenges)
       .set({ transport, sentAt: new Date() })
       .where(eq(schema.authChallenges.id, challengeId));
-    return { sent: true as const, transport, fellBack };
+
+    // When the console transport handled it, the code was printed to stdout and is
+    // therefore already not a secret — so returning it leaks nothing. Production
+    // refuses to boot with OTP_TRANSPORT=console, so this can never be reachable there.
+    // It is what lets tests skip brute-forcing a million HMACs per sign-in.
+    return {
+      sent: true as const,
+      transport,
+      fellBack,
+      ...(transport === "console" ? { code } : {}),
+    };
   } catch (error) {
     // Record why, and leave sentAt null so this attempt doesn't count against the
     // user's hourly quota — the outage is ours, not theirs.

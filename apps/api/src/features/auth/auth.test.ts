@@ -25,24 +25,11 @@ const N1 = "7900000001";
 const N2 = "7900000002";
 const N3 = "7900000003";
 
-/** The code is never returned by the API, so read it the way the DB stores it. */
-async function latestCodeFor(tenDigits: string): Promise<string> {
-  const phone = toE164(tenDigits);
-  const [row] = await db
-    .select()
-    .from(schema.authChallenges)
-    .where(eq(schema.authChallenges.phone, phone))
-    .orderBy(desc(schema.authChallenges.createdAt))
-    .limit(1);
-  if (!row) throw new Error(`no challenge for ${phone}`);
-  // Brute-force the six digits against the stored HMAC — only viable because we know
-  // the search space is a million and this is a test.
-  const { matches } = await import("../../lib/crypto.js");
-  for (let i = 0; i < 1_000_000; i++) {
-    const candidate = i.toString().padStart(6, "0");
-    if (matches(candidate, row.codeHash)) return candidate;
-  }
-  throw new Error("could not recover the code");
+/** The console transport already prints the code, so it comes straight back. */
+async function latestCodeFor(phone: string) {
+  const res = await requestChallenge({ phone });
+  if (!res.code) throw new Error("console transport expected in tests");
+  return res.code;
 }
 
 async function wipe() {
@@ -63,8 +50,10 @@ afterAll(wipe);
 
 describe("phone sign-in", () => {
   it("creates an account the first time a number is used", async () => {
-    await requestChallenge({ phone: N1, name: "Kavya Reddy" });
-    const { user, isNew } = await verifyChallenge({ phone: N1, code: await latestCodeFor(N1) });
+    // The code must come from this challenge — a second one would supersede it and
+    // drop the pending name, which is the rule working, not a bug.
+    const issued = await requestChallenge({ phone: N1, name: "Kavya Reddy" });
+    const { user, isNew } = await verifyChallenge({ phone: N1, code: issued.code as string });
 
     expect(isNew).toBe(true);
     expect(user.name).toBe("Kavya Reddy");
@@ -73,7 +62,7 @@ describe("phone sign-in", () => {
   });
 
   it("keeps the name across a restart — it lives on the row, not in memory", async () => {
-    await requestChallenge({ phone: N1, name: "Meera Iyer" });
+    const issued = await requestChallenge({ phone: N1, name: "Meera Iyer" });
 
     // Nothing in process memory is consulted; the name is read back from the challenge.
     const [challenge] = await db
@@ -83,7 +72,7 @@ describe("phone sign-in", () => {
       .limit(1);
     expect(challenge?.pendingName).toBe("Meera Iyer");
 
-    const { user } = await verifyChallenge({ phone: N1, code: await latestCodeFor(N1) });
+    const { user } = await verifyChallenge({ phone: N1, code: issued.code as string });
     expect(user.name).toBe("Meera Iyer");
   });
 
