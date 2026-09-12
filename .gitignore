@@ -1,0 +1,49 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# builds
+dist/
+build/
+.next/
+out/
+*.tsbuildinfo
+
+# turbo
+.turbo/
+
+# env — NEVER commit. This repo is public.
+.env
+.env.*
+!.env.example
+
+# secrets
+*.pem
+*.key
+*.p8
+credentials.json
+service-account*.json
+
+# editors
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+
+# os
+.DS_Store
+Thumbs.db
+
+# logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# test / coverage
+coverage/
+.nyc_output/
+
+# local db
+*.sqlite
+*.db
+tsconfig.tsbuildinfo

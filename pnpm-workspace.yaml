@@ -1,0 +1,66 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+allowBuilds:
+  esbuild: set this to true or false
+
+# Single source of truth for every dependency version in the monorepo.
+# Packages reference these with "catalog:" — never a literal version.
+# Adding an entry here requires .ai/engineering/dependencies.md to have been followed.
+catalog:
+  # tooling
+  typescript: ^7.0.2
+  "@biomejs/biome": ^2.5.13
+  turbo: ^2.10.12
+  tsx: ^4.23.13
+  vitest: ^5.0.0
+  "@types/node": ^24.0.0
+
+  # data
+  drizzle-orm: ^0.45.2
+  drizzle-kit: ^0.31.10
+  pg: ^8.23.0
+  "@types/pg": ^8.11.10
+  uuid: ^14.0.2
+  zod: ^4.6.2
+  dotenv: ^17.4.2
+
+  # api
+  express: ^5.2.1
+  "@types/express": ^5.0.0
+
+  # web
+  next: ^16.3.4
+  react: ^19.3.0
+  react-dom: ^19.3.0
+  "@types/react": ^19.0.0
+  "@types/react-dom": ^19.0.0
+  tailwindcss: ^4.3.3
+  "@tailwindcss/postcss": ^4.3.3
+  motion: ^13.2.0
+  "@tanstack/react-query": ^5.102.8
+  axios: ^1.20.0
+  zustand: ^5.0.15
+  # shadcn/ui peers
+  cn: ^0.2.6
+  radix-ui: ^1.6.7
+  class-variance-authority: ^0.7.1
+  lucide-react: ^1.44.0
+
+minimumReleaseAgeExclude:
+  - '@biomejs/biome@2.5.13'
+  - '@biomejs/cli-darwin-arm64@2.5.13'
+  - '@biomejs/cli-darwin-x64@2.5.13'
+  - '@biomejs/cli-linux-arm64-musl@2.5.13'
+  - '@biomejs/cli-linux-arm64@2.5.13'
+  - '@biomejs/cli-linux-x64-musl@2.5.13'
+  - '@biomejs/cli-linux-x64@2.5.13'
+  - '@biomejs/cli-win32-arm64@2.5.13'
+  - '@biomejs/cli-win32-x64@2.5.13'
+  - zod@4.6.2
+
+# pnpm blocks package postinstall scripts by default (supply-chain protection).
+# Only packages that genuinely need to build a native binary are allowed through.
+onlyBuiltDependencies:
+  - esbuild
