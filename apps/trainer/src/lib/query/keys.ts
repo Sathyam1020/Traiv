@@ -13,4 +13,7 @@ export const queryKeys = {
   studios: {
     list: ["studios", "list"] as const,
   },
+  join: {
+    code: ["studio", "join-code"] as const,
+  },
 } as const;

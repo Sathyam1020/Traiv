@@ -42,6 +42,7 @@ catalog:
   "@tanstack/react-query": ^5.102.8
   axios: ^1.20.0
   zustand: ^5.0.15
+  qrcode.react: ^4.2.0
   # shadcn/ui peers
   cn: ^0.2.6
   radix-ui: ^1.6.7

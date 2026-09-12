@@ -47,7 +47,10 @@ page out of view. Whatever is meant to be read is visible as soon as the page lo
 These are the AI-slop patterns. Presence of any is a review failure, not a preference.
 
 - Gradients as decoration
-- Glassmorphism / backdrop blur used ornamentally
+- Glassmorphism / backdrop blur used ornamentally — **one documented exception**: the
+  mobile navigation bar, where the blur is functional. It floats over scrolling content
+  and the blur is what keeps its labels legible while letting the page show through.
+  Nothing else in the product gets this treatment; adding a second instance needs an ADR.
 - Cards nested inside cards
 - An icon next to every label
 - Emoji as section markers

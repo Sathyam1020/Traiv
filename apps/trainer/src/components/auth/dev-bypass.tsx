@@ -44,7 +44,7 @@ export function DevBypass() {
                 disabled={devLogin.isPending}
                 onClick={async () => {
                   await devLogin.mutateAsync(u.id);
-                  router.push("/today");
+                  router.push("/dashboard");
                 }}
                 className="flex w-full cursor-pointer items-center justify-between gap-3 px-4 py-2 text-left transition-colors hover:bg-hover disabled:opacity-60"
               >

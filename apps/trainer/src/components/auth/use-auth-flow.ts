@@ -82,7 +82,7 @@ export function useAuthFlow(mode: AuthMode) {
     try {
       const { user } = await verifyCode.mutateAsync({ phone, code });
       if (user.needsProfile) setStep("profile");
-      else router.push("/today");
+      else router.push("/dashboard");
     } catch (e) {
       fail(e);
     }
@@ -95,7 +95,7 @@ export function useAuthFlow(mode: AuthMode) {
         ...(email.trim() ? { email: email.trim() } : {}),
         ...(name.trim() ? { name: name.trim() } : {}),
       });
-      router.push("/today");
+      router.push("/dashboard");
     } catch (e) {
       fail(e);
     }
@@ -130,7 +130,7 @@ export function useAuthFlow(mode: AuthMode) {
     submitCode,
     submitProfile,
     backToIdentity,
-    skipProfile: () => router.push("/today"),
+    skipProfile: () => router.push("/dashboard"),
   };
 }
 
