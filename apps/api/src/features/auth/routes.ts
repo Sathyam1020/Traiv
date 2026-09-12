@@ -1,0 +1,158 @@
+import { schema } from "@traiv/db";
+import { desc, isNull } from "drizzle-orm";
+import { Router } from "express";
+import { z } from "zod";
+import { db } from "../../db.js";
+import { env } from "../../env.js";
+import { badRequest, forbidden } from "../../errors.js";
+import { otpChannels } from "../../integrations/otp/index.js";
+import { clearSessionCookie, readCookie, setSessionCookie } from "../../lib/cookies.js";
+import { newSessionToken } from "../../lib/crypto.js";
+import { requireSession } from "../../middleware/session.js";
+import { listStudios, resolveActiveStudio } from "../studio/service.js";
+import { authorizeUrl, completeGoogleLogin, googleEnabled } from "./google.js";
+import {
+  completeProfile,
+  devIssueSession,
+  getUser,
+  publicUser,
+  requestChallenge,
+  revokeSession,
+  verifyChallenge,
+} from "./service.js";
+
+export const auth: Router = Router();
+
+/** What the sign-in screen is allowed to offer. Keeps the UI from promising what isn't wired. */
+auth.get("/config", (_req, res) => {
+  res.json({ google: googleEnabled, otp: otpChannels });
+});
+
+/* ---- Google ---------------------------------------------------------------- */
+
+const OAUTH_STATE = "traiv_oauth_state";
+
+auth.get("/google/start", (_req, res) => {
+  if (!googleEnabled) throw badRequest("google_off", "Google sign-in isn't configured.");
+  const state = newSessionToken();
+  // Single-use, short-lived, httpOnly. Compared on return — this is the CSRF guard.
+  res.cookie(OAUTH_STATE, state, {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: env.NODE_ENV === "production",
+    maxAge: 10 * 60 * 1000,
+    path: "/",
+  });
+  res.redirect(authorizeUrl(state));
+});
+
+auth.get("/google/callback", async (req, res) => {
+  const query = z
+    .object({
+      code: z.string().optional(),
+      state: z.string().optional(),
+      error: z.string().optional(),
+    })
+    .parse(req.query);
+
+  const expected = readCookie(req, OAUTH_STATE);
+  res.clearCookie(OAUTH_STATE, { path: "/" });
+
+  const fail = (reason: string) => res.redirect(`${env.WEB_ORIGIN}/signin?error=${reason}`);
+
+  if (query.error || !query.code) return fail("google_cancelled");
+  if (!expected || expected !== query.state) return fail("google_state");
+
+  const result = await completeGoogleLogin(query.code, req.ip, req.get("user-agent"));
+
+  if (result.outcome === "needs_phone_to_link") return fail("google_link_phone");
+
+  setSessionCookie(res, result.session.token, result.session.expiresAt);
+  res.redirect(`${env.WEB_ORIGIN}/today`);
+});
+
+const phone = z.string().regex(/^[6-9]\d{9}$/, "Enter a valid Indian mobile number.");
+
+auth.post("/challenge", async (req, res) => {
+  const body = z.object({ phone, name: z.string().max(120).optional() }).parse(req.body);
+  const { transport } = await requestChallenge({
+    phone: body.phone,
+    name: body.name,
+    ip: req.ip,
+  });
+  // Never reveals whether the number is already registered.
+  res.json({ sent: true, transport });
+});
+
+auth.post("/verify", async (req, res) => {
+  const body = z.object({ phone, code: z.string().regex(/^\d{6}$/) }).parse(req.body);
+  const { user, session, isNew } = await verifyChallenge({
+    phone: body.phone,
+    code: body.code,
+    ip: req.ip,
+    userAgent: req.get("user-agent"),
+  });
+  setSessionCookie(res, session.token, session.expiresAt);
+  res.json({ user: publicUser(user), isNew });
+});
+
+auth.post("/profile", async (req, res) => {
+  const { userId } = requireSession(req);
+  const body = z
+    .object({ email: z.string().email().optional(), name: z.string().min(1).max(120).optional() })
+    .parse(req.body);
+  const user = await completeProfile(userId, body);
+  res.json({ user: publicUser(user) });
+});
+
+auth.get("/me", async (req, res) => {
+  const { userId, activeStudioId } = requireSession(req);
+  const [user, studios] = await Promise.all([getUser(userId), listStudios(userId)]);
+  res.json({
+    user: publicUser(user),
+    studios,
+    activeStudioId: await resolveActiveStudio(userId, activeStudioId),
+  });
+});
+
+auth.post("/logout", async (req, res) => {
+  if (req.auth) await revokeSession(req.auth.sessionId);
+  clearSessionCookie(res);
+  res.json({ ok: true });
+});
+
+/* ---------------------------------------------------------------------------
+   Development only.
+   Guarded here as well as by the boot assertion in env.ts — two independent
+   checks, because shipping this by accident disables authentication entirely.
+   --------------------------------------------------------------------------- */
+
+function assertDev() {
+  if (env.NODE_ENV === "production" || !env.AUTH_DEV_BYPASS) {
+    throw forbidden("Not available.");
+  }
+}
+
+auth.get("/dev/users", async (_req, res) => {
+  assertDev();
+  const users = await db
+    .select({
+      id: schema.users.id,
+      name: schema.users.name,
+      phone: schema.users.phone,
+      email: schema.users.email,
+    })
+    .from(schema.users)
+    .where(isNull(schema.users.deletedAt))
+    .orderBy(desc(schema.users.createdAt))
+    .limit(12);
+  res.json({ users });
+});
+
+auth.post("/dev/login", async (req, res) => {
+  assertDev();
+  const { userId } = z.object({ userId: z.string().min(1) }).parse(req.body);
+  const session = await devIssueSession(userId);
+  setSessionCookie(res, session.token, session.expiresAt);
+  res.json({ user: publicUser(await getUser(userId)) });
+});
