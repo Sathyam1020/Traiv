@@ -1,9 +1,9 @@
 import { schema } from "@traiv/db";
-import { and, eq, isNull } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { Router } from "express";
 import { z } from "zod";
 import { db } from "../../db.js";
-import { forbidden } from "../../errors.js";
+import { requireStudio, requireStudioAuth } from "../../middleware/authorize.js";
 import { requireSession } from "../../middleware/session.js";
 import { joinByCode, previewJoin, rotateJoinCode, setJoinEnabled } from "./join.js";
 
@@ -27,26 +27,8 @@ join.post("/:code", async (req, res) => {
 
 export const studioJoin: Router = Router();
 
-async function requireOwnedStudio(userId: string, studioId: string | null) {
-  if (!studioId) throw forbidden("No active studio.");
-  const [m] = await db
-    .select({ id: schema.memberships.id })
-    .from(schema.memberships)
-    .where(
-      and(
-        eq(schema.memberships.studioId, studioId),
-        eq(schema.memberships.userId, userId),
-        isNull(schema.memberships.deletedAt),
-      ),
-    )
-    .limit(1);
-  if (!m) throw forbidden("You're not a member of that studio.");
-  return studioId;
-}
-
-studioJoin.get("/join-code", async (req, res) => {
-  const { userId, activeStudioId } = requireSession(req);
-  const studioId = await requireOwnedStudio(userId, activeStudioId);
+studioJoin.get("/join-code", requireStudio(), async (req, res) => {
+  const { studioId } = requireStudioAuth(req);
   const [studio] = await db
     .select({
       joinCode: schema.studios.joinCode,
@@ -59,15 +41,15 @@ studioJoin.get("/join-code", async (req, res) => {
   res.json(studio);
 });
 
-studioJoin.post("/join-code/rotate", async (req, res) => {
-  const { userId, activeStudioId } = requireSession(req);
-  const studioId = await requireOwnedStudio(userId, activeStudioId);
+// Owner only: rotating invalidates every QR and link the studio has already handed out.
+studioJoin.post("/join-code/rotate", requireStudio({ role: "owner" }), async (req, res) => {
+  const { studioId } = requireStudioAuth(req);
   res.json({ joinCode: await rotateJoinCode(studioId) });
 });
 
-studioJoin.patch("/join-code", async (req, res) => {
-  const { userId, activeStudioId } = requireSession(req);
-  const studioId = await requireOwnedStudio(userId, activeStudioId);
+// Owner only: closing the door to new clients is a studio-administration decision.
+studioJoin.patch("/join-code", requireStudio({ role: "owner" }), async (req, res) => {
+  const { studioId } = requireStudioAuth(req);
   const { enabled } = z.object({ enabled: z.boolean() }).parse(req.body);
   await setJoinEnabled(studioId, enabled);
   res.json({ joinEnabled: enabled });

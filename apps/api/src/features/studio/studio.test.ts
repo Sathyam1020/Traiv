@@ -2,6 +2,7 @@ import { newId, schema } from "@traiv/db";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../db.js";
+import { authorizeStudio } from "../../middleware/authorize.js";
 import { requestChallenge, toE164, verifyChallenge } from "../auth/service.js";
 import { activateStudio, listStudios, resolveActiveStudio, studioSlug } from "./service.js";
 
@@ -172,9 +173,12 @@ describe("multiple studios", () => {
       .where(eq(schema.sessions.userId, outsider.user.id))
       .limit(1);
 
-    await expect(
-      activateStudio(outsider.user.id, session?.id ?? "", ownerStudio.id),
-    ).rejects.toMatchObject({ status: 403 });
+    // The membership check moved to requireStudio, so it is asserted against the
+    // authorization layer itself. The HTTP-boundary version lives in authz.test.ts.
+    void session;
+    await expect(authorizeStudio(outsider.user.id, ownerStudio.id)).rejects.toMatchObject({
+      status: 403,
+    });
   });
 
   it("persists the switch onto the session", async () => {
@@ -199,7 +203,7 @@ describe("multiple studios", () => {
     const [own] = (await listStudios(invitee.user.id)).filter((s) => s.role === "owner");
     if (!session || !own) throw new Error("setup failed");
 
-    await activateStudio(invitee.user.id, session.id, own.id);
+    await activateStudio(session.id, own.id);
 
     const [after] = await db
       .select()

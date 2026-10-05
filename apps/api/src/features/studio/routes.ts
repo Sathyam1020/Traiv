@@ -1,19 +1,26 @@
 import { Router } from "express";
-import { z } from "zod";
+import { requireStudio, requireStudioAuth } from "../../middleware/authorize.js";
 import { requireSession } from "../../middleware/session.js";
-import { activateStudio, listStudios, resolveActiveStudio } from "./service.js";
+import { activateStudio, listStudios, preferredStudio } from "./service.js";
 
 export const studios: Router = Router();
 
+/**
+ * Not studio-scoped — it lists the memberships the caller has, so it is the one place
+ * that legitimately reads across studios. The active studio is derived from that same
+ * list rather than re-queried, and a session naming a studio no longer in it simply
+ * does not win.
+ */
 studios.get("/", async (req, res) => {
-  const { userId, sessionId: _s, activeStudioId } = requireSession(req);
+  const { userId, activeStudioId } = requireSession(req);
   const mine = await listStudios(userId);
-  res.json({ studios: mine, activeStudioId: await resolveActiveStudio(userId, activeStudioId) });
+  const active = mine.some((s) => s.id === activeStudioId) ? activeStudioId : preferredStudio(mine);
+  res.json({ studios: mine, activeStudioId: active });
 });
 
-studios.post("/:id/activate", async (req, res) => {
-  const { userId, sessionId } = requireSession(req);
-  const { id } = z.object({ id: z.string().min(1) }).parse(req.params);
-  const studio = await activateStudio(userId, sessionId, id);
-  res.json({ studio });
+/** Switching is an authorization decision, so it goes through the same gate as any other. */
+studios.post("/:id/activate", requireStudio({ param: "id" }), async (req, res) => {
+  const { sessionId } = requireSession(req);
+  const { studioId } = requireStudioAuth(req);
+  res.json({ studio: await activateStudio(sessionId, studioId) });
 });

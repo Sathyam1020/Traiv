@@ -2,7 +2,7 @@ import { randomInt } from "node:crypto";
 import { newId, schema } from "@traiv/db";
 import { and, asc, eq, isNull } from "drizzle-orm";
 import { db } from "../../db.js";
-import { forbidden, notFound } from "../../errors.js";
+import { notFound } from "../../errors.js";
 import { newJoinCode } from "../client/join.js";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0] | typeof db;
@@ -83,18 +83,27 @@ export async function listStudios(userId: string, tx: Tx = db) {
     .orderBy(asc(schema.studios.createdAt));
 }
 
-/** Switching studios is a membership check, not a preference — verify before setting. */
-export async function activateStudio(userId: string, sessionId: string, studioId: string) {
-  const mine = await listStudios(userId);
-  const target = mine.find((s) => s.id === studioId);
-  if (!target) throw forbidden("You're not a member of that studio.");
-
+/**
+ * Records the switch. Membership was verified by `requireStudio` before this runs —
+ * this must not be called on a studio that has not been through that gate.
+ */
+export async function activateStudio(sessionId: string, studioId: string) {
   await db
     .update(schema.sessions)
     .set({ activeStudioId: studioId })
     .where(eq(schema.sessions.id, sessionId));
 
-  return target;
+  const [studio] = await db
+    .select({
+      id: schema.studios.id,
+      slug: schema.studios.slug,
+      name: schema.studios.name,
+      tier: schema.studios.tier,
+    })
+    .from(schema.studios)
+    .where(eq(schema.studios.id, studioId))
+    .limit(1);
+  return studio;
 }
 
 /**
@@ -106,11 +115,11 @@ export async function activateStudio(userId: string, sessionId: string, studioId
  */
 export async function resolveActiveStudio(userId: string, current?: string | null, tx: Tx = db) {
   const mine = await listStudios(userId, tx);
-  if (!mine.length) throw notFound("No studio for this account.");
-
   if (current && mine.some((s) => s.id === current)) return current;
 
-  return preferredStudio(mine);
+  const picked = preferredStudio(mine);
+  if (!picked) throw notFound("No studio for this account.");
+  return picked;
 }
 
 /**
@@ -119,12 +128,12 @@ export async function resolveActiveStudio(userId: string, current?: string | nul
  * never a membership. Callers issuing a session use this; it must not refuse a client.
  */
 export async function defaultStudioFor(userId: string, tx: Tx = db) {
-  const mine = await listStudios(userId, tx);
-  return mine.length ? preferredStudio(mine) : null;
+  return preferredStudio(await listStudios(userId, tx));
 }
 
-function preferredStudio(mine: Awaited<ReturnType<typeof listStudios>>) {
+/** Null when the user belongs to no studio — a client, who never has a membership. */
+export function preferredStudio(mine: Awaited<ReturnType<typeof listStudios>>): string | null {
   const invited = mine.find((s) => s.role === "coach");
   const own = mine.find((s) => s.role === "owner");
-  return (invited ?? own ?? mine[0])?.id as string;
+  return (invited ?? own ?? mine[0])?.id ?? null;
 }
