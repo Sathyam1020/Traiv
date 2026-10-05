@@ -1,5 +1,6 @@
 "use client";
 
+import { Logo } from "@traiv/ui/components/logo";
 import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { DevBypass } from "@/components/auth/dev-bypass";
@@ -24,7 +25,10 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 
   return (
     <div className="flex w-full max-w-[25rem] flex-col gap-5">
-      <span className="text-center text-hero-sm font-semibold tracking-[-0.035em]">Traiv</span>
+      <div className="flex flex-col items-center gap-3">
+        <Logo size={44} />
+        <span className="text-hero-sm font-semibold tracking-[-0.035em]">Traiv</span>
+      </div>
 
       <div className="rounded-surface bg-surface p-6 shadow-sm sm:p-7">
         <AnimatePresence mode="wait" initial={false}>

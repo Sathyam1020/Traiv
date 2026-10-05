@@ -1,5 +1,6 @@
 "use client";
 
+import { Wordmark } from "@traiv/ui/components/logo";
 import { LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -21,7 +22,7 @@ export function Sidebar() {
   return (
     <aside className="fixed inset-y-4 left-4 z-30 hidden w-60 flex-col rounded-panel border border-line bg-surface p-3 shadow-sm lg:flex">
       <div className="flex items-center justify-between px-2 py-2">
-        <span className="text-subheading font-semibold tracking-[-0.02em]">Traiv</span>
+        <Wordmark size={24} />
         <ThemeToggle />
       </div>
 

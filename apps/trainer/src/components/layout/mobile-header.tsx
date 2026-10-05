@@ -1,4 +1,5 @@
 "use client";
+import { Logo } from "@traiv/ui/components/logo";
 
 import { LogOut } from "lucide-react";
 import { Avatar } from "@/components/common/avatar";
@@ -14,7 +15,7 @@ export function MobileHeader() {
   return (
     <header className="flex h-14 items-center justify-between gap-3 px-4 sm:px-6 lg:hidden">
       <div className="flex min-w-0 items-center gap-2.5">
-        <span className="text-subheading font-semibold tracking-[-0.02em]">Traiv</span>
+        <Logo size={26} className="shrink-0" />
         <StudioSwitcher />
       </div>
       <div className="flex items-center gap-1">

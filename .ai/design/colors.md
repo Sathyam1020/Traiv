@@ -124,3 +124,31 @@ contrast.fg          #FFFFFF            #FFFFFF
    `text.tertiary` is for non-essential text only.
 8. **Coach branding overrides `brand` only** — never text, surface or border, so a bad
    brand colour cannot make the client app unreadable.
+
+## The mark
+
+`packages/ui/src/components/logo.tsx` — a T with downward tabs inside a rounded square,
+built from four rounded rectangles on one radius over a 24-unit grid. No curves, so it
+does not degrade at 16px where the favicon lives.
+
+```
+container  24x24, rx 5.4
+crossbar   x 5.6  y 7   w 12.8  h 2.8   rx 1.4
+tabs       x 5.6 / 15.6  y 7   w 2.8   h 5.4   rx 1.4
+stem       x 10.6  y 7   w 2.8   h 10    rx 1.4
+```
+
+7 units of margin above and below the glyph, so it is optically centred rather than
+mathematically centred.
+
+Both colours are props, not tokens. The mark has to sit on a light surface, on
+`bg-contrast`, and inside an OS app icon, and in the last case there is no theme to
+follow — a mark whose palette moved with the theme would be the wrong colour exactly
+where it is least fixable.
+
+Stored as: `app/icon.svg` (Next turns this into the favicon), `packages/ui/src/assets/`
+(`logo.svg` with the container, `logo-glyph.svg` as `currentColor` with none), and
+`apps/trainer/public/logo.svg` for anything needing a URL.
+
+`<Wordmark />` pairs the mark with the name as live text in Inter — never as paths, so it
+stays selectable and does not ship a second copy of the typeface.
