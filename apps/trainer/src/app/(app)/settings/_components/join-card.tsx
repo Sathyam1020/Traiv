@@ -18,19 +18,38 @@ const CLIENT_APP = process.env.NEXT_PUBLIC_CLIENT_URL ?? "http://localhost:3001"
  * to every QR already printed, so it says so.
  */
 export function JoinCard() {
-  const { data, isPending } = useJoinCode();
+  const { data, isPending, isError, isFetching, refetch } = useJoinCode();
   const rotate = useRotateJoinCode();
   const setEnabled = useSetJoinEnabled();
   const [copied, setCopied] = useState(false);
   const [confirmRotate, setConfirmRotate] = useState(false);
 
-  if (isPending || !data) {
+  if (isPending) {
     return (
       <div className="flex flex-col gap-4 rounded-surface border border-line bg-surface p-5">
         <Skeleton className="h-4 w-40" />
         <Skeleton className="size-44" />
         <Skeleton className="h-10 w-full" />
       </div>
+    );
+  }
+
+  // Without this the card sat on its skeletons forever whenever the request failed,
+  // which is exactly how a dead endpoint went unnoticed. A failure has to be visible
+  // and recoverable, never an animation that never ends.
+  if (isError || !data) {
+    return (
+      <section className="flex flex-col items-start gap-3 rounded-surface border border-line bg-surface p-5 sm:p-6">
+        <div className="flex flex-col gap-1">
+          <h2 className="text-subheading font-semibold">Add a client</h2>
+          <p className="text-body-sm text-fg-muted">
+            We couldn&apos;t load your code. Check your connection and try again.
+          </p>
+        </div>
+        <Button variant="outline" size="sm" disabled={isFetching} onClick={() => void refetch()}>
+          {isFetching ? "Retrying…" : "Try again"}
+        </Button>
+      </section>
     );
   }
 
