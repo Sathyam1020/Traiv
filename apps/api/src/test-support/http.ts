@@ -33,6 +33,8 @@ function closeServer(server: Server): Promise<void> {
 export type Reply = {
   status: number;
   body: Record<string, unknown>;
+  /** Set on a redirect — OAuth reports failure by where it sends you, not by status. */
+  location: string | null;
 };
 
 /**
@@ -40,25 +42,37 @@ export type Reply = {
  * as it would in the app rather than being re-derived per request.
  */
 export class Agent {
-  private cookie: string | null = null;
+  /** Every cookie, not just the session — OAuth's CSRF guard rides on its own. */
+  private readonly jar = new Map<string, string>();
 
   constructor(private readonly base: string) {}
 
   get sessionCookie(): string | null {
-    return this.cookie;
+    const v = this.jar.get("traiv_session");
+    return v ? `traiv_session=${v}` : null;
   }
 
-  /** Drop the cookie without touching the server — an anonymous caller. */
+  /** Plant a cookie the server would normally have set — used to forge OAuth state. */
+  setCookie(name: string, value: string) {
+    this.jar.set(name, value);
+  }
+
+  cookie(name: string): string | undefined {
+    return this.jar.get(name);
+  }
+
+  /** Drop every cookie without touching the server — an anonymous caller. */
   forget() {
-    this.cookie = null;
+    this.jar.clear();
   }
 
   async request(method: string, path: string, body?: unknown): Promise<Reply> {
+    const cookies = [...this.jar].map(([k, v]) => `${k}=${v}`).join("; ");
     const res = await fetch(`${this.base}${path}`, {
       method,
       headers: {
         ...(body === undefined ? {} : { "content-type": "application/json" }),
-        ...(this.cookie ? { cookie: this.cookie } : {}),
+        ...(cookies ? { cookie: cookies } : {}),
       },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       redirect: "manual",
@@ -66,10 +80,13 @@ export class Agent {
 
     for (const raw of res.headers.getSetCookie()) {
       const [pair] = raw.split(";");
-      if (pair?.startsWith("traiv_session=")) {
-        const value = pair.slice("traiv_session=".length);
-        this.cookie = value ? pair : null;
-      }
+      const eq = pair?.indexOf("=") ?? -1;
+      if (!pair || eq < 1) continue;
+      const name = pair.slice(0, eq);
+      const value = pair.slice(eq + 1);
+      // An empty value is the server clearing it.
+      if (value) this.jar.set(name, value);
+      else this.jar.delete(name);
     }
 
     const text = await res.text();
@@ -81,7 +98,7 @@ export class Agent {
         parsed = { raw: text };
       }
     }
-    return { status: res.status, body: parsed };
+    return { status: res.status, body: parsed, location: res.headers.get("location") };
   }
 
   get(path: string) {
