@@ -49,18 +49,18 @@ export function AuthAside() {
   if (!q) return null;
 
   return (
-    <aside className="hidden flex-col justify-between rounded-panel bg-brand p-10 lg:flex xl:p-14">
+    <aside className="hidden flex-col justify-between rounded-panel bg-contrast p-10 lg:flex xl:p-14">
       <div />
 
       <div className="flex flex-col gap-10">
         <div className="flex flex-wrap gap-x-12 gap-y-5">
           {stats.map((s) => (
             <div key={s.label} className="flex flex-col gap-0.5">
-              <span className="flex items-center gap-1.5 text-heading font-semibold text-brand-fg tabular-nums tracking-[-0.02em]">
-                {s.star ? <Star className="size-5 fill-brand-fg text-brand-fg" /> : null}
+              <span className="flex items-center gap-1.5 text-heading font-semibold text-contrast-fg tabular-nums tracking-[-0.02em]">
+                {s.star ? <Star className="size-5 fill-contrast-fg text-contrast-fg" /> : null}
                 {s.value}
               </span>
-              <span className="text-body-sm text-brand-fg/70">{s.label}</span>
+              <span className="text-body-sm text-contrast-fg/70">{s.label}</span>
             </div>
           ))}
         </div>
@@ -69,7 +69,7 @@ export function AuthAside() {
           <div className="flex gap-1" aria-label="Five out of five">
             {Array.from({ length: 5 }, (_, n) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: fixed rating icons
-              <Star key={n} className="size-4 fill-brand-fg text-brand-fg" />
+              <Star key={n} className="size-4 fill-contrast-fg text-contrast-fg" />
             ))}
           </div>
 
@@ -82,17 +82,19 @@ export function AuthAside() {
               transition={{ duration: 0.32, ease }}
               className="flex flex-col gap-4"
             >
-              <p className="text-subheading font-semibold text-brand-fg tracking-[-0.015em]">
+              <p className="text-subheading font-semibold text-contrast-fg tracking-[-0.015em]">
                 {q.title}
               </p>
-              <p className="max-w-[46ch] text-body-sm leading-relaxed text-brand-fg/75">{q.body}</p>
+              <p className="max-w-[46ch] text-body-sm leading-relaxed text-contrast-fg/75">
+                {q.body}
+              </p>
               <figcaption className="flex items-center gap-3 pt-1">
-                <span className="flex size-10 items-center justify-center rounded-full bg-brand-fg/10 text-caption font-semibold text-brand-fg">
+                <span className="flex size-10 items-center justify-center rounded-full bg-contrast-fg/10 text-caption font-semibold text-contrast-fg">
                   {q.initials}
                 </span>
                 <div className="flex flex-col">
-                  <span className="text-body-sm font-semibold text-brand-fg">{q.name}</span>
-                  <span className="text-caption text-brand-fg/70">{q.role}</span>
+                  <span className="text-body-sm font-semibold text-contrast-fg">{q.name}</span>
+                  <span className="text-caption text-contrast-fg/70">{q.role}</span>
                 </div>
               </figcaption>
             </motion.figure>
@@ -107,7 +109,7 @@ export function AuthAside() {
                 aria-label={`Show quote ${n + 1}`}
                 aria-current={n === i}
                 className={`h-1.5 cursor-pointer rounded-full transition-all duration-300 ${
-                  n === i ? "w-6 bg-brand-fg" : "w-1.5 bg-brand-fg/30 hover:bg-brand-fg/50"
+                  n === i ? "w-6 bg-contrast-fg" : "w-1.5 bg-contrast-fg/30 hover:bg-contrast-fg/50"
                 }`}
               />
             ))}
@@ -115,7 +117,7 @@ export function AuthAside() {
         </div>
       </div>
 
-      <p className="text-caption text-brand-fg/60">© 2026 Traiv. All rights reserved.</p>
+      <p className="text-caption text-contrast-fg/60">© 2026 Traiv. All rights reserved.</p>
     </aside>
   );
 }

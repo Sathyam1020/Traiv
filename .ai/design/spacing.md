@@ -29,12 +29,14 @@ Semantic aliases: `space.gutter` = 16px mobile / 24px desktop · `space.stack` =
 ```
 radius.none     0
 radius.control  8px     ← buttons, inputs, menu items. The default.
-radius.surface  16px    ← cards, dialogs, popovers
-radius.panel    24px    ← full-height inset panels only
+radius.surface  12px    ← cards, dialogs, popovers
+radius.panel    16px    ← full-height inset panels and hero surfaces only
 radius.full     9999px  ← avatars, and the mobile tab bar. Not "pills" as decoration.
 ```
 
-Nothing is more rounded than `radius.surface` except an avatar and the mobile tab bar.
+cal.com's ladder exactly: 8 for controls, 12 for content cards, 16 for the largest
+surfaces. Nothing is more rounded than `radius.panel` except an avatar and the mobile
+tab bar.
 Radius still carries meaning — it marks a separate object — so it is spent by role, not
 stamped on everything.
 
@@ -56,9 +58,9 @@ in a list is not floating.
 
 ```
 elevation.0   none                                       ← default for everything
-elevation.1   0 1px 2px rgba(15,15,15,.06)               ← hover lift on a draggable
-elevation.2   0 4px 12px rgba(15,15,15,.10)              ← dropdown, popover
-elevation.3   0 12px 32px rgba(15,15,15,.14)             ← dialog, sheet
+elevation.1   0 1px 2px rgba(17,17,17,.05)               ← hover lift on a draggable
+elevation.2   0 4px 12px rgba(17,17,17,.08)              ← dropdown, popover
+elevation.3   0 12px 32px rgba(17,17,17,.12)             ← dialog, sheet
 ```
 
 Dark mode uses the same geometry with a lighter border instead of a stronger shadow —

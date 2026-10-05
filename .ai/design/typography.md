@@ -2,14 +2,23 @@
 
 ## The stack
 
-Notion's UI font is the **system stack**, which is why it feels native everywhere and
-loads instantly. We match it exactly. No webfont for UI. No exceptions.
+**Inter**, which is cal.com's UI face (ADR 0015). Self-hosted by `next/font` at build
+time, so there is no runtime request to Google and no swap flash. Weights 400/500/600
+only — the system stack sits behind it so a failed load degrades to the OS font rather
+than to Times.
 
 ```css
---font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
-             "Apple Color Emoji", Arial, sans-serif;
+--font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI",
+             Helvetica, "Apple Color Emoji", Arial, sans-serif;
 --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 ```
+
+Each app sets `--font-inter` on `<html>` from `next/font/google`. An app that forgets it
+still renders correctly on the fallback.
+
+**Display face:** cal.com pairs Inter with Cal Sans, their own brand typeface. We do not
+ship another product's brand font — the tracking below is the substitute, and it is what
+actually produces the look.
 
 **Serif:** Notion's is Lyon Text, licensed from Commercial Type — not free. We do not
 ship a serif until there's a real need. If one arises, the options are licensing Lyon or
@@ -17,7 +26,8 @@ using Source Serif 4 / Newsreader from Google Fonts. **TBD — not needed yet.**
 
 ## Scale
 
-Restrained on purpose. Notion has very few sizes and it's why it reads as calm. Huge
+Restrained on purpose. cal.com and Notion both use very few sizes and it is why they
+read as calm. Huge
 headings are a listed slop pattern — the largest thing on a product screen is 24px.
 
 ```
@@ -56,3 +66,17 @@ signed-in screen never does. Using `text-hero` inside the app is a review failur
 6. **Tabular numerals wherever digits align** — tables, set logs, weights, money.
    `font-variant-numeric: tabular-nums`.
 7. **Never centre body text.** Centring is for a single short empty-state line, nothing else.
+
+## Tracking
+
+Display sizes carry negative tracking. This is what reads as Cal Sans without shipping it:
+
+```
+text-heading   -0.02em
+text-display   -0.03em
+text-hero      -0.04em
+text-hero-sm   -0.04em
+```
+
+Body and below take no tracking adjustment. It is set on the type token in `globals.css`,
+never per component.

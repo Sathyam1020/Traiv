@@ -4,134 +4,123 @@
 > without the other is how a design system rots. If you touch a value, touch both in the
 > same commit.
 
-## The rule that keeps it from going beige
+## The rule that holds this palette together
 
-**Surfaces and borders are neutral. Only the text greys carry warmth.**
+**There is no brand colour. The primary action is near-black.**
 
-Notion's near-black `#37352F` is genuinely warm, and that warmth is the signature — it is
-why the product reads calm instead of harsh. But if the page background, the wells and the
-borders are *also* warm, every surface compounds and the whole screen reads beige-orange.
+This is a cal.com-style system (ADR 0015), and the defining choice is the absence of a
+hue. Hierarchy comes from type weight, hairline borders and whitespace — not from colour.
+A single near-black fill carries every primary action, and nothing else on the screen
+competes with it.
 
-So: the page is pure white, surface greys are true neutral, borders are neutral black at
-low opacity, and `#37352F` appears on text only.
+So when something needs emphasis, the answer is weight, size or space. It is never a new
+colour. Adding one is what makes a product look like a template.
 
 ## Tier 1 — primitives
 
-Warm and paper-like. Ink is olive-tinged rather than neutral black — that is what makes
-the surface feel like paper rather than a screen.
+A pure neutral ramp. No warmth anywhere, including the ink — `#111111`, not a tinted
+near-black.
 
 ```
---paper             #F6F5F0   page
---white             #FFFFFF   cards
---sand-50           #F5F2EA   wells, footers, sidebars
---sand-100          #ECEADD
---line-warm         #DEDFD5   default border
---line-warm-strong  #CBCDC0   inputs, dividers that must read
---stone-400         #9A9D93   tertiary text
---muted             #676B61   secondary text
---ink               #252720   PRIMARY TEXT — olive near-black, never pure #000
-
---forest            #294B3E   links, focus, selected
---forest-600        #325A4A
---forest-tint       #E6EED9
-
---yellow            #F6CE69   THE ACTION COLOUR — primary buttons
---yellow-hover      #F3C24C
---yellow-tint       #FFF6D9
-
---peach             #F4D6BD
---lavender          #E8E3F1
+--white     #FFFFFF   page and cards
+--grey-25   #F8F9FA   wells, sunken areas
+--grey-50   #F5F5F5   content cards, selected rows
+--grey-100  #F3F4F6   softest hairline
+--grey-200  #E5E7EB   default border
+--grey-400  #898989   tertiary text
+--grey-500  #6B7280   secondary text
+--grey-700  #374151   body text on dark-on-light blocks
+--ink       #111111   PRIMARY TEXT and THE ACTION FILL
+--ink-raised #242424  action hover
 
 dark
---dark-bg      #1B1A18     --dark-surface #302E2B    --dark-raised #3A3733
---dark-line    #48443E     --dark-muted   #BDB8AF    --dark-text   #F3F0EA
+--dark-bg     #0B0B0B   --dark-surface #101010   --dark-raised #1A1A1A
+--dark-line   #262626   --dark-line-strong #333333
+--dark-subtle #71717A   --dark-muted #A1A1AA     --dark-text #FAFAFA
 
---red-500   #C0503C    --amber-500 #A97A2C    --green-500 #3F7A52
+--red-500 #EF4444   --amber-500 #F59E0B   --green-500 #10B981
+--red-50  #FEF2F2   --amber-50  #FFFBEB   --green-50  #ECFDF5
 ```
 
-## Two naming rules you must not break
+Each semantic tint is the 50-step of its own family, so the pair stays in key.
 
-**1. Our brand colour lives under `brand-*`, never `accent-*`.**
+## Three naming rules you must not break
 
-shadcn/ui owns `--color-accent` and uses it to mean *hover fill* — a translucent black.
-Our bridge maps it that way, and because the bridge is declared later in `globals.css`,
-it silently wins over anything we put under the same name. Writing `bg-accent` expecting
-the brand yellow gets you a grey hover tint instead, with no error.
+**1. Our action colour lives under `brand-*`, never `accent-*`.**
 
-```
-bg-brand          the yellow fill        bg-accent   shadcn hover fill — not ours
-text-brand-text   forest, for links      text-accent-foreground   shadcn's
-bg-brand-subtle   the pale tint
-text-brand-fg     ink, for text on yellow
-```
-
-**2. A surface that doesn't change with the theme needs text that doesn't either.**
-
-The brand yellow is the same `#F6CE69` in light and dark — it is the action colour in both.
-But `--fg` flips from ink to near-white. So putting `text-fg` on a yellow surface gives you
-dark text in light mode and unreadable pale text in dark mode.
-
-Anything sitting on `bg-brand` uses `text-brand-fg` (ink, both themes) and its opacity
-variants — never `text-fg` or `text-fg-muted`. The same applies to any future surface
-painted in a fixed colour.
+shadcn/ui owns `--color-accent` and uses it to mean *hover fill*. Our bridge maps it that
+way, and because the bridge is declared later in `globals.css` it silently wins. Writing
+`bg-accent` expecting the action colour gets you a grey hover tint, with no error.
 
 ```
-bg-brand + text-brand-fg        ✅ readable in both themes
-bg-brand + text-fg              ❌ white on yellow in dark mode
-bg-brand + text-fg-muted        ❌ also fails contrast in light mode (3.4:1)
+bg-brand          the near-black fill      bg-accent   shadcn hover fill — not ours
+text-brand-fg     white, on that fill      text-accent-foreground   shadcn's
+text-brand-text   ink, for links
+bg-brand-subtle   grey-50
 ```
 
-## The other unusual thing in this palette
+**2. The action colour inverts between themes. A decorative dark panel must not use it.**
 
-**The action colour and the interactive-text colour are different.**
+`--accent` is ink on light and **white on dark**, so the primary button keeps its weight
+in both themes. That makes it wrong for anything meant to stay dark: painting the auth
+aside with `bg-brand` gives you a black panel in light mode and a glaring white slab in
+dark.
 
-`--accent` is yellow and carries no text contrast, so it is only ever a *fill*: primary
-buttons, with `--fg-on-accent` (ink) on top. Anything that is interactive *as text* —
-links, selected items, focus rings — uses `--accent-text` (forest).
+Use `bg-contrast` + `text-contrast-fg` for a surface that is dark in both themes. It has
+its own fixed foreground for exactly this reason.
 
-Yellow text on cream fails contrast at every size. If you find yourself writing
-`text-brand`, you want `text-brand-text`.
+```
+bg-contrast + text-contrast-fg   ✅ dark panel, readable in both themes
+bg-brand    + text-brand-fg      ✅ the primary action, inverts as a pair
+bg-contrast + text-fg            ❌ dark-on-dark in light mode
+bg-brand    + text-fg            ❌ breaks the moment the theme flips
+```
 
-And on a yellow ground, `--fg-muted` (`#676B61`) only reaches about 3.4:1. Use ink at
-70–75% opacity for secondary text on the brand panel instead.
+**3. A surface that doesn't follow the theme needs text that doesn't either.**
+
+The general form of rule 2. Any fixed-colour surface pairs with its own fixed foreground
+token, never with `text-fg` or `text-fg-muted`.
 
 ## Tier 2 — semantic
 
 ```
                      LIGHT              DARK
-color.bg.page        paper              dark-bg
+color.bg.page        white              dark-bg
 color.bg.surface     white              dark-surface
-color.bg.sunken      sand-50            dark-raised
-color.bg.hover       rgb(37 39 32/.045) rgb(255 255 255/.055)
-color.bg.selected    forest-tint        rgb(41 75 62/.5)
+color.bg.sunken      grey-25            dark-raised
+color.bg.hover       rgb(17 17 17/.04)  rgb(255 255 255/.06)
+color.bg.selected    grey-50            dark-raised
 
 color.text.primary   ink                dark-text
-color.text.secondary muted              dark-muted
-color.text.tertiary  stone-400          #8A857C
+color.text.secondary grey-500           dark-muted
+color.text.tertiary  grey-400           dark-subtle
 
-color.border.subtle  line-warm          dark-line
-color.border.strong  line-warm-strong   #5A554D
-color.border.focus   forest             yellow
+color.border.subtle  grey-200           dark-line
+color.border.strong  #D4D7DC            dark-line-strong
+color.border.focus   ink                dark-text
 
-brand                yellow             yellow
-brand.hover          yellow-hover       yellow-hover
-brand.subtle         yellow-tint        rgb(246 206 106/.16)
-brand.fg             ink                ink
-brand.text           forest             #9FC3A8
+brand                ink                dark-text      ← inverts
+brand.hover          ink-raised         white
+brand.subtle         grey-50            dark-raised
+brand.fg             white              ink            ← inverts with it
+brand.text           ink                dark-text
+
+contrast             #101010            #1A1A1A        ← does NOT invert
+contrast.fg          #FFFFFF            #FFFFFF
 ```
 
 ## Rules
 
-1. **The page is warm paper** (`#F6F5F0`); cards are white on top of it. That contrast is what gives the layout depth without shadows.
-2. **Borders are nearly invisible** — 8% neutral black. If a border is clearly visible, ask
-   whether it should exist. Separation usually comes from space, not lines.
+1. **The page is pure white**, and cards are white on white separated by hairlines. Depth
+   comes from borders and space, not from a tinted page.
+2. **Borders are nearly invisible** — `#E5E7EB`. If a border reads clearly, ask whether it
+   should exist. Separation usually comes from space.
 3. **Hover is a faint fill, never an outline.**
-4. **Colour means something or it isn't there.** Yellow = the primary action. Forest =
-   interactive text, focus, selected. Red, amber and green = state. Nothing is coloured
-   for decoration.
-5. **Semantic colour is not the accent.** Success green is not a brand colour.
-6. **Never put text in `--brand`.** It is a fill colour only. Use `--brand-text`.
+4. **Colour means something or it isn't there.** Near-black = the primary action. Red,
+   amber and green = state. Nothing is coloured for decoration, and there is no fifth hue.
+5. **Semantic colour is not an accent.** Success green is not a brand colour.
+6. **Links are ink**, distinguished by weight and underline rather than by hue.
 7. **Contrast floor 4.5:1** for body text, 3:1 for large text and UI boundaries.
    `text.tertiary` is for non-essential text only.
-8. **Coach branding overrides `accent` only** — never text, surface or border, so a bad
+8. **Coach branding overrides `brand` only** — never text, surface or border, so a bad
    brand colour cannot make the client app unreadable.

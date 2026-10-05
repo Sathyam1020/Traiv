@@ -1,6 +1,10 @@
 # 0006 — Design direction and token architecture
 2026-09-11 · Status: accepted
 
+> **The palette in this ADR is superseded by ADR 0015 (cal.com).** The structural
+> decisions — Notion's restraint, the three-tier token system, the type scale — still
+> stand. The warm paper, forest and yellow values do not.
+
 ## Context
 The founder named Notion and Apple as references, and asked specifically for Notion's
 typography and theme, purposeful animation, and distinctive copy rather than generic SaaS

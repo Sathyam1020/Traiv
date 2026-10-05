@@ -17,72 +17,73 @@
    `bg-grey-500`-style utilities out of them.
    --------------------------------------------------------------------------- */
 :root {
-  /* Warm, paper-like. Ink is olive-tinged rather than neutral black, which is what
-     keeps the whole surface feeling like paper instead of a screen. */
-  --paper: #f6f5f0;
+  /* cal.com's palette: a pure neutral ramp with no warmth at all. The hierarchy is
+     carried by type and hairline borders rather than by colour, so there is deliberately
+     no brand hue here — the primary action is simply near-black. */
   --white: #ffffff;
-  --sand-50: #f5f2ea;
-  --sand-100: #eceades;
-  --line-warm: #dedfd5;
-  --line-warm-strong: #cbcdc0;
-  --stone-400: #9a9d93;
-  --muted: #676b61;
-  --ink: #252720;
-
-  --forest: #294b3e;
-  --forest-600: #325a4a;
-  --forest-tint: #e6eed9;
-
-  --yellow: #f6ce69;
-  --yellow-hover: #f3c24c;
-  --yellow-tint: #fff6d9;
-
-  --peach: #f4d6bd;
-  --lavender: #e8e3f1;
+  --grey-25: #f8f9fa;
+  --grey-50: #f5f5f5;
+  --grey-100: #f3f4f6;
+  --grey-200: #e5e7eb;
+  --grey-400: #898989;
+  --grey-500: #6b7280;
+  --grey-700: #374151;
+  --ink: #111111;
+  --ink-raised: #242424;
 
   /* dark */
-  --dark-bg: #1b1a18;
-  --dark-surface: #302e2b;
-  --dark-raised: #3a3733;
-  --dark-line: #48443e;
-  --dark-muted: #bdb8af;
-  --dark-text: #f3f0ea;
+  --dark-bg: #0b0b0b;
+  --dark-surface: #101010;
+  --dark-raised: #1a1a1a;
+  --dark-line: #262626;
+  --dark-line-strong: #333333;
+  --dark-subtle: #71717a;
+  --dark-muted: #a1a1aa;
+  --dark-text: #fafafa;
 
-  --red-50: #f8e7e2;
-  --red-500: #c0503c;
-  --amber-50: #f9eeda;
-  --amber-500: #a97a2c;
-  --green-50: #e2eddf;
-  --green-500: #3f7a52;
+  /* Semantic hues, and the 50-step from each one's own family so the tints stay in key */
+  --red-50: #fef2f2;
+  --red-500: #ef4444;
+  --amber-50: #fffbeb;
+  --amber-500: #f59e0b;
+  --green-50: #ecfdf5;
+  --green-500: #10b981;
 }
 
 /* ---------------------------------------------------------------------------
    TIER 2 — SEMANTIC
    --------------------------------------------------------------------------- */
 :root {
-  --canvas: var(--paper);
+  --canvas: var(--white);
   --surface: var(--white);
-  --sunken: var(--sand-50);
-  --hover: rgb(37 39 32 / 0.045);
-  --active: rgb(37 39 32 / 0.075);
-  --selected: var(--forest-tint);
+  --sunken: var(--grey-25);
+  --hover: rgb(17 17 17 / 0.04);
+  --active: rgb(17 17 17 / 0.07);
+  --selected: var(--grey-50);
 
   --fg: var(--ink);
-  --fg-muted: var(--muted);
-  --fg-subtle: var(--stone-400);
+  --fg-muted: var(--grey-500);
+  --fg-subtle: var(--grey-400);
 
-  --line: var(--line-warm);
-  --line-strong: var(--line-warm-strong);
-  --line-focus: var(--forest);
+  --line: var(--grey-200);
+  --line-strong: #d4d7dc;
+  --line-focus: var(--ink);
 
-  /* The action colour and the interactive-text colour are deliberately different.
-     Yellow carries no text contrast, so buttons are yellow with ink on top, while
-     links, selected text and focus rings use forest. */
-  --accent: var(--yellow);
-  --accent-hover: var(--yellow-hover);
-  --accent-subtle: var(--yellow-tint);
-  --fg-on-accent: var(--ink);
-  --accent-text: var(--forest);
+  /* There is no brand hue. The primary action is near-black and the text on it is white;
+     links and selected text are the same ink, distinguished by weight and underline
+     rather than colour. This is the whole point of the cal.com direction — see ADR 0006. */
+  --accent: var(--ink);
+  --accent-hover: var(--ink-raised);
+  --accent-subtle: var(--grey-50);
+  --fg-on-accent: var(--white);
+  --accent-text: var(--ink);
+
+  /* A surface that is dark in BOTH themes, with its own fixed foreground. The action
+     colour inverts between themes, so it cannot be reused for a decorative dark panel —
+     doing that is what turns the auth aside into a white slab in dark mode. Always pair
+     `bg-contrast` with `text-contrast-fg`; never with `text-fg`. */
+  --contrast: #101010;
+  --contrast-fg: #ffffff;
 
   --danger: var(--red-500);
   --danger-subtle: var(--red-50);
@@ -96,23 +97,33 @@
   --canvas: var(--dark-bg);
   --surface: var(--dark-surface);
   --sunken: var(--dark-raised);
-  --hover: rgb(255 255 255 / 0.055);
-  --active: rgb(255 255 255 / 0.085);
-  --selected: rgb(41 75 62 / 0.5);
+  --hover: rgb(255 255 255 / 0.06);
+  --active: rgb(255 255 255 / 0.1);
+  --selected: var(--dark-raised);
 
   --fg: var(--dark-text);
   --fg-muted: var(--dark-muted);
-  --fg-subtle: #8a857c;
+  --fg-subtle: var(--dark-subtle);
 
   --line: var(--dark-line);
-  --line-strong: #5a554d;
-  --line-focus: var(--yellow);
+  --line-strong: var(--dark-line-strong);
+  --line-focus: var(--dark-text);
 
-  --accent: var(--yellow);
-  --accent-hover: var(--yellow-hover);
-  --accent-subtle: rgb(246 206 106 / 0.16);
+  /* Inverted, not re-tinted: on a near-black ground the primary action is white with
+     ink on top, which is how the same button keeps the same weight in both themes. */
+  --accent: var(--dark-text);
+  --accent-hover: var(--white);
+  --accent-subtle: var(--dark-raised);
   --fg-on-accent: var(--ink);
-  --accent-text: #9fc3a8;
+  --accent-text: var(--dark-text);
+
+  /* Unchanged on purpose: this surface does not follow the theme. */
+  --contrast: #1a1a1a;
+  --contrast-fg: #ffffff;
+
+  --danger-subtle: rgb(239 68 68 / 0.16);
+  --warning-subtle: rgb(245 158 11 / 0.16);
+  --success-subtle: rgb(16 185 129 / 0.16);
 }
 
 /* ---------------------------------------------------------------------------
@@ -138,6 +149,9 @@
   --color-line-strong: var(--line-strong);
   --color-line-focus: var(--line-focus);
 
+  --color-contrast: var(--contrast);
+  --color-contrast-fg: var(--contrast-fg);
+
   --color-brand: var(--accent);
   --color-brand-hover: var(--accent-hover);
   --color-brand-subtle: var(--accent-subtle);
@@ -152,10 +166,12 @@
 
 /* Type, radius, motion. Matches .ai/design/typography.md and spacing.md. */
 @theme {
-  /* Notion's UI font is the system stack — instant load, native on every device */
+  /* Inter, self-hosted by next/font and exposed as --font-inter by each app's layout.
+     The stack behind it is the system fallback, so a failed font load degrades to what
+     the OS already has rather than to Times. */
   --font-sans:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, "Apple Color Emoji", Arial,
-    sans-serif;
+    var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
+    "Apple Color Emoji", Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
 
   /* Eight sizes. Nothing above 24px in product UI. */
@@ -171,20 +187,25 @@
   --text-subheading--line-height: 1.4;
   --text-heading: 1.25rem;
   --text-heading--line-height: 1.3;
+  --text-heading--letter-spacing: -0.02em;
   --text-display: 1.5rem;
   --text-display--line-height: 1.25;
+  --text-display--letter-spacing: -0.03em;
 
   /* Marketing surfaces only — landing, auth, the public site. Product UI stops at
      --text-display (24px). See .ai/design/typography.md */
   --text-hero: 2.75rem;
   --text-hero--line-height: 1.08;
+  --text-hero--letter-spacing: -0.04em;
   --text-hero-sm: 2rem;
   --text-hero-sm--line-height: 1.12;
+  --text-hero-sm--letter-spacing: -0.04em;
 
-  /* Rounded, but still short of pill-shaped. */
+  /* cal.com's ladder: 8 for controls, 12 for content cards, 16 for the largest
+     surfaces. Radius still marks a separate object, so it is spent by role. */
   --radius-control: 8px;
-  --radius-surface: 16px;
-  --radius-panel: 24px; /* full-height inset panels only */
+  --radius-surface: 12px;
+  --radius-panel: 16px; /* full-height inset panels and hero surfaces only */
 
   /* Apple-style: entrances decelerate, exits accelerate */
   --ease-standard: cubic-bezier(0.25, 0.1, 0.25, 1);
