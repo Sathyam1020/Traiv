@@ -31,11 +31,18 @@ radius.none     0
 radius.control  8px     ← buttons, inputs, menu items. The default.
 radius.surface  16px    ← cards, dialogs, popovers
 radius.panel    24px    ← full-height inset panels only
-radius.full     9999px  ← avatars only. Not "pills" as decoration.
+radius.full     9999px  ← avatars, and the mobile tab bar. Not "pills" as decoration.
 ```
 
-Nothing is more rounded than `radius.surface` except an avatar. Radius still carries
-meaning — it marks a separate object — so it is spent by role, not stamped on everything.
+Nothing is more rounded than `radius.surface` except an avatar and the mobile tab bar.
+Radius still carries meaning — it marks a separate object — so it is spent by role, not
+stamped on everything.
+
+**The mobile tab bar is a capsule.** It is the one component that floats free of the
+page on every screen, and the capsule is what reads as "floating control" rather than
+"panel stuck to the bottom" — the iOS tab bar convention our users already know. A tab
+bar at `radius.surface` with a squarer chip inside it reads as a segmented control.
+Nothing else earns `radius.full` by being round; this earns it by floating.
 
 **Note on the default border colour:** Tailwind v4 defaults `border-color` to
 `currentColor`, so a bare `border` renders as text colour. `globals.css` resets it to

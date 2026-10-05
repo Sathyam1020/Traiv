@@ -60,3 +60,11 @@ Accepted 2026-09-11 · ADR 0009
 Verification takes days to weeks, and the OTP authentication template needs separate
 approval. Until both clear, auth only works through the dev bypass and `ConsoleWhatsApp`.
 **Start it before the scaffold, not after.**
+
+### A full roster dead-ends the client, and the coach never hears about it
+Accepted 2026-10-05 · ADR 0013
+`joinByCode` throws "This coach's roster is full. Ask them to upgrade" at the *client* —
+so the paywall fires at the wrong person, and the demand that triggered it is discarded
+without the coach ever seeing it. The decided behaviour is a waitlist on both sides;
+until it ships, the thrown error stands. Do not treat the error as final design.
+

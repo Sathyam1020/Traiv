@@ -23,7 +23,9 @@ bulk assign. **Never cut:** offline logging, WhatsApp layer, last-session number
 Indian food database (home measures, veg/Jain/egg, regional, fasting days) · meal plan
 builder · smart substitutions · food log · vegetarian protein solver · client risk board ·
 first-72-hours sequence · monthly progress card · re-entry path · habits · inactivity
-alerts · UPI AutoPay · GST invoices · vertical modes (dietitian, yoga, physio).
+alerts · UPI AutoPay · GST invoices · vertical modes (dietitian, yoga, physio) ·
+**roster waitlist** — a full roster waitlists the client and shows the coach who is
+waiting, instead of a dead-end error (ADR 0013).
 
 ## v3 — months 6–10 · leverage · only if v2 retains
 

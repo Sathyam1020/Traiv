@@ -46,3 +46,5 @@ overwrite.
 | 0010 | Auth implementation decisions | accepted |
 | 0011 | Studios and membership | accepted |
 | 0012 | OTP delivery transports | accepted |
+| 0013 | A full roster puts the client on a waitlist | accepted · deferred |
+| 0014 | Client authorization | **proposed — blocks apps/client** |

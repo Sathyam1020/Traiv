@@ -61,8 +61,11 @@ own. Switching verifies membership server-side. Switcher hides itself when there
 ### Routes
 
 ```
-web   /signin  /signup  /today (guarded)  /style     / redirects to /signin
+web   /signin  /signup  /dashboard (guarded)  /settings (guarded)
+      / redirects to /signin          /today and /style are gone
 api   /health  /auth/*  /studios  /studios/:id/activate
+      /join/:code (GET public preview, POST attaches)
+      /studio/join-code (GET, POST /rotate, PATCH)
 ```
 
 ### Development without credentials
@@ -91,7 +94,10 @@ usable now and none of them blocks further feature work.
 
 ## What does not exist
 
-No client roster, plans, nutrition or payments. No invite flow or seat limits — deferred
-to the payments module. No client PWA, marketing, endorse or admin apps. **No HTTP-layer
-tests** — routes, cookies and CORS are verified manually only. **360px has never been
-checked** by anyone.
+No plans, nutrition or payments. The `client` table, the join code and seat limits
+(free 2 / starter 8 / pro and studio unlimited) exist and are tested; a full roster
+currently throws at the client rather than waitlisting — see ADR 0013. There is no
+coach-facing roster UI and no way to add a client by hand: `joinByCode` is the only
+path that creates a client row. No client PWA, marketing, endorse or admin apps.
+CORS and the trainer UI are verified manually only. **360px has never been checked** by
+anyone.
