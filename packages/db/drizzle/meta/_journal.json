@@ -43,6 +43,13 @@
       "when": 1789242272734,
       "tag": "0005_client_and_join_code",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791224297760,
+      "tag": "0006_session_active_studio_fk",
+      "breakpoints": true
     }
   ]
 }

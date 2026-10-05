@@ -1,4 +1,5 @@
 import { index, integer, pgEnum, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { studios } from "./studio.js";
 import { users } from "./user.js";
 
 export const authProvider = pgEnum("auth_provider", ["password", "google", "apple", "phone"]);
@@ -95,7 +96,12 @@ export const sessions = pgTable(
 
     // Which studio the user is currently acting in. Set at signup and updated by the
     // switcher, so a returning session lands where they left off.
-    activeStudioId: text(),
+    //
+    // The foreign key is defence in depth, not authorization. Studios are soft-deleted,
+    // so it rarely fires in normal operation — it catches hard deletes and makes the
+    // column's meaning explicit. Membership is still verified on every request, because
+    // a valid studio id says nothing about whether this user may act in it.
+    activeStudioId: text().references(() => studios.id, { onDelete: "set null" }),
 
     userAgent: text(),
     ip: text(),
