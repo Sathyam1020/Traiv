@@ -50,6 +50,13 @@
       "when": 1791224297760,
       "tag": "0006_session_active_studio_fk",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791225049935,
+      "tag": "0007_client_status_waiting_frozen",
+      "breakpoints": true
     }
   ]
 }

@@ -3,7 +3,18 @@ import { index, pgEnum, pgTable, text, timestamp, uniqueIndex } from "drizzle-or
 import { memberships, studios } from "./studio.js";
 import { users } from "./user.js";
 
-export const clientStatus = pgEnum("client_status", ["active", "paused", "archived"]);
+/**
+ * Appended rather than ordered logically: Postgres cannot reorder an existing enum
+ * without recreating the type, and nothing sorts on this column. See ADR 0013 (waiting,
+ * frozen) and ADR 0014 (what each one may do).
+ */
+export const clientStatus = pgEnum("client_status", [
+  "active",
+  "paused",
+  "archived",
+  "waiting",
+  "frozen",
+]);
 
 /**
  * A person on a coach's roster.

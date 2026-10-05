@@ -4,6 +4,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { db } from "../../db.js";
 import { requireStudio, requireStudioAuth } from "../../middleware/authorize.js";
+import { requireClient, requireClientAuth } from "../../middleware/client-authorize.js";
 import { requireSession } from "../../middleware/session.js";
 import { joinByCode, previewJoin, rotateJoinCode, setJoinEnabled } from "./join.js";
 
@@ -53,4 +54,46 @@ studioJoin.patch("/join-code", requireStudio({ role: "owner" }), async (req, res
   const { enabled } = z.object({ enabled: z.boolean() }).parse(req.body);
   await setJoinEnabled(studioId, enabled);
   res.json({ joinEnabled: enabled });
+});
+
+/* ---- client-side, scoped to the studio named in the URL ---- */
+
+export const clientApp: Router = Router();
+
+/**
+ * Who the client is to this studio, and whose studio it is.
+ *
+ * The only client route that exists yet, and it has to: a waiting client needs to see
+ * they are queued and a frozen one needs to see they are frozen (ADR 0013), which is
+ * impossible if every status but `active` is refused outright. Branding comes along
+ * because it is on ADR 0014's allowed-read list and the app cannot render a studio
+ * without it.
+ *
+ * Nothing here touches plans, workouts or check-ins — those data models do not exist,
+ * and their permissions are deliberately undecided.
+ */
+clientApp.get("/:studioId/me", requireClient(), async (req, res) => {
+  const { studioId, clientId, status } = requireClientAuth(req);
+
+  const [studio] = await db
+    .select({
+      name: schema.studios.name,
+      brandDisplayName: schema.studios.brandDisplayName,
+      brandLogoUrl: schema.studios.brandLogoUrl,
+      brandColor: schema.studios.brandColor,
+    })
+    .from(schema.studios)
+    .where(eq(schema.studios.id, studioId))
+    .limit(1);
+
+  res.json({
+    clientId,
+    status,
+    studio: {
+      id: studioId,
+      name: studio?.brandDisplayName || studio?.name,
+      logoUrl: studio?.brandLogoUrl ?? null,
+      color: studio?.brandColor ?? null,
+    },
+  });
 });
