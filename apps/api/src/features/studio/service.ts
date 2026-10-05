@@ -110,6 +110,20 @@ export async function resolveActiveStudio(userId: string, current?: string | nul
 
   if (current && mine.some((s) => s.id === current)) return current;
 
+  return preferredStudio(mine);
+}
+
+/**
+ * The same choice as `resolveActiveStudio`, but `null` instead of a throw when the user
+ * belongs to no studio — which is the normal case for a client, who has an account but
+ * never a membership. Callers issuing a session use this; it must not refuse a client.
+ */
+export async function defaultStudioFor(userId: string, tx: Tx = db) {
+  const mine = await listStudios(userId, tx);
+  return mine.length ? preferredStudio(mine) : null;
+}
+
+function preferredStudio(mine: Awaited<ReturnType<typeof listStudios>>) {
   const invited = mine.find((s) => s.role === "coach");
   const own = mine.find((s) => s.role === "owner");
   return (invited ?? own ?? mine[0])?.id as string;

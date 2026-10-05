@@ -4,7 +4,7 @@ import { db } from "../../db.js";
 import { badRequest, notFound, tooManyRequests, unauthorized } from "../../errors.js";
 import { sendOtp } from "../../integrations/otp/index.js";
 import { hash, matches, newOtp, newSessionToken } from "../../lib/crypto.js";
-import { createDefaultStudio, resolveActiveStudio } from "../studio/service.js";
+import { createDefaultStudio, defaultStudioFor, resolveActiveStudio } from "../studio/service.js";
 
 const OTP_TTL_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
@@ -185,6 +185,13 @@ export async function verifyChallenge(input: {
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
+/**
+ * `activeStudioId` is resolved here rather than at each call site. A session carrying
+ * null fails every studio-scoped route with a 403, and the sign-in paths kept omitting
+ * it — the dev bypass and both returning-user Google branches all shipped that way.
+ * Pass it explicitly only from inside a transaction, where the studio is not yet
+ * committed and `defaultStudioFor` could not see it.
+ */
 async function issueSession(
   tx: Tx | typeof db,
   userId: string,
@@ -201,7 +208,7 @@ async function issueSession(
     expiresAt,
     ip: ip ?? null,
     userAgent: userAgent ?? null,
-    activeStudioId: activeStudioId ?? null,
+    activeStudioId: activeStudioId ?? (await defaultStudioFor(userId, tx)),
   });
   return { token, expiresAt };
 }

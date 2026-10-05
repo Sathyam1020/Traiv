@@ -5,6 +5,7 @@ import { db } from "../../db.js";
 import { AppError } from "../../errors.js";
 import {
   completeProfile,
+  devIssueSession,
   getUser,
   requestChallenge,
   revokeSession,
@@ -43,6 +44,16 @@ async function wipe() {
     }
     await db.delete(schema.authChallenges).where(eq(schema.authChallenges.phone, phone));
   }
+}
+
+async function newestSession(userId: string) {
+  const [s] = await db
+    .select()
+    .from(schema.sessions)
+    .where(eq(schema.sessions.userId, userId))
+    .orderBy(desc(schema.sessions.createdAt))
+    .limit(1);
+  return s;
 }
 
 beforeEach(wipe);
@@ -251,5 +262,22 @@ describe("sessions", () => {
     expect(ids[0]?.provider).toBe("phone");
 
     await expect(getUser(user.id)).resolves.toMatchObject({ id: user.id });
+  });
+
+  /**
+   * The dev bypass shipped calling issueSession with no studio, so every session it
+   * made carried activeStudioId null and 403'd on every studio-scoped route while the
+   * sidebar still rendered a studio name — /auth/me reads memberships, not the session.
+   */
+  it("every session a coach gets opens in a studio, however it was issued", async () => {
+    await requestChallenge({ phone: N1, name: "Rahul Deshmukh" });
+    const { user } = await verifyChallenge({ phone: N1, code: await latestCodeFor(N1) });
+
+    const signedIn = await newestSession(user.id);
+    expect(signedIn?.activeStudioId).not.toBeNull();
+
+    await devIssueSession(user.id);
+    const bypassed = await newestSession(user.id);
+    expect(bypassed?.activeStudioId).toBe(signedIn?.activeStudioId);
   });
 });
