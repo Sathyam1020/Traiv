@@ -22,6 +22,23 @@ export function useSession(options?: { enabled?: boolean }) {
   });
 }
 
+/**
+ * Who a code belongs to, checked as it is typed.
+ *
+ * Debounced by the caller and only asked once the code is the right length, so this does
+ * not fire a request per keystroke. An invalid code is an answer, not a flake, so it is
+ * not retried.
+ */
+export function useEndorserName(code: string) {
+  return useQuery({
+    queryKey: ["endorser", "code", code],
+    queryFn: () => authApi.endorserCode(code),
+    enabled: code.length === 8,
+    retry: false,
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+}
+
 export function useRequestCode() {
   return useMutation({ mutationFn: authApi.challenge });
 }

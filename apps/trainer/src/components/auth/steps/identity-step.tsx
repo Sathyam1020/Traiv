@@ -4,6 +4,7 @@ import { Button } from "@traiv/ui/components/button";
 import { Input } from "@traiv/ui/components/input";
 import { Label } from "@traiv/ui/components/label";
 import { ArrowRight } from "lucide-react";
+import { EndorserField } from "@/components/auth/endorser-field";
 import { PhoneField } from "@/components/auth/phone-field";
 import { TrustMarkers } from "@/components/auth/trust-markers";
 import type { AuthFlow, AuthMode } from "@/components/auth/use-auth-flow";
@@ -76,6 +77,11 @@ export function IdentityStep({ mode, flow }: { mode: AuthMode; flow: AuthFlow })
               : "We'll text you a code to verify your number."
           }
         />
+
+        {/* Signup only — there is nothing to attribute when an account already exists. */}
+        {isSignup ? (
+          <EndorserField value={flow.endorserCode} onChange={flow.setEndorserCode} />
+        ) : null}
 
         {flow.error ? <p className="text-caption text-danger">{flow.error}</p> : null}
 

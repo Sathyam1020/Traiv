@@ -6,14 +6,17 @@ export const authApi = {
 
   me: async () => (await http.get<Session>("/auth/me")).data,
 
-  challenge: async (input: { phone: string; name?: string }) =>
+  challenge: async (input: { phone: string; name?: string; endorserCode?: string }) =>
     (await http.post<{ sent: true; transport: TransportName }>("/auth/challenge", input)).data,
+
+  /** Public. Confirms whose code it is before anything is submitted. */
+  endorserCode: async (code: string) => (await http.get<{ name: string }>(`/e/code/${code}`)).data,
 
   verify: async (input: { phone: string; code: string }) =>
     (await http.post<{ user: User; isNew: boolean }>("/auth/verify", input)).data,
 
   /** Only answers when the API reports `otpRequired: false`. */
-  direct: async (input: { phone: string; name?: string }) =>
+  direct: async (input: { phone: string; name?: string; endorserCode?: string }) =>
     (await http.post<{ user: User; isNew: boolean }>("/auth/direct", input)).data,
 
   updateProfile: async (input: { email?: string; name?: string }) =>

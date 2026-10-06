@@ -37,6 +37,8 @@ export function useAuthFlow(mode: AuthMode) {
   const [step, setStep] = useState<AuthStep>("identity");
   const [phone, setPhone] = useState("");
   const [name, setName] = useState("");
+  // Optional, and signup only. Someone who was not referred leaves it blank.
+  const [endorserCode, setEndorserCode] = useState("");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -84,6 +86,9 @@ export function useAuthFlow(mode: AuthMode) {
         const { user } = await directSignIn.mutateAsync({
           phone,
           ...(mode === "signup" && name.trim() ? { name: name.trim() } : {}),
+          ...(mode === "signup" && endorserCode.trim()
+            ? { endorserCode: endorserCode.trim() }
+            : {}),
         });
         // Same landing as the verified path, including the profile step.
         if (user.needsProfile) setStep("profile");
@@ -94,6 +99,7 @@ export function useAuthFlow(mode: AuthMode) {
       const res = await requestCode.mutateAsync({
         phone,
         ...(mode === "signup" && name.trim() ? { name: name.trim() } : {}),
+        ...(mode === "signup" && endorserCode.trim() ? { endorserCode: endorserCode.trim() } : {}),
       });
       // The server decides — it may have fallen back to another channel.
       setTransport(res.transport);
@@ -102,7 +108,7 @@ export function useAuthFlow(mode: AuthMode) {
     } catch (e) {
       fail(e);
     }
-  }, [requestCode, directSignIn, otpRequired, phone, name, mode, router, fail]);
+  }, [requestCode, directSignIn, otpRequired, phone, name, endorserCode, mode, router, fail]);
 
   const submitCode = useCallback(async () => {
     setError(null);
@@ -143,6 +149,8 @@ export function useAuthFlow(mode: AuthMode) {
     error,
     busy,
     otpRequired,
+    endorserCode,
+    setEndorserCode,
     secondsLeft,
     transport,
     phoneValid,
