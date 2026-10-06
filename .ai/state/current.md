@@ -17,15 +17,16 @@ for them either.
 ```
 traiv/
   apps/
-    api/       Express 5 · auth + studios · Neon · console WhatsApp   ✅ running
-    trainer/   Next 16 · /signin /signup /today /style               ✅ running
+    api/       Express 5 · auth, studios, clients, endorsers · Neon   ✅ running
+    trainer/   Next 16 · coach app, :3000                             ✅ running
+    client/    Next 16 · client app, :3001                            ✅ running
   packages/
-    db/        6 tables, 4 migrations applied to Neon                ✅ live
-    ui/        design tokens + 17 shadcn components                  ✅ shared
+    db/        9 tables, 10 migrations applied to Neon                ✅ live
+    ui/        cal.com tokens + 17 shadcn components + the mark       ✅ shared
 ```
 
-**Verified:** `turbo typecheck` 4/4 · `turbo build` · `biome check` clean ·
-**32 scenario tests** passing against the live database.
+**Verified:** `turbo typecheck` 5/5 · `turbo build` · `biome check` clean ·
+**130 tests** in ~2s against a local Postgres (`TEST_DATABASE_URL`).
 
 ### Auth — code complete (ADR 0005, 0010, 0012)
 
@@ -61,12 +62,28 @@ own. Switching verifies membership server-side. Switcher hides itself when there
 ### Routes
 
 ```
-web   /signin  /signup  /dashboard (guarded)  /settings (guarded)
-      / redirects to /signin          /today and /style are gone
-api   /health  /auth/*  /studios  /studios/:id/activate
-      /join/:code (GET public preview, POST attaches)
-      /studio/join-code (GET, POST /rotate, PATCH)
+trainer :3000   /signin  /signup  /dashboard (guarded)  /settings (guarded)
+client  :3001   / (sign in)  /dashboard (guarded)  /join/:code
+
+api :4000
+  /health  /auth/*
+  /studios                             your memberships
+  /studios/:id/activate                requireStudio({ param: "id" })
+  /studios/:studioId/join-code         requireStudio()  — any member
+  /studios/:studioId/join-code/rotate  requireStudio({ role: "owner" })
+  /studios/:studioId/join-code PATCH   requireStudio({ role: "owner" })
+  /join/:code                          GET public preview, POST attaches
+  /c                                   studios you are a client of — ungated by design
+  /c/:studioId/me                      requireClient()
+  /e/code/:code                        public endorser-code check
+  /e/join · /e/me · /e/referrals       your own endorser record
 ```
+
+**Authorization.** Three relationships, three gates, never interchangeable:
+`requireStudio` for staff (ADR 0014), `requireClient` for clients, and endorser routes
+scoped to the caller's own row. The studio always comes from the URL —
+`session.activeStudioId` is where to land after signing in and authorizes nothing
+(ADR 0016).
 
 ### Development without credentials
 
@@ -98,6 +115,11 @@ No plans, nutrition or payments. The `client` table, the join code and seat limi
 (free 2 / starter 8 / pro and studio unlimited) exist and are tested; a full roster
 currently throws at the client rather than waitlisting — see ADR 0013. There is no
 coach-facing roster UI and no way to add a client by hand: `joinByCode` is the only
-path that creates a client row. No client PWA, marketing, endorse or admin apps.
-CORS and the trainer UI are verified manually only. **360px has never been checked** by
-anyone.
+path that creates a client row.
+
+The client app exists but only does auth and attach — no workouts, logs or check-ins,
+because those tables do not exist. Endorsers have a tested API (ADR 0017) and no UI;
+payouts need payments. No marketing or admin apps.
+
+The trainer and client UIs have had no adversarial review. **360px has never been
+checked** by anyone.
