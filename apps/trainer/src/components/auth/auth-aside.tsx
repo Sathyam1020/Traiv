@@ -66,9 +66,8 @@ export function AuthAside() {
         </div>
 
         <div className="flex flex-col gap-4">
-          <div className="flex gap-1" aria-label="Five out of five">
+          <div className="flex gap-1" role="img" aria-label="Five out of five">
             {Array.from({ length: 5 }, (_, n) => (
-              // biome-ignore lint/suspicious/noArrayIndexKey: fixed rating icons
               <Star key={n} className="size-4 fill-contrast-fg text-contrast-fg" />
             ))}
           </div>

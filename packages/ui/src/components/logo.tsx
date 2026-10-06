@@ -37,7 +37,9 @@ export function Logo({
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
-      {...(decorative ? { "aria-hidden": true } : { role: "img", "aria-label": "Traiv" })}
+      role={decorative ? undefined : "img"}
+      aria-label={decorative ? undefined : "Traiv"}
+      aria-hidden={decorative || undefined}
     >
       <rect width="24" height="24" rx="5.4" fill={bg} />
       {/* crossbar */}

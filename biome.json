@@ -12,7 +12,8 @@
       "!**/.next",
       "!**/node_modules",
       "!**/drizzle",
-      "!**/globals.css"
+      "!**/globals.css",
+      "!**/*.svg"
     ]
   },
   "formatter": {

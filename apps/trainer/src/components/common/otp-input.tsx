@@ -33,10 +33,12 @@ export function OtpInput({
   }
 
   return (
-    <div className="flex gap-2" role="group" aria-label="Six digit code">
+    // A fieldset rather than role="group": the native element already carries the
+    // semantics, and the legend names the set without showing it.
+    <fieldset className="m-0 flex gap-2 border-0 p-0">
+      <legend className="sr-only">Six digit code</legend>
       {Array.from({ length: 6 }, (_, i) => (
         <input
-          // biome-ignore lint/suspicious/noArrayIndexKey: fixed-length positional inputs
           key={i}
           ref={(el) => {
             refs.current[i] = el;
@@ -75,6 +77,6 @@ export function OtpInput({
             ${invalid ? "border-danger" : "border-line-strong"}`}
         />
       ))}
-    </div>
+    </fieldset>
   );
 }
