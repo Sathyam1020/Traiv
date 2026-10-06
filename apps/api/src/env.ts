@@ -19,6 +19,9 @@ const schema = z.object({
 
   DATABASE_URL: z.string().url(),
   SESSION_SECRET: z.string().min(32, "SESSION_SECRET must be at least 32 characters"),
+  // Separate from SESSION_SECRET on purpose: a six-digit code and a 256-bit token should
+  // not share a key, so leaking one does not compromise the other.
+  OTP_PEPPER: z.string().min(32, "OTP_PEPPER must be at least 32 characters"),
 
   AUTH_DEV_BYPASS: z
     .enum(["true", "false"])

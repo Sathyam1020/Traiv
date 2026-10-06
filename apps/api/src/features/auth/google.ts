@@ -92,15 +92,38 @@ export async function completeGoogleLogin(code: string, ip?: string, userAgent?:
       .limit(1);
 
     if (byEmail) {
+      // The classic federated pre-hijack: an attacker signs up with the victim's address
+      // and waits for them to click "Sign in with Google". Linking to an account that
+      // never proved the address would hand over whatever the attacker set up on it.
       if (!byEmail.emailVerifiedAt) {
+        // Google has verified it and this account has not, so the unverified claim loses
+        // the address. They keep the account and their phone login; they just stop
+        // holding an address that was never theirs, which would otherwise block the real
+        // owner forever behind a unique index nobody can evict.
+        if (profile.email_verified) {
+          await db
+            .update(schema.users)
+            .set({ email: null, updatedAt: new Date() })
+            .where(eq(schema.users.id, byEmail.id));
+        }
         return { outcome: "needs_phone_to_link" as const };
       }
-      await db.insert(schema.authIdentities).values({
-        id: newId(),
-        userId: byEmail.id,
-        provider: "google",
-        providerUid: profile.sub,
+
+      await db.transaction(async (tx) => {
+        await tx.insert(schema.authIdentities).values({
+          id: newId(),
+          userId: byEmail.id,
+          provider: "google",
+          providerUid: profile.sub,
+        });
+        // A new way into an account is a credential change. Anything already signed in
+        // predates that proof, so it does not survive it.
+        await tx
+          .update(schema.sessions)
+          .set({ revokedAt: new Date() })
+          .where(and(eq(schema.sessions.userId, byEmail.id), isNull(schema.sessions.revokedAt)));
       });
+
       const session = await issueSession(db, byEmail.id, ip, userAgent);
       return { session, outcome: "linked" as const };
     }

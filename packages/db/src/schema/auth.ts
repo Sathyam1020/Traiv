@@ -1,7 +1,29 @@
-import { index, integer, pgEnum, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
+import {
+  check,
+  index,
+  integer,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 import { studios } from "./studio.js";
 import { users } from "./user.js";
 
+/**
+ * Federated providers only.
+ *
+ * `phone` and `password` used to live here as well as on `user`, which meant one
+ * credential in two rows with two update paths. Change a number, update `user.phone`,
+ * and the stale `auth_identity` row survives — so whoever is assigned that number next
+ * could OTP into the account. `user.phone` is the credential and the contact field both,
+ * so it had to stay there; this table is now only for identities we do not own.
+ *
+ * The enum keeps its old values because Postgres cannot drop one, and historical rows
+ * still reference them. Nothing writes them any more.
+ */
 export const authProvider = pgEnum("auth_provider", ["password", "google", "apple", "phone"]);
 export const otpTransport = pgEnum("otp_transport", ["whatsapp", "sms", "console"]);
 export const challengePurpose = pgEnum("challenge_purpose", [
@@ -76,14 +98,35 @@ export const authChallenges = pgTable(
   (t) => [
     index("auth_challenge_phone_idx").on(t.phone, t.purpose, t.createdAt),
     index("auth_challenge_email_idx").on(t.email, t.purpose, t.createdAt),
+    // Per-IP rate limiting reads this; without it the quota check is a sequential scan
+    // on the table an attacker is actively growing.
+    index("auth_challenge_ip_idx").on(t.requestIp, t.createdAt),
+    // Retention: expired rows are swept by age.
+    index("auth_challenge_expires_idx").on(t.expiresAt),
+    // At most one live code per target. This is what turns "only the newest code is
+    // valid" from a query convention into something a double-tap cannot break.
+    uniqueIndex("auth_challenge_live_phone_key")
+      .on(t.phone, t.purpose)
+      .where(sql`${t.consumedAt} is null and ${t.phone} is not null`),
+    check(
+      "auth_challenge_phone_e164",
+      sql`${t.phone} is null or ${t.phone} ~ '^[+][1-9][0-9]{7,14}$'`,
+    ),
   ],
 );
 
 /**
  * Opaque session tokens — deliberately not JWTs.
  *
- * Removing a staff member or ending an impersonation must kill the session immediately,
- * which a JWT cannot do. The token is hashed at rest; the cookie holds the plaintext.
+ * Revocation is the reason. Signing out everywhere, a changed number, a compromised
+ * account — each has to end a session the moment it happens, and a JWT stays valid until
+ * it expires no matter what the database says. The token is hashed at rest; the cookie
+ * holds the plaintext.
+ *
+ * Note this is *not* why removing a coach from a studio works: `requireStudio` reads
+ * membership on every request, so access ends without touching the session. Revoking on
+ * removal would be wrong — it would sign a coach out of their own studio because someone
+ * else removed them from theirs.
  */
 export const sessions = pgTable(
   "session",
@@ -110,7 +153,12 @@ export const sessions = pgTable(
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     lastUsedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
-  (t) => [uniqueIndex("session_token_key").on(t.tokenHash), index("session_user_idx").on(t.userId)],
+  (t) => [
+    uniqueIndex("session_token_key").on(t.tokenHash),
+    index("session_user_idx").on(t.userId),
+    // Retention sweeps by expiry, so it needs an index to not scan the hottest table.
+    index("session_expires_idx").on(t.expiresAt),
+  ],
 );
 
 export type AuthIdentity = typeof authIdentities.$inferSelect;

@@ -49,3 +49,4 @@ overwrite.
 | 0013 | A full roster puts the client on a waitlist | accepted · deferred |
 | 0014 | Client authorization | accepted · not implemented |
 | 0015 | cal.com as the visual direction | accepted · supersedes 0006's palette |
+| 0016 | Auth hardening after external review | accepted |

@@ -19,7 +19,8 @@ export function createApp(): Express {
   app.use("/health", health);
   app.use("/auth", auth);
   app.use("/studios", studios);
-  app.use("/studio", studioJoin);
+  // mergeParams so :studioId from the mount point reaches the router's handlers
+  app.use("/studios/:studioId", studioJoin);
   app.use("/join", join);
   // Client app. The studio is always in the path — never the session. See ADR 0014.
   app.use("/c", clientApp);

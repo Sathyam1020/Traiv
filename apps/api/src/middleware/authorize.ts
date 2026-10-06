@@ -64,13 +64,13 @@ export function requireStudioAuth(req: Request): StudioAuth {
 export type RequireStudioOptions = {
   /**
    * Route parameter naming the studio, e.g. `{ param: "id" }` for `/studios/:id/...`.
-   * Omit and the session's active studio is used instead.
+   * Required — there is no implicit tenant.
    *
    * Only a parameter the route declares is read. Body and query are deliberately
    * ignored: a caller must not be able to redirect an endpoint at another studio by
    * adding a field the route never asked for.
    */
-  param?: string;
+  param: string;
   /** Restrict to a role. Omit to allow any member. */
   role?: MembershipRole;
 };
@@ -78,39 +78,28 @@ export type RequireStudioOptions = {
 /**
  * Authorization for every studio-scoped route.
  *
- * The studio comes from the request when the route names one, otherwise from the
- * session — but the source never matters, because membership is verified either way.
- * That is what makes a client-supplied id safe to accept and a session-supplied one
- * unsafe to trust: `activeStudioId` is convenience state, never proof.
+ * The studio always comes from the request, never from the session. One session is shared
+ * by every tab, so resolving the tenant from `activeStudioId` meant a coach with studio A
+ * open in one tab and B in another had the first tab's writes land in B — and the
+ * membership check passed, because they belong to both. `activeStudioId` is now only
+ * where to land after signing in, and nothing authorizes against it.
+ *
+ * Accepting the id from the request is safe for the reason it was always safe: membership
+ * is verified on every call, so where the id came from never mattered. What mattered was
+ * trusting one that was never checked.
  */
-export function requireStudio(options: RequireStudioOptions = {}): RequestHandler {
+export function requireStudio(options: RequireStudioOptions): RequestHandler {
   // Named, not anonymous: `authz.test.ts` walks the router stack and asserts that every
   // studio-scoped route carries this handler, so a new route cannot quietly skip the gate.
   return async function requireStudioHandler(req: Request, _res: Response, next: NextFunction) {
     try {
-      const { userId, sessionId, activeStudioId } = requireSession(req);
+      const { userId } = requireSession(req);
 
-      const raw = options.param ? req.params[options.param] : undefined;
-      const requested = typeof raw === "string" && raw.length > 0 ? raw : undefined;
-      const target = requested ?? activeStudioId;
-      if (!target) throw forbidden("No studio selected.");
+      const raw = req.params[options.param];
+      const target = typeof raw === "string" && raw.length > 0 ? raw : undefined;
+      if (!target) throw forbidden("No studio in the request.");
 
-      let auth: StudioAuth;
-      try {
-        auth = await authorizeStudio(userId, target);
-      } catch (err) {
-        // The session names a studio this user has lost — stale state, not an attack.
-        // Clear it so it cannot be offered as proof again; a denied *explicit* id is
-        // left alone, since that request should never mutate the session.
-        if (!requested && activeStudioId) {
-          await db
-            .update(schema.sessions)
-            .set({ activeStudioId: null })
-            .where(eq(schema.sessions.id, sessionId));
-          if (req.auth) req.auth.activeStudioId = null;
-        }
-        throw err;
-      }
+      const auth = await authorizeStudio(userId, target);
 
       if (options.role && auth.role !== options.role) {
         throw forbidden("Only the studio owner can do that.");

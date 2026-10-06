@@ -14,6 +14,7 @@ export const queryKeys = {
     list: ["studios", "list"] as const,
   },
   join: {
-    code: ["studio", "join-code"] as const,
+    // Keyed by studio: two tabs on different studios must not share one cache entry.
+    code: (studioId: string) => ["studio", "join-code", studioId] as const,
   },
 } as const;

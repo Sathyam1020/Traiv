@@ -1,10 +1,13 @@
 import { schema } from "@traiv/db";
-import { and, eq, gt, isNull } from "drizzle-orm";
+import { and, eq, gt, isNull, lt } from "drizzle-orm";
 import type { NextFunction, Request, Response } from "express";
 import { db } from "../db.js";
 import { unauthorized } from "../errors.js";
 import { readCookie, SESSION_COOKIE } from "../lib/cookies.js";
 import { hash } from "../lib/crypto.js";
+
+/** How stale `lastUsedAt` is allowed to get before a request refreshes it. */
+const LAST_USED_THROTTLE_MS = 5 * 60 * 1000;
 
 export type SessionUser = { userId: string; sessionId: string; activeStudioId: string | null };
 
@@ -43,10 +46,23 @@ export async function loadSession(req: Request, _res: Response, next: NextFuncti
 
   if (row) {
     req.auth = { userId: row.userId, sessionId: row.id, activeStudioId: row.activeStudioId };
-    await db
+
+    // Throttled, and not awaited. Touching this on every authenticated request turns
+    // every page load into a write on the hottest table in the database — dead tuples,
+    // WAL, and autovacuum pressure, for a column nothing reads at that resolution.
+    // Five minutes of granularity is irrelevant against a 30-day session.
+    void db
       .update(schema.sessions)
       .set({ lastUsedAt: new Date() })
-      .where(eq(schema.sessions.id, row.id));
+      .where(
+        and(
+          eq(schema.sessions.id, row.id),
+          lt(schema.sessions.lastUsedAt, new Date(Date.now() - LAST_USED_THROTTLE_MS)),
+        ),
+      )
+      .catch(() => {
+        // A missed touch costs nothing; failing the request over it would cost a login.
+      });
   }
   next();
 }

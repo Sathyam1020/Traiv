@@ -7,7 +7,9 @@ import {
   DropdownMenuTrigger,
 } from "@traiv/ui/components/dropdown-menu";
 import { Check, ChevronsUpDown } from "lucide-react";
+import { useActiveStudioId } from "@/lib/active-studio";
 import { useStudios, useSwitchStudio } from "@/lib/query";
+import { useUiStore } from "@/lib/stores";
 
 /**
  * A trainer always has at least one studio — their own. With only one there is nothing to
@@ -16,9 +18,11 @@ import { useStudios, useSwitchStudio } from "@/lib/query";
 export function StudioSwitcher() {
   const { data } = useStudios();
   const switchStudio = useSwitchStudio();
+  const activeId = useActiveStudioId();
+  const setStudioId = useUiStore((s) => s.setStudioId);
 
   const studios = data?.studios ?? [];
-  const active = studios.find((s) => s.id === data?.activeStudioId);
+  const active = studios.find((s) => s.id === activeId);
   if (!active) return null;
 
   if (studios.length === 1) {
@@ -42,7 +46,13 @@ export function StudioSwitcher() {
         {studios.map((s) => (
           <DropdownMenuItem
             key={s.id}
-            onClick={() => s.id !== active.id && switchStudio.mutate(s.id)}
+            onClick={() => {
+              if (s.id === active.id) return;
+              // This tab switches immediately; the session call only records where to
+              // land next time, and must not be what this tab reads back.
+              setStudioId(s.id);
+              switchStudio.mutate(s.id);
+            }}
             className="flex items-center gap-2"
           >
             <div className="flex min-w-0 flex-1 flex-col">

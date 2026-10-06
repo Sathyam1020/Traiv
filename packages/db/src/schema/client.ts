@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, pgEnum, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import { check, index, pgEnum, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { memberships, studios } from "./studio.js";
 import { users } from "./user.js";
 
@@ -55,7 +55,10 @@ export const clients = pgTable(
     activatedAt: timestamp({ withTimezone: true }),
 
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
     deletedAt: timestamp({ withTimezone: true }),
   },
   (t) => [
@@ -67,6 +70,10 @@ export const clients = pgTable(
     index("client_studio_status_idx").on(t.studioId, t.status),
     index("client_coach_idx").on(t.coachId),
     index("client_user_idx").on(t.userId),
+    // Same shape as user.phone. Matching a client to an account by number is only
+    // possible if both sides are stored identically.
+    check("client_phone_e164", sql`${t.phone} is null or ${t.phone} ~ '^[+][1-9][0-9]{7,14}$'`),
+    check("client_email_lower", sql`${t.email} is null or ${t.email} = lower(${t.email})`),
   ],
 );
 

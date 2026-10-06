@@ -64,20 +64,25 @@ async function scenario() {
   return { ownerA, coachA, ownerB, studioA, studioB, coachMembershipId };
 }
 
+/** Studio-scoped coach routes now name their studio in the path. */
+const join = (studioId: string, path: string) => `/studios/${studioId}${path}`;
+
 describe("authorization at the HTTP boundary", () => {
   it("1 · an anonymous caller gets 401, not 403", async () => {
+    const { studioA } = await scenario();
     const anon = new Agent(api.url);
-    const res = await anon.get("/studio/join-code");
+    const res = await anon.get(join(studioA.id, "/join-code"));
     expect(res.status).toBe(401);
   });
 
   it("2 · a signed-in user with no membership anywhere gets 403", async () => {
+    const { studioA } = await scenario();
     const loner = await signUpOverHttp(api.url, LONER, "No Studio");
     // Strip every membership: a user who holds an account but coaches nowhere, which is
     // what a client is.
     await db.delete(schema.memberships).where(eq(schema.memberships.userId, loner.userId));
 
-    const res = await loner.agent.get("/studio/join-code");
+    const res = await loner.agent.get(join(studioA.id, "/join-code"));
     expect(res.status).toBe(403);
   });
 
@@ -94,14 +99,14 @@ describe("authorization at the HTTP boundary", () => {
   });
 
   it("5 · a coach is refused an owner-only route", async () => {
-    const { coachA } = await scenario();
-    expect((await coachA.agent.post("/studio/join-code/rotate")).status).toBe(403);
+    const { coachA, studioA } = await scenario();
+    expect((await coachA.agent.post(join(studioA.id, "/join-code/rotate"))).status).toBe(403);
   });
 
   it("6 · the owner is allowed the same route", async () => {
-    const { ownerA } = await scenario();
-    const before = await ownerA.agent.get("/studio/join-code");
-    const res = await ownerA.agent.post("/studio/join-code/rotate");
+    const { ownerA, studioA } = await scenario();
+    const before = await ownerA.agent.get(join(studioA.id, "/join-code"));
+    const res = await ownerA.agent.post(join(studioA.id, "/join-code/rotate"));
 
     expect(res.status).toBe(200);
     expect(res.body.joinCode).toEqual(expect.any(String));
@@ -109,35 +114,38 @@ describe("authorization at the HTTP boundary", () => {
   });
 
   it("5b · a coach may still use the member-level route", async () => {
-    const { coachA } = await scenario();
-    const res = await coachA.agent.get("/studio/join-code");
+    const { coachA, studioA } = await scenario();
+    const res = await coachA.agent.get(join(studioA.id, "/join-code"));
     expect(res.status).toBe(200);
     expect(res.body.joinCode).toEqual(expect.any(String));
   });
 
   it("7 · removing a coach revokes access on the very next request", async () => {
-    const { coachA, coachMembershipId } = await scenario();
-    expect((await coachA.agent.get("/studio/join-code")).status).toBe(200);
+    const { coachA, coachMembershipId, studioA } = await scenario();
+    expect((await coachA.agent.get(join(studioA.id, "/join-code"))).status).toBe(200);
 
     await db.delete(schema.memberships).where(eq(schema.memberships.id, coachMembershipId));
 
     // Same cookie, same session, same activeStudioId — and no longer authorized.
-    expect((await coachA.agent.get("/studio/join-code")).status).toBe(403);
+    expect((await coachA.agent.get(join(studioA.id, "/join-code"))).status).toBe(403);
   });
 
   it("10 · suspending a membership revokes access just as removal does", async () => {
-    const { coachA, coachMembershipId } = await scenario();
+    const { coachA, coachMembershipId, studioA } = await scenario();
     await db
       .update(schema.memberships)
       .set({ status: "suspended" })
       .where(eq(schema.memberships.id, coachMembershipId));
 
-    expect((await coachA.agent.get("/studio/join-code")).status).toBe(403);
+    expect((await coachA.agent.get(join(studioA.id, "/join-code"))).status).toBe(403);
   });
 
-  it("8 · a stale activeStudioId is not proof, and is cleared once rejected", async () => {
+  it("8 · a stale activeStudioId grants nothing", async () => {
     const { coachA, coachMembershipId, studioA } = await scenario();
 
+    // The session still names studio A after the membership is gone. Nothing authorizes
+    // against that value any more — the studio comes from the request and is checked
+    // against live membership, so the stale session state is simply inert.
     const [before] = await db
       .select({ activeStudioId: schema.sessions.activeStudioId })
       .from(schema.sessions)
@@ -146,28 +154,45 @@ describe("authorization at the HTTP boundary", () => {
     expect(before?.activeStudioId).toBe(studioA.id);
 
     await db.delete(schema.memberships).where(eq(schema.memberships.id, coachMembershipId));
-    expect((await coachA.agent.get("/studio/join-code")).status).toBe(403);
+    expect((await coachA.agent.get(join(studioA.id, "/join-code"))).status).toBe(403);
+  });
 
-    const [after] = await db
-      .select({ activeStudioId: schema.sessions.activeStudioId })
-      .from(schema.sessions)
-      .where(eq(schema.sessions.userId, coachA.userId))
-      .limit(1);
-    expect(after?.activeStudioId).toBeNull();
+  it("8b · two tabs on different studios do not write to each other's", async () => {
+    // One session, two studios. This is the shape that made `activeStudioId` unsafe as a
+    // tenant: whichever tab switched last won, for every tab.
+    const { ownerB, studioB } = await scenario();
+    const ownSecond = await db
+      .select({ id: schema.studios.id })
+      .from(schema.studios)
+      .innerJoin(schema.memberships, eq(schema.memberships.studioId, schema.studios.id))
+      .where(eq(schema.memberships.userId, ownerB.userId));
+    expect(ownSecond.length).toBeGreaterThan(0);
+
+    // "Switch" the session to a different studio, as a second tab would.
+    await db
+      .update(schema.sessions)
+      .set({ activeStudioId: null })
+      .where(eq(schema.sessions.userId, ownerB.userId));
+
+    // The first tab still names its own studio, and still works — it never depended on
+    // the session value at all.
+    const res = await ownerB.agent.get(join(studioB.id, "/join-code"));
+    expect(res.status).toBe(200);
+    expect(res.body.joinCode).toEqual(expect.any(String));
   });
 
   it("9 · a studio id in the body or query cannot redirect a route", async () => {
     const { coachA, studioA, studioB } = await scenario();
 
     // The coach may read A, and tries to aim the same route at B by every other means.
-    const viaBody = await coachA.agent.patch("/studio/join-code", {
+    const viaBody = await coachA.agent.patch(join(studioA.id, "/join-code"), {
       enabled: false,
       studioId: studioB.id,
     });
     // Refused on role, never on B's behalf.
     expect(viaBody.status).toBe(403);
 
-    const viaQuery = await coachA.agent.get(`/studio/join-code?studioId=${studioB.id}`);
+    const viaQuery = await coachA.agent.get(join(studioA.id, `/join-code?studioId=${studioB.id}`));
     expect(viaQuery.status).toBe(200);
     const [bRow] = await db
       .select({ joinCode: schema.studios.joinCode, joinEnabled: schema.studios.joinEnabled })
@@ -184,9 +209,9 @@ describe("authorization at the HTTP boundary", () => {
 
   it("11 · rotation is owner-only, and a refused rotation changes nothing", async () => {
     const { coachA, ownerA, studioA } = await scenario();
-    const before = await ownerA.agent.get("/studio/join-code");
+    const before = await ownerA.agent.get(join(studioA.id, "/join-code"));
 
-    expect((await coachA.agent.post("/studio/join-code/rotate")).status).toBe(403);
+    expect((await coachA.agent.post(join(studioA.id, "/join-code/rotate"))).status).toBe(403);
 
     const [row] = await db
       .select({ joinCode: schema.studios.joinCode })
@@ -199,7 +224,9 @@ describe("authorization at the HTTP boundary", () => {
   it("12 · enabling and disabling joins is owner-only", async () => {
     const { coachA, ownerA, studioA } = await scenario();
 
-    expect((await coachA.agent.patch("/studio/join-code", { enabled: false })).status).toBe(403);
+    expect(
+      (await coachA.agent.patch(join(studioA.id, "/join-code"), { enabled: false })).status,
+    ).toBe(403);
     const [untouched] = await db
       .select({ joinEnabled: schema.studios.joinEnabled })
       .from(schema.studios)
@@ -207,7 +234,9 @@ describe("authorization at the HTTP boundary", () => {
       .limit(1);
     expect(untouched?.joinEnabled).toBe(true);
 
-    expect((await ownerA.agent.patch("/studio/join-code", { enabled: false })).status).toBe(200);
+    expect(
+      (await ownerA.agent.patch(join(studioA.id, "/join-code"), { enabled: false })).status,
+    ).toBe(200);
     const [after] = await db
       .select({ joinEnabled: schema.studios.joinEnabled })
       .from(schema.studios)

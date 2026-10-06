@@ -40,12 +40,6 @@ async function main() {
       email: c.email,
       phoneVerifiedAt: new Date(),
     });
-    await db.insert(schema.authIdentities).values({
-      id: newId(),
-      userId: id,
-      provider: "phone",
-      providerUid: c.phone,
-    });
     console.warn(`  created  ${c.name}  ${c.phone}`);
   }
   // Every trainer must own a studio. Backfills anyone created before studios existed,

@@ -28,11 +28,21 @@ join.post("/:code", async (req, res) => {
   res.json(await joinByCode(userId, c));
 });
 
-/* ---- coach-side management, scoped to the active studio ---- */
+/* ---- coach-side management, scoped to the studio named in the URL ---- */
 
-export const studioJoin: Router = Router();
+export const studioJoin: Router = Router({ mergeParams: true });
 
-studioJoin.get("/join-code", requireStudio(), async (req, res) => {
+/**
+ * Mounted at `/studios/:studioId`, so the tenant comes from the request rather than the
+ * session.
+ *
+ * `activeStudioId` is one value shared by every tab. A coach with studio A open in one
+ * tab and B in another would have the first tab's writes land in B, and the membership
+ * check would pass because they belong to both. The studio is per-tab UI state, so it
+ * has to travel with the request. `activeStudioId` is now only "where to land after
+ * signing in".
+ */
+studioJoin.get("/join-code", requireStudio({ param: "studioId" }), async (req, res) => {
   const { studioId } = requireStudioAuth(req);
   const [studio] = await db
     .select({
@@ -47,18 +57,26 @@ studioJoin.get("/join-code", requireStudio(), async (req, res) => {
 });
 
 // Owner only: rotating invalidates every QR and link the studio has already handed out.
-studioJoin.post("/join-code/rotate", requireStudio({ role: "owner" }), async (req, res) => {
-  const { studioId } = requireStudioAuth(req);
-  res.json({ joinCode: await rotateJoinCode(studioId) });
-});
+studioJoin.post(
+  "/join-code/rotate",
+  requireStudio({ param: "studioId", role: "owner" }),
+  async (req, res) => {
+    const { studioId } = requireStudioAuth(req);
+    res.json({ joinCode: await rotateJoinCode(studioId) });
+  },
+);
 
 // Owner only: closing the door to new clients is a studio-administration decision.
-studioJoin.patch("/join-code", requireStudio({ role: "owner" }), async (req, res) => {
-  const { studioId } = requireStudioAuth(req);
-  const { enabled } = z.object({ enabled: z.boolean() }).parse(req.body);
-  await setJoinEnabled(studioId, enabled);
-  res.json({ joinEnabled: enabled });
-});
+studioJoin.patch(
+  "/join-code",
+  requireStudio({ param: "studioId", role: "owner" }),
+  async (req, res) => {
+    const { studioId } = requireStudioAuth(req);
+    const { enabled } = z.object({ enabled: z.boolean() }).parse(req.body);
+    await setJoinEnabled(studioId, enabled);
+    res.json({ joinEnabled: enabled });
+  },
+);
 
 /* ---- client-side, scoped to the studio named in the URL ---- */
 

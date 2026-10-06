@@ -1,19 +1,50 @@
 import { newId, schema } from "@traiv/db";
-import { and, desc, eq, gte, isNotNull, isNull, sql } from "drizzle-orm";
+import { and, desc, eq, gt, gte, isNotNull, isNull, lt, sql } from "drizzle-orm";
 import { db } from "../../db.js";
 import { badRequest, notFound, tooManyRequests, unauthorized } from "../../errors.js";
 import { sendOtp } from "../../integrations/otp/index.js";
-import { hash, matches, newOtp, newSessionToken } from "../../lib/crypto.js";
+import { hash, hashOtp, newOtp, newSessionToken, otpMatches } from "../../lib/crypto.js";
 import { createDefaultStudio, defaultStudioFor, resolveActiveStudio } from "../studio/service.js";
 
 const OTP_TTL_MS = 5 * 60 * 1000;
 const MAX_ATTEMPTS = 5;
 const MAX_SENDS_PER_HOUR = 5;
+/** Across every challenge for one number, not per code — resending must not reset it. */
+const MAX_FAILED_PER_HOUR = 15;
+/** One IP, any number. Counts unsent rows too: invalid numbers must not be free. */
+const MAX_SENDS_PER_IP_PER_HOUR = 20;
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 
-/** Stored E.164. The UI collects ten digits and we own the country code for now. */
-export function toE164(tenDigits: string): string {
-  return `+91${tenDigits}`;
+/**
+ * The one way a phone number becomes storable.
+ *
+ * It used to be `+91${input}` with no validation, which meant an already-normalised
+ * number came back as `+91+919876543210` and anything at all could be written to a column
+ * whose uniqueness depends on a single representation. Everything that reaches the
+ * database goes through here, and the CHECK constraints catch anything that does not.
+ *
+ * India only, deliberately — it is the market we serve, and accepting other country codes
+ * is how an OTP endpoint becomes a route to premium-rate numbers.
+ */
+export function toE164(input: string): string {
+  const digits = input.replace(/[\s()\-.]/g, "");
+
+  const national = digits.startsWith("+91")
+    ? digits.slice(3)
+    : digits.startsWith("0091")
+      ? digits.slice(4)
+      : digits.startsWith("91") && digits.length === 12
+        ? digits.slice(2)
+        : digits.startsWith("0")
+          ? digits.slice(1)
+          : digits;
+
+  // Indian mobile numbers are ten digits starting 6-9. Landlines cannot receive an SMS,
+  // so refusing them here is a feature rather than a gap.
+  if (!/^[6-9]\d{9}$/.test(national)) {
+    throw badRequest("phone_invalid", "Enter a valid Indian mobile number.");
+  }
+  return `+91${national}`;
 }
 
 /**
@@ -46,17 +77,53 @@ export async function requestChallenge(input: {
     throw tooManyRequests("Too many codes requested. Try again in an hour.");
   }
 
+  // Per IP, and deliberately counting rows we never sent. The per-phone quota ignores
+  // failed sends because an outage is ours not the user's — but applying that here would
+  // make deliberately invalid numbers a free way to hammer the endpoint, which is exactly
+  // how SMS pumping works.
+  if (input.ip) {
+    const [{ count: fromIp } = { count: 0 }] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(schema.authChallenges)
+      .where(
+        and(
+          eq(schema.authChallenges.requestIp, input.ip),
+          gte(schema.authChallenges.createdAt, hourAgo),
+        ),
+      );
+    if (fromIp >= MAX_SENDS_PER_IP_PER_HOUR) {
+      throw tooManyRequests("Too many codes requested. Try again in an hour.");
+    }
+  }
+
   const code = newOtp();
   const challengeId = newId();
 
-  await db.insert(schema.authChallenges).values({
-    id: challengeId,
-    purpose: "phone_verify",
-    phone,
-    codeHash: hash(code),
-    expiresAt: new Date(Date.now() + OTP_TTL_MS),
-    requestIp: input.ip ?? null,
-    pendingName: input.name?.trim() || null,
+  // "Only the newest code is valid" was a query-ordering convention, which a double-tap
+  // on resend could break by leaving two live rows. Superseding in the same transaction
+  // as the insert makes it an invariant, and the partial unique index on
+  // (phone, purpose) where consumed_at is null is what enforces it.
+  await db.transaction(async (tx) => {
+    await tx
+      .update(schema.authChallenges)
+      .set({ consumedAt: new Date() })
+      .where(
+        and(
+          eq(schema.authChallenges.phone, phone),
+          eq(schema.authChallenges.purpose, "phone_verify"),
+          isNull(schema.authChallenges.consumedAt),
+        ),
+      );
+
+    await tx.insert(schema.authChallenges).values({
+      id: challengeId,
+      purpose: "phone_verify",
+      phone,
+      codeHash: hashOtp(challengeId, code),
+      expiresAt: new Date(Date.now() + OTP_TTL_MS),
+      requestIp: input.ip ?? null,
+      pendingName: input.name?.trim() || null,
+    });
   });
 
   try {
@@ -112,26 +179,69 @@ export async function verifyChallenge(input: {
     .limit(1);
 
   if (!challenge) throw badRequest("no_challenge", "Request a code first.");
-  if (challenge.consumedAt) throw badRequest("code_used", "That code has already been used.");
-  if (challenge.expiresAt < new Date()) throw badRequest("code_expired", "That code has expired.");
-  if (challenge.attempts >= MAX_ATTEMPTS) {
+
+  // Per-challenge attempts reset every time a new code is issued, so on its own the cap
+  // only costs an attacker a resend. This counts failures across every challenge for the
+  // number in the last hour, which is the limit that actually binds.
+  const [{ failed } = { failed: 0 }] = await db
+    .select({ failed: sql<number>`coalesce(sum(${schema.authChallenges.attempts}), 0)::int` })
+    .from(schema.authChallenges)
+    .where(
+      and(
+        eq(schema.authChallenges.phone, phone),
+        eq(schema.authChallenges.purpose, "phone_verify"),
+        gte(schema.authChallenges.createdAt, new Date(Date.now() - 60 * 60 * 1000)),
+      ),
+    );
+  if (failed >= MAX_FAILED_PER_HOUR) {
+    throw tooManyRequests("Too many incorrect codes. Try again in an hour.");
+  }
+
+  // Deliberately not filtered on consumedAt above: the unique index guarantees at most
+  // one live row, so the newest is it — and finding a consumed row is what lets this say
+  // "already used" instead of "request a code first", which is true but unhelpful.
+  //
+  // Spend the attempt and re-check every precondition in one statement, before comparing.
+  // Reading, checking and then incrementing let concurrent requests all read the same
+  // count: twenty parallel guesses cost one attempt between them. The guard clauses live
+  // in the WHERE so the database, not this process, decides who gets the attempt.
+  const [spent] = await db
+    .update(schema.authChallenges)
+    .set({ attempts: sql`${schema.authChallenges.attempts} + 1` })
+    .where(
+      and(
+        eq(schema.authChallenges.id, challenge.id),
+        isNull(schema.authChallenges.consumedAt),
+        gt(schema.authChallenges.expiresAt, new Date()),
+        lt(schema.authChallenges.attempts, MAX_ATTEMPTS),
+      ),
+    )
+    .returning();
+
+  if (!spent) {
+    // One of the preconditions failed. Re-read to say which, rather than guessing.
+    if (challenge.consumedAt) throw badRequest("code_used", "That code has already been used.");
+    if (challenge.expiresAt < new Date()) {
+      throw badRequest("code_expired", "That code has expired.");
+    }
     throw tooManyRequests("Too many attempts. Request a new code.");
   }
 
-  if (!matches(input.code, challenge.codeHash)) {
-    await db
-      .update(schema.authChallenges)
-      .set({ attempts: challenge.attempts + 1 })
-      .where(eq(schema.authChallenges.id, challenge.id));
+  if (!otpMatches(spent.id, input.code, spent.codeHash)) {
     throw badRequest("code_invalid", "That code isn't right. Check the latest message.");
   }
 
-  return db.transaction(async (tx) => {
-    await tx
-      .update(schema.authChallenges)
-      .set({ consumedAt: new Date() })
-      .where(eq(schema.authChallenges.id, challenge.id));
+  // Claim the code. Conditional on still being unconsumed, so two correct submissions
+  // racing each other produce exactly one session rather than two.
+  const [won] = await db
+    .update(schema.authChallenges)
+    .set({ consumedAt: new Date() })
+    .where(and(eq(schema.authChallenges.id, spent.id), isNull(schema.authChallenges.consumedAt)))
+    .returning({ id: schema.authChallenges.id });
 
+  if (!won) throw badRequest("code_used", "That code has already been used.");
+
+  return db.transaction(async (tx) => {
     let [user] = await tx
       .select()
       .from(schema.users)
@@ -154,20 +264,22 @@ export async function verifyChallenge(input: {
       user = created;
 
       if (user) {
-        await tx.insert(schema.authIdentities).values({
-          id: newId(),
-          userId: user.id,
-          provider: "phone",
-          providerUid: phone,
-        });
-        // Same transaction as the user, so "every trainer has a studio" cannot be
-        // broken by a partial failure.
+        // No phone row in auth_identity. The number on `user` is the credential, and a
+        // second copy here would be a second thing to keep in step on every change —
+        // which is how a stale identity outlives a phone number and lets its next owner
+        // in. auth_identity is for providers we do not own.
+        //
+        // Same transaction as the user, so "every trainer has a studio" cannot be broken
+        // by a partial failure.
         await createDefaultStudio(tx, user);
       }
-    } else if (!user.phoneVerifiedAt) {
+    } else {
+      // Refreshed on every successful OTP, not only the first. Indian carriers reassign
+      // disconnected numbers after about 90 days, and this is the column that makes
+      // "how long since this number proved itself" answerable at all.
       await tx
         .update(schema.users)
-        .set({ phoneVerifiedAt: new Date() })
+        .set({ phoneVerifiedAt: new Date(), updatedAt: new Date() })
         .where(eq(schema.users.id, user.id));
     }
 
@@ -216,7 +328,27 @@ async function issueSession(
 /** Signup step two. Email is stored unverified on purpose — see ADR 0005. */
 export async function completeProfile(userId: string, input: { email?: string; name?: string }) {
   const patch: Record<string, unknown> = { updatedAt: new Date() };
-  if (input.email?.trim()) patch.email = input.email.trim().toLowerCase();
+
+  if (input.email?.trim()) {
+    const email = input.email.trim().toLowerCase();
+
+    // An unverified claim must not take an address that someone has already proven.
+    // Without this, typing a stranger's address silently blocks them from ever linking
+    // Google — the unique index holds it, and nobody can evict it.
+    const [taken] = await db
+      .select({ id: schema.users.id, verifiedAt: schema.users.emailVerifiedAt })
+      .from(schema.users)
+      .where(and(eq(schema.users.email, email), isNull(schema.users.deletedAt)))
+      .limit(1);
+
+    if (taken && taken.id !== userId) {
+      throw badRequest("email_taken", "That email is already on another account.");
+    }
+    patch.email = email;
+    // Changing the address drops any proof attached to the old one.
+    patch.emailVerifiedAt = null;
+  }
+
   if (input.name?.trim()) patch.name = input.name.trim();
 
   const [user] = await db

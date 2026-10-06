@@ -71,6 +71,8 @@ async function scenario(status: ClientStatus = "active") {
 }
 
 const me = (studioId: string) => `/c/${studioId}/me`;
+/** Coach routes name their studio in the path — there is no implicit tenant. */
+const joinCode = (studioId: string) => `/studios/${studioId}/join-code`;
 
 describe("client authorization at the HTTP boundary", () => {
   it("refuses an anonymous caller with 401, not 403", async () => {
@@ -179,8 +181,10 @@ describe("client authorization at the HTTP boundary", () => {
     // Signup gives every account its own studio, so this answers 200 — for *their*
     // studio. The point is that it is never A's, which their client relationship would
     // grant if the two models leaked into each other.
-    const theirs = await person.agent.get("/studio/join-code");
-    const asCoach = await coachA.agent.get("/studio/join-code");
+    const [own] = await listStudios(person.userId);
+    if (!own) throw new Error("signup should have created their own studio");
+    const theirs = await person.agent.get(joinCode(own.id));
+    const asCoach = await coachA.agent.get(joinCode(studioA.id));
     expect(theirs.status).toBe(200);
     expect(theirs.body.joinCode).not.toBe(asCoach.body.joinCode);
     expect(theirs.body.name).not.toBe("Rahul Deshmukh");
@@ -213,7 +217,7 @@ describe("client authorization at the HTTP boundary", () => {
     });
 
     // Staff in A.
-    expect((await coachA.agent.get("/studio/join-code")).status).toBe(200);
+    expect((await coachA.agent.get(joinCode(studioA.id))).status).toBe(200);
     // Client in B.
     expect((await coachA.agent.get(me(studioB.id))).status).toBe(200);
     // And neither leaks into the other.

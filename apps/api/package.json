@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "seed": "tsx src/seed.ts",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "retention": "tsx src/features/auth/retention.ts"
   },
   "dependencies": {
     "@traiv/db": "workspace:*",

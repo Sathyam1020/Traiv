@@ -1,3 +1,4 @@
+import { sql } from "drizzle-orm";
 import { boolean, index, pgEnum, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 import { users } from "./user.js";
 
@@ -39,12 +40,15 @@ export const studios = pgTable(
 
     timezone: text().notNull().default("Asia/Kolkata"),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp({ withTimezone: true })
+      .notNull()
+      .defaultNow()
+      .$onUpdate(() => new Date()),
     deletedAt: timestamp({ withTimezone: true }),
   },
   (t) => [
-    uniqueIndex("studio_slug_key").on(t.slug),
-    uniqueIndex("studio_join_code_key").on(t.joinCode),
+    uniqueIndex("studio_slug_key").on(t.slug).where(sql`${t.deletedAt} is null`),
+    uniqueIndex("studio_join_code_key").on(t.joinCode).where(sql`${t.deletedAt} is null`),
   ],
 );
 
@@ -65,7 +69,10 @@ export const memberships = pgTable(
     deletedAt: timestamp({ withTimezone: true }),
   },
   (t) => [
-    uniqueIndex("membership_studio_user_key").on(t.studioId, t.userId),
+    // Partial, so re-inviting a coach who was removed does not collide with the old row.
+    uniqueIndex("membership_studio_user_key")
+      .on(t.studioId, t.userId)
+      .where(sql`${t.deletedAt} is null`),
     index("membership_user_idx").on(t.userId),
     index("membership_studio_idx").on(t.studioId, t.status),
   ],

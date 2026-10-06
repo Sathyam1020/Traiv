@@ -165,6 +165,8 @@ describe("phone sign-in", () => {
 
   it("does not spend the hourly quota on sends that failed", async () => {
     // Five challenges that never reached the user — a provider outage, not their doing.
+    // Written as superseded, because only one code per number may be live at a time now
+    // and a retry supersedes the last: five live rows is a state that cannot occur.
     for (let i = 0; i < 5; i++) {
       await db.insert(schema.authChallenges).values({
         id: crypto.randomUUID(),
@@ -174,6 +176,7 @@ describe("phone sign-in", () => {
         expiresAt: new Date(Date.now() + 60_000),
         sentAt: null,
         sendError: "provider unavailable",
+        consumedAt: new Date(),
       });
     }
 
@@ -250,16 +253,23 @@ describe("sessions", () => {
     expect(b.user.id).toBe(a.user.id);
   });
 
-  it("a user with a phone identity has exactly one", async () => {
+  it("keeps the phone credential in one place", async () => {
     await requestChallenge({ phone: N1 });
     const { user } = await verifyChallenge({ phone: N1, code: await latestCodeFor(N1) });
 
+    // auth_identity is for federated providers only. The number lives on `user`, and
+    // only there, so changing it cannot leave a stale row that still authenticates.
     const ids = await db
       .select()
       .from(schema.authIdentities)
       .where(eq(schema.authIdentities.userId, user.id));
-    expect(ids).toHaveLength(1);
-    expect(ids[0]?.provider).toBe("phone");
+    expect(ids).toHaveLength(0);
+
+    const [row] = await db
+      .select({ phone: schema.users.phone })
+      .from(schema.users)
+      .where(eq(schema.users.id, user.id));
+    expect(row?.phone).toBe(toE164(N1));
 
     await expect(getUser(user.id)).resolves.toMatchObject({ id: user.id });
   });
