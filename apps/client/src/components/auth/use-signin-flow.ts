@@ -7,7 +7,10 @@ import { useAuthConfig, useDirectSignIn, useRequestCode, useVerifyCode } from "@
 export type SignInStep = "phone" | "code";
 
 /**
- * Signing back in. Phone, code, done.
+ * Signing back in. Phone, code, done — and never a name.
+ *
+ * A client's account is created by following their coach's link, which is where the name
+ * is asked for. Asking a returning client to type it again to get in would be absurd.
  *
  * Deliberately not the join flow: that one attaches you to a coach as well, and these are
  * different things. Joining needs a link; signing in never does, because the account
@@ -20,8 +23,6 @@ export type SignInStep = "phone" | "code";
 export function useSignInFlow() {
   const [step, setStep] = useState<SignInStep>("phone");
   const [phone, setPhone] = useState("");
-  // Only used when this number has no account yet, or has one with no name.
-  const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const request = useRequestCode();
@@ -39,17 +40,17 @@ export function useSignInFlow() {
     setError(null);
     try {
       if (!otpRequired) {
-        await direct.mutateAsync({ phone, ...(name.trim() ? { name: name.trim() } : {}) });
+        await direct.mutateAsync({ phone });
         return true;
       }
-      await request.mutateAsync({ phone, ...(name.trim() ? { name: name.trim() } : {}) });
+      await request.mutateAsync({ phone });
       setStep("code");
       return false;
     } catch (e) {
       setError(isApiError(e) ? e.message : "Couldn't sign you in. Try again.");
       return false;
     }
-  }, [request, direct, otpRequired, phone, name]);
+  }, [request, direct, otpRequired, phone]);
 
   const submitCode = useCallback(
     async (otp: string) => {
@@ -74,8 +75,6 @@ export function useSignInFlow() {
     step,
     phone,
     setPhone,
-    name,
-    setName,
     error,
     busy,
     otpRequired,

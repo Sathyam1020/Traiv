@@ -6,8 +6,11 @@ import { useAuthConfig, useDirectSignIn, useRequestCode, useVerifyCode } from "@
 
 export type SignInStep = "phone" | "code";
 
+/** Which screen this is. It changes what is asked for, not the flow underneath. */
+export type AuthMode = "signin" | "signup";
+
 /**
- * Signing back in. Phone, code, done.
+ * Signing in, or signing up. Phone, code, done.
  *
  * Deliberately not the join flow: that one attaches you to a coach as well, and these are
  * different things. Joining needs a link; signing in never does, because the account
@@ -17,7 +20,7 @@ export type SignInStep = "phone" | "code";
  * number gets an account. That account simply has no coach, and the dashboard says so
  * rather than this screen refusing them.
  */
-export function useSignInFlow() {
+export function useSignInFlow(mode: AuthMode = "signin") {
   const [step, setStep] = useState<SignInStep>("phone");
   const [phone, setPhone] = useState("");
   // Optional, and only used if this number has no account yet — or has one with no name.
@@ -39,17 +42,23 @@ export function useSignInFlow() {
     setError(null);
     try {
       if (!otpRequired) {
-        await direct.mutateAsync({ phone, ...(name.trim() ? { name: name.trim() } : {}) });
+        await direct.mutateAsync({
+          phone,
+          ...(mode === "signup" && name.trim() ? { name: name.trim() } : {}),
+        });
         return true;
       }
-      await request.mutateAsync({ phone, ...(name.trim() ? { name: name.trim() } : {}) });
+      await request.mutateAsync({
+        phone,
+        ...(mode === "signup" && name.trim() ? { name: name.trim() } : {}),
+      });
       setStep("code");
       return false;
     } catch (e) {
       setError(isApiError(e) ? e.message : "Couldn't sign you in. Try again.");
       return false;
     }
-  }, [request, direct, otpRequired, phone, name]);
+  }, [request, direct, otpRequired, phone, name, mode]);
 
   const submitCode = useCallback(
     async (otp: string) => {

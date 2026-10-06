@@ -2,8 +2,6 @@
 
 import { Button } from "@traiv/ui/components/button";
 import { GoogleButton } from "@traiv/ui/components/google-button";
-import { Input } from "@traiv/ui/components/input";
-import { Label } from "@traiv/ui/components/label";
 import { Logo } from "@traiv/ui/components/logo";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useState } from "react";
@@ -68,17 +66,6 @@ export function SignInCard({ onDone }: { onDone: () => void }) {
               <span className="h-px flex-1 bg-line" />
               <span className="text-caption text-fg-subtle">or</span>
               <span className="h-px flex-1 bg-line" />
-            </div>
-
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="name">Your name</Label>
-              <Input
-                id="name"
-                value={flow.name}
-                onChange={(e) => flow.setName(e.target.value)}
-                placeholder="Priya Nair"
-                autoComplete="name"
-              />
             </div>
 
             <PhoneField

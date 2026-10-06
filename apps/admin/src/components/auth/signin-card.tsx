@@ -6,9 +6,10 @@ import { Input } from "@traiv/ui/components/input";
 import { Label } from "@traiv/ui/components/label";
 import { Logo } from "@traiv/ui/components/logo";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { DevBypass } from "@/components/auth/dev-bypass";
-import { useSignInFlow } from "@/components/auth/use-signin-flow";
+import { type AuthMode, useSignInFlow } from "@/components/auth/use-signin-flow";
 import { OtpInput } from "@/components/common/otp-input";
 import { PhoneField } from "@/components/common/phone-field";
 import { TrustMarkers } from "@/components/common/trust-markers";
@@ -22,8 +23,10 @@ const VALID_PHONE = /^[6-9]\d{9}$/;
  * to attribute here. One form does both jobs, because auth is passwordless: an unknown
  * number gets an account, a known one gets its session.
  */
-export function SignInCard({ onDone }: { onDone: () => void }) {
-  const flow = useSignInFlow();
+export function SignInCard({ mode, onDone }: { mode: AuthMode; onDone: () => void }) {
+  const flow = useSignInFlow(mode);
+  const isSignup = mode === "signup";
+  const other = isSignup ? "/signin" : "/signup";
   const { data: config } = useAuthConfig();
   const [otp, setOtp] = useState("");
 
@@ -50,17 +53,19 @@ export function SignInCard({ onDone }: { onDone: () => void }) {
           <div className="flex flex-col gap-5">
             <header className="flex flex-col gap-1.5 text-center">
               <h1 className="text-heading font-semibold tracking-[-0.02em]">
-                Sign in or get started
+                {isSignup ? "Create your account" : "Welcome back"}
               </h1>
               <p className="text-body-sm text-fg-muted">
-                New or returning — the same number works either way.
+                {isSignup
+                  ? "Takes a minute. You'll get a code to share straight away."
+                  : "Sign in to continue to your account."}
               </p>
             </header>
 
             <GoogleButton
               enabled={Boolean(config?.google)}
               href={`${API_BASE}/auth/google/start`}
-              label="Continue with Google"
+              label={isSignup ? "Sign up with Google" : "Sign in with Google"}
             />
 
             <div className="flex items-center gap-3">
@@ -79,16 +84,18 @@ export function SignInCard({ onDone }: { onDone: () => void }) {
                 });
               }}
             >
-              <div className="flex flex-col gap-2">
-                <Label htmlFor="name">Your name</Label>
-                <Input
-                  id="name"
-                  value={flow.name}
-                  onChange={(e) => flow.setName(e.target.value)}
-                  placeholder="Sathyam Sahu"
-                  autoComplete="name"
-                />
-              </div>
+              {isSignup ? (
+                <div className="flex flex-col gap-2">
+                  <Label htmlFor="name">Your name</Label>
+                  <Input
+                    id="name"
+                    value={flow.name}
+                    onChange={(e) => flow.setName(e.target.value)}
+                    placeholder="Sathyam Sahu"
+                    autoComplete="name"
+                  />
+                </div>
+              ) : null}
 
               <PhoneField
                 value={flow.phone}
@@ -159,6 +166,13 @@ export function SignInCard({ onDone }: { onDone: () => void }) {
         By continuing, you agree to our{" "}
         <span className="font-medium text-fg-muted">Terms of Service</span> and{" "}
         <span className="font-medium text-fg-muted">Privacy Policy</span>.
+      </p>
+
+      <p className="text-center text-body-sm text-fg-muted">
+        {isSignup ? "Already have an account? " : "New here? "}
+        <Link href={other} className="font-medium text-fg underline-offset-4 hover:underline">
+          {isSignup ? "Sign in" : "Create an account"}
+        </Link>
       </p>
 
       <TrustMarkers />
