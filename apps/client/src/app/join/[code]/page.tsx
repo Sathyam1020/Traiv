@@ -114,7 +114,7 @@ function Done({ studioName }: { studioName: string }) {
       </div>
       {/* `replace`, not `push`: the join link is spent, and leaving it in history sends
           anyone who taps back into a flow they have already completed. */}
-      <Button onClick={() => router.replace("/")}>Continue</Button>
+      <Button onClick={() => router.replace("/dashboard")}>Continue</Button>
     </main>
   );
 }
