@@ -44,7 +44,11 @@ export function SignInCard({ onDone }: { onDone: () => void }) {
           >
             <header className="flex flex-col gap-1.5">
               <h1 className="text-subheading font-semibold tracking-[-0.02em]">Sign in</h1>
-              <p className="text-body-sm text-fg-muted">Use the number your coach has for you.</p>
+              <p className="text-body-sm text-fg-muted">
+                {flow.otpRequired
+                  ? "Use the number your coach has for you. New or returning, the same number works."
+                  : "Development mode — no code needed."}
+              </p>
             </header>
 
             <PhoneField
