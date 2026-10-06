@@ -48,10 +48,16 @@ export function SignInCard({ onDone }: { onDone: () => void }) {
             }}
           >
             <header className="flex flex-col gap-1.5">
-              <h1 className="text-subheading font-semibold tracking-[-0.02em]">Sign in</h1>
+              {/* There is no separate signup. Auth is passwordless, so signing in and
+                  creating an account are the same action — an unknown number simply
+                  gets one. Saying so stops a new endorser hunting for a button that
+                  does not exist. */}
+              <h1 className="text-subheading font-semibold tracking-[-0.02em]">
+                Sign in or get started
+              </h1>
               <p className="text-body-sm text-fg-muted">
                 {flow.otpRequired
-                  ? "We'll text you a code to verify your number."
+                  ? "New or returning — the same number works either way."
                   : "Development mode — no code needed."}
               </p>
             </header>
