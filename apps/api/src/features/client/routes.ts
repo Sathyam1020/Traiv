@@ -1,10 +1,14 @@
 import { schema } from "@traiv/db";
-import { eq } from "drizzle-orm";
+import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { Router } from "express";
 import { z } from "zod";
 import { db } from "../../db.js";
 import { requireStudio, requireStudioAuth } from "../../middleware/authorize.js";
-import { requireClient, requireClientAuth } from "../../middleware/client-authorize.js";
+import {
+  READABLE_STATUSES,
+  requireClient,
+  requireClientAuth,
+} from "../../middleware/client-authorize.js";
 import { requireSession } from "../../middleware/session.js";
 import { joinByCode, previewJoin, rotateJoinCode, setJoinEnabled } from "./join.js";
 
@@ -72,6 +76,58 @@ export const clientApp: Router = Router();
  * Nothing here touches plans, workouts or check-ins — those data models do not exist,
  * and their permissions are deliberately undecided.
  */
+/**
+ * Every studio this user is a client of.
+ *
+ * Not `requireClient` — that gate answers "may you act in *this* studio", and this is the
+ * question that comes before it: which studios are there to ask about. A signed-in user
+ * with no coaching relationship gets an empty list, not a 403, because having no coach is
+ * a normal state and not a denial.
+ *
+ * Archived and deleted relationships are excluded here exactly as `requireClient`
+ * excludes them, so the list never offers a studio that the next request would refuse.
+ */
+clientApp.get("/", async (req, res) => {
+  const { userId } = requireSession(req);
+
+  const rows = await db
+    .select({
+      studioId: schema.studios.id,
+      name: schema.studios.name,
+      brandDisplayName: schema.studios.brandDisplayName,
+      brandLogoUrl: schema.studios.brandLogoUrl,
+      brandColor: schema.studios.brandColor,
+      clientId: schema.clients.id,
+      status: schema.clients.status,
+      joinedAt: schema.clients.createdAt,
+    })
+    .from(schema.clients)
+    .innerJoin(schema.studios, eq(schema.studios.id, schema.clients.studioId))
+    .where(
+      and(
+        eq(schema.clients.userId, userId),
+        isNull(schema.clients.deletedAt),
+        isNull(schema.studios.deletedAt),
+        inArray(schema.clients.status, READABLE_STATUSES),
+      ),
+    )
+    .orderBy(asc(schema.clients.createdAt));
+
+  res.json({
+    coaches: rows.map((r) => ({
+      clientId: r.clientId,
+      status: r.status,
+      joinedAt: r.joinedAt,
+      studio: {
+        id: r.studioId,
+        name: r.brandDisplayName || r.name,
+        logoUrl: r.brandLogoUrl,
+        color: r.brandColor,
+      },
+    })),
+  });
+});
+
 clientApp.get("/:studioId/me", requireClient(), async (req, res) => {
   const { studioId, clientId, status } = requireClientAuth(req);
 

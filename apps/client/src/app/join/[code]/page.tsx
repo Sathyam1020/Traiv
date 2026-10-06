@@ -4,7 +4,7 @@ import { Button } from "@traiv/ui/components/button";
 import { Logo } from "@traiv/ui/components/logo";
 import { Skeleton } from "@traiv/ui/components/skeleton";
 import { CircleCheck } from "lucide-react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { JoinCard } from "@/components/join/join-card";
 import { isApiError } from "@/lib/api";
@@ -100,6 +100,8 @@ function Shell({ title, body }: { title: string; body: string }) {
 }
 
 function Done({ studioName }: { studioName: string }) {
+  const router = useRouter();
+
   return (
     <main className="flex min-h-dvh flex-col items-center justify-center gap-5 px-6 text-center">
       <CircleCheck className="size-11 text-success" />
@@ -110,9 +112,9 @@ function Done({ studioName }: { studioName: string }) {
           right now.
         </p>
       </div>
-      <Button variant="outline" asChild>
-        <a href="/">Done</a>
-      </Button>
+      {/* `replace`, not `push`: the join link is spent, and leaving it in history sends
+          anyone who taps back into a flow they have already completed. */}
+      <Button onClick={() => router.replace("/")}>Continue</Button>
     </main>
   );
 }

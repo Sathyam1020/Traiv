@@ -14,6 +14,7 @@ export const queryKeys = {
     preview: (code: string) => ["join", "preview", code] as const,
   },
   client: {
+    coaches: ["client", "coaches"] as const,
     me: (studioId: string) => ["client", "me", studioId] as const,
   },
 } as const;

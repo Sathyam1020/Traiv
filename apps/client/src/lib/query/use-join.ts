@@ -31,3 +31,16 @@ export function useClientMe(studioId: string | null) {
     retry: false,
   });
 }
+
+/**
+ * The client's coaches. `retry: false` because 401 is an answer — a signed-out visitor is
+ * the normal case on this app, not a failure worth retrying.
+ */
+export function useCoaches(enabled = true) {
+  return useQuery({
+    queryKey: queryKeys.client.coaches,
+    queryFn: clientApi.coaches,
+    enabled,
+    retry: false,
+  });
+}

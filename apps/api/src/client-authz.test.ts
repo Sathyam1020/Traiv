@@ -231,6 +231,50 @@ describe("client authorization at the HTTP boundary", () => {
     expect((await coachA.agent.get(me(studioA.id))).status).toBe(403);
   });
 
+  it("GET /c lists only the studios this user is a client of", async () => {
+    const { person, studioA, studioB, clientId } = await scenario("active");
+
+    const res = await person.agent.get("/c");
+    expect(res.status).toBe(200);
+
+    const coaches = res.body.coaches as Array<{ clientId: string; studio: { id: string } }>;
+    expect(coaches).toHaveLength(1);
+    expect(coaches[0]?.clientId).toBe(clientId);
+    expect(coaches[0]?.studio.id).toBe(studioA.id);
+    expect(coaches.map((c) => c.studio.id)).not.toContain(studioB.id);
+  });
+
+  it("GET /c is empty, not forbidden, for someone with no coach", async () => {
+    await scenario();
+    const outsider = await signUpOverHttp(api.url, OUTSIDER, "Nobody");
+
+    const res = await outsider.agent.get("/c");
+    // Having no coach is a normal state, not a denial — a 403 here would make the client
+    // app treat "you haven't joined anyone yet" as an error.
+    expect(res.status).toBe(200);
+    expect(res.body.coaches).toEqual([]);
+  });
+
+  it("GET /c never lists a studio the next request would refuse", async () => {
+    const { person, studioA, clientId } = await scenario("archived");
+    expect((await person.agent.get("/c")).body.coaches).toEqual([]);
+    // and the gate agrees
+    expect((await person.agent.get(me(studioA.id))).status).toBe(403);
+
+    await db
+      .update(schema.clients)
+      .set({ status: "frozen" })
+      .where(eq(schema.clients.id, clientId));
+    const frozen = (await person.agent.get("/c")).body.coaches as Array<{ status: string }>;
+    expect(frozen).toHaveLength(1);
+    expect(frozen[0]?.status).toBe("frozen");
+    expect((await person.agent.get(me(studioA.id))).status).toBe(200);
+  });
+
+  it("GET /c requires a session", async () => {
+    expect((await new Agent(api.url).get("/c")).status).toBe(401);
+  });
+
   it("every client route goes through the chokepoint", () => {
     const layers = (clientApp as unknown as { stack: unknown[] }).stack as Array<{
       route?: { path: string; stack: Array<{ handle: { name?: string } }> };
@@ -242,6 +286,15 @@ describe("client authorization at the HTTP boundary", () => {
       const route = layer.route;
       if (!route) continue;
       const names = route.stack.map((h) => h.handle?.name);
+
+      // "/" is the one route that must not be gated: it answers which studios there are
+      // to ask about, which is the question that comes before "may I act in this one".
+      // It is scoped to the caller's own relationships and returns an empty list rather
+      // than a 403, so it grants nothing. Every other route is gated.
+      if (route.path === "/") {
+        expect(names).not.toContain("requireClientHandler");
+        continue;
+      }
       expect(names, `${route.path} is missing requireClient`).toContain("requireClientHandler");
     }
   });

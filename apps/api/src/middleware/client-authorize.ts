@@ -29,12 +29,9 @@ declare global {
  * client needs to see they are queued, and ADR 0013 requires a frozen client be shown
  * they are frozen. Refusing them would leave the app with a bare 403 and nothing to say.
  */
-const READABLE: ReadonlySet<ClientStatus> = new Set<ClientStatus>([
-  "active",
-  "paused",
-  "waiting",
-  "frozen",
-]);
+export const READABLE_STATUSES = ["active", "paused", "waiting", "frozen"] as const;
+
+const READABLE: ReadonlySet<ClientStatus> = new Set<ClientStatus>(READABLE_STATUSES);
 
 /**
  * Which statuses may create coaching activity. Only `active`.

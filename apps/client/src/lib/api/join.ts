@@ -1,5 +1,5 @@
 import { http } from "./client";
-import type { ClientMe, JoinOutcome, JoinPreview } from "./types";
+import type { ClientMe, Coach, JoinOutcome, JoinPreview } from "./types";
 
 export const joinApi = {
   /** Public. Called before any form, so nobody signs up only to be refused after. */
@@ -10,5 +10,7 @@ export const joinApi = {
 };
 
 export const clientApi = {
+  coaches: async () => (await http.get<{ coaches: Coach[] }>("/c")).data.coaches,
+
   me: async (studioId: string) => (await http.get<ClientMe>(`/c/${studioId}/me`)).data,
 };

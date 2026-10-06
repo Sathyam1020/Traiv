@@ -9,7 +9,7 @@ import { otpChannels } from "../../integrations/otp/index.js";
 import { clearSessionCookie, readCookie, setSessionCookie } from "../../lib/cookies.js";
 import { newSessionToken } from "../../lib/crypto.js";
 import { requireSession } from "../../middleware/session.js";
-import { listStudios, resolveActiveStudio } from "../studio/service.js";
+import { listStudios, preferredStudio } from "../studio/service.js";
 import { authorizeUrl, completeGoogleLogin, googleEnabled } from "./google.js";
 import {
   completeProfile,
@@ -108,11 +108,13 @@ auth.post("/profile", async (req, res) => {
 auth.get("/me", async (req, res) => {
   const { userId, activeStudioId } = requireSession(req);
   const [user, studios] = await Promise.all([getUser(userId), listStudios(userId)]);
-  res.json({
-    user: publicUser(user),
-    studios,
-    activeStudioId: await resolveActiveStudio(userId, activeStudioId),
-  });
+  // Derived from the memberships just read, not re-queried — and null rather than a
+  // throw when there are none. A client belongs to no studio as staff, and asking who
+  // you are must not 404 because of it.
+  const active = studios.some((s) => s.id === activeStudioId)
+    ? activeStudioId
+    : preferredStudio(studios);
+  res.json({ user: publicUser(user), studios, activeStudioId: active });
 });
 
 auth.post("/logout", async (req, res) => {

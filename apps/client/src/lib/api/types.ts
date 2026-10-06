@@ -32,3 +32,11 @@ export type ClientMe = {
   status: ClientStatus;
   studio: { id: string; name: string; logoUrl: string | null; color: string | null };
 };
+
+/** `GET /c` — every studio this user is a client of. Empty is normal, not an error. */
+export type Coach = {
+  clientId: string;
+  status: ClientStatus;
+  joinedAt: string;
+  studio: { id: string; name: string; logoUrl: string | null; color: string | null };
+};
