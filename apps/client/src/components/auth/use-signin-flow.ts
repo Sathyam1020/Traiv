@@ -20,6 +20,8 @@ export type SignInStep = "phone" | "code";
 export function useSignInFlow() {
   const [step, setStep] = useState<SignInStep>("phone");
   const [phone, setPhone] = useState("");
+  // Only used when this number has no account yet, or has one with no name.
+  const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const request = useRequestCode();
@@ -37,17 +39,17 @@ export function useSignInFlow() {
     setError(null);
     try {
       if (!otpRequired) {
-        await direct.mutateAsync({ phone });
+        await direct.mutateAsync({ phone, ...(name.trim() ? { name: name.trim() } : {}) });
         return true;
       }
-      await request.mutateAsync({ phone });
+      await request.mutateAsync({ phone, ...(name.trim() ? { name: name.trim() } : {}) });
       setStep("code");
       return false;
     } catch (e) {
       setError(isApiError(e) ? e.message : "Couldn't sign you in. Try again.");
       return false;
     }
-  }, [request, direct, otpRequired, phone]);
+  }, [request, direct, otpRequired, phone, name]);
 
   const submitCode = useCallback(
     async (otp: string) => {
@@ -68,5 +70,17 @@ export function useSignInFlow() {
     setStep("phone");
   }, []);
 
-  return { step, phone, setPhone, error, busy, otpRequired, sendCode, submitCode, back };
+  return {
+    step,
+    phone,
+    setPhone,
+    name,
+    setName,
+    error,
+    busy,
+    otpRequired,
+    sendCode,
+    submitCode,
+    back,
+  };
 }

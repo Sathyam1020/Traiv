@@ -63,6 +63,7 @@ Adding a catalog entry means the process above was completed first.
 | react / react-dom | 19.3.0 | trainer | — |
 | tailwindcss + @tailwindcss/postcss | 4.3.3 | trainer | styling |
 | motion | 13.2.0 | trainer | animation |
+| sonner | 2.0.8 | ui | toasts |
 | @tanstack/react-query | 5.102.8 | trainer | server state |
 | cn | 0.2.6 | trainer | shadcn class merge |
 | radix-ui | 1.6.7 | trainer | shadcn primitives |
@@ -84,6 +85,12 @@ Kept as evidence that step 3 is not optional:
   it assumes a serverless target; its HTTP transport is non-interactive and would break the
   outbox pattern.
 - **Motion** — `framer-motion` is superseded by `motion`, imported from `motion/react`.
+- **Sonner** — added via `shadcn add sonner`, which is what shadcn's CLI directs you to:
+  its own `toast` component is Base UI only and this project is Radix. The generated
+  component reads the theme from `next-themes`, which we do not use — the theme is a
+  class on the root element driven by a per-app zustand store — so our copy takes `theme`
+  as a prop and `next-themes` was removed. Two theme systems disagreeing is worse than
+  passing one value down.
 - **shadcn** — now ships its own `cn` package and the unified `radix-ui` package. Writing a
   `cn` util by hand creates a duplicate.
 - **Node** — native type-stripping does not resolve `.js` specifiers back to `.ts`.

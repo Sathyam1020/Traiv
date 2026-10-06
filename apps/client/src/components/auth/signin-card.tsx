@@ -1,6 +1,9 @@
 "use client";
 
 import { Button } from "@traiv/ui/components/button";
+import { GoogleButton } from "@traiv/ui/components/google-button";
+import { Input } from "@traiv/ui/components/input";
+import { Label } from "@traiv/ui/components/label";
 import { Logo } from "@traiv/ui/components/logo";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useState } from "react";
@@ -8,11 +11,15 @@ import { DevBypass } from "@/components/auth/dev-bypass";
 import { useSignInFlow } from "@/components/auth/use-signin-flow";
 import { OtpInput } from "@/components/common/otp-input";
 import { PhoneField } from "@/components/common/phone-field";
+import { TrustMarkers } from "@/components/common/trust-markers";
+import { API_BASE } from "@/lib/api";
+import { useAuthConfig } from "@/lib/query";
 
 const VALID_PHONE = /^[6-9]\d{9}$/;
 
 export function SignInCard({ onDone }: { onDone: () => void }) {
   const flow = useSignInFlow();
+  const { data: config } = useAuthConfig();
   const [otp, setOtp] = useState("");
 
   const canSend = VALID_PHONE.test(flow.phone) && !flow.busy;
@@ -50,6 +57,29 @@ export function SignInCard({ onDone }: { onDone: () => void }) {
                   : "Development mode — no code needed."}
               </p>
             </header>
+
+            <GoogleButton
+              enabled={Boolean(config?.google)}
+              href={`${API_BASE}/auth/google/start`}
+              label="Continue with Google"
+            />
+
+            <div className="flex items-center gap-3">
+              <span className="h-px flex-1 bg-line" />
+              <span className="text-caption text-fg-subtle">or</span>
+              <span className="h-px flex-1 bg-line" />
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="name">Your name</Label>
+              <Input
+                id="name"
+                value={flow.name}
+                onChange={(e) => flow.setName(e.target.value)}
+                placeholder="Priya Nair"
+                autoComplete="name"
+              />
+            </div>
 
             <PhoneField
               value={flow.phone}
@@ -111,6 +141,8 @@ export function SignInCard({ onDone }: { onDone: () => void }) {
       </div>
 
       <DevBypass onSignedIn={onDone} />
+
+      <TrustMarkers />
 
       {/* The one thing this screen has to make clear: there is no self-serve signup.
           A coach's link is what creates the relationship, and nothing here can. */}

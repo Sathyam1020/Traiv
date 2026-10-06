@@ -16,7 +16,8 @@
     "class-variance-authority": "catalog:",
     "cn": "catalog:",
     "lucide-react": "catalog:",
-    "radix-ui": "catalog:"
+    "radix-ui": "catalog:",
+    "sonner": "catalog:"
   },
   "devDependencies": {
     "@types/react": "catalog:",

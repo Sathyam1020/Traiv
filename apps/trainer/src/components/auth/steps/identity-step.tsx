@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@traiv/ui/components/button";
+import { GoogleButton } from "@traiv/ui/components/google-button";
 import { Input } from "@traiv/ui/components/input";
 import { Label } from "@traiv/ui/components/label";
 import { ArrowRight } from "lucide-react";
@@ -8,7 +9,6 @@ import { EndorserField } from "@/components/auth/endorser-field";
 import { PhoneField } from "@/components/auth/phone-field";
 import { TrustMarkers } from "@/components/auth/trust-markers";
 import type { AuthFlow, AuthMode } from "@/components/auth/use-auth-flow";
-import { GoogleMark } from "@/components/common/google-mark";
 import { API_BASE } from "@/lib/api";
 import { useAuthConfig } from "@/lib/query";
 
@@ -31,23 +31,19 @@ export function IdentityStep({ mode, flow }: { mode: AuthMode; flow: AuthFlow })
         </p>
       </header>
 
-      {/* Only offered when the API reports credentials are configured — never a button
-          that promises something the server can't do. */}
-      {config?.google ? (
-        <>
-          <Button asChild variant="outline" className="h-10 w-full gap-2.5 font-medium">
-            <a href={`${API_BASE}/auth/google/start`}>
-              <GoogleMark />
-              {isSignup ? "Sign up with Google" : "Sign in with Google"}
-            </a>
-          </Button>
-          <div className="flex items-center gap-3">
-            <span className="h-px flex-1 bg-line" />
-            <span className="text-caption text-fg-subtle">or</span>
-            <span className="h-px flex-1 bg-line" />
-          </div>
-        </>
-      ) : null}
+      {/* Always shown. Hiding it until credentials exist meant nobody ever saw it, and
+          people look for it — so it is here, and says it is coming rather than failing
+          after the click. */}
+      <GoogleButton
+        enabled={Boolean(config?.google)}
+        href={`${API_BASE}/auth/google/start`}
+        label={isSignup ? "Sign up with Google" : "Sign in with Google"}
+      />
+      <div className="flex items-center gap-3">
+        <span className="h-px flex-1 bg-line" />
+        <span className="text-caption text-fg-subtle">or</span>
+        <span className="h-px flex-1 bg-line" />
+      </div>
 
       <form
         className="flex flex-col gap-4"
