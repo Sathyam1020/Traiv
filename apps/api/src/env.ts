@@ -41,8 +41,11 @@ const schema = z.object({
   WHATSAPP_WEBHOOK_VERIFY_TOKEN: z.string().optional(),
   WHATSAPP_OTP_TEMPLATE: z.string().default("traiv_otp"),
 
-  // Where the browser app runs. Used for CORS and the post-auth redirect.
+  // Where the coach app runs. Used for CORS and the post-auth redirect.
   WEB_ORIGIN: z.string().url().default("http://localhost:3000"),
+  // Where the client app runs. A second origin, not a second API — both are allowed
+  // through CORS, and credentials require echoing the exact origin that called.
+  CLIENT_ORIGIN: z.string().url().default("http://localhost:3001"),
   // Unset in development so the cookie stays host-only on localhost.
   COOKIE_DOMAIN: z.string().optional(),
 

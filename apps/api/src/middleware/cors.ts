@@ -2,13 +2,18 @@ import type { NextFunction, Request, Response } from "express";
 import { env } from "../env.js";
 
 /**
- * One known origin with credentials, which is ten lines — not worth a dependency.
- * `Allow-Origin` must echo a specific origin rather than `*`, because `*` is rejected
- * whenever credentials are included.
+ * A short allowlist with credentials, which is a dozen lines — not worth a dependency.
+ * `Allow-Origin` must echo one specific origin rather than `*`, because `*` is rejected
+ * whenever credentials are included, so the matched origin is echoed back verbatim.
+ *
+ * Two apps, one API: the coach app and the client app are separate origins and both
+ * carry the session cookie.
  */
+const ALLOWED: readonly string[] = [env.WEB_ORIGIN, env.CLIENT_ORIGIN];
+
 export function cors(req: Request, res: Response, next: NextFunction) {
   const origin = req.headers.origin;
-  if (origin === env.WEB_ORIGIN) {
+  if (origin && ALLOWED.includes(origin)) {
     res.header("Access-Control-Allow-Origin", origin);
     res.header("Access-Control-Allow-Credentials", "true");
     res.header("Access-Control-Allow-Headers", "Content-Type");

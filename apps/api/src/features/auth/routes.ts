@@ -68,7 +68,7 @@ auth.get("/google/callback", async (req, res) => {
   if (result.outcome === "needs_phone_to_link") return fail("google_link_phone");
 
   setSessionCookie(res, result.session.token, result.session.expiresAt);
-  res.redirect(`${env.WEB_ORIGIN}/today`);
+  res.redirect(`${env.WEB_ORIGIN}/dashboard`);
 });
 
 const phone = z.string().regex(/^[6-9]\d{9}$/, "Enter a valid Indian mobile number.");
