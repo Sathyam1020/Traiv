@@ -1,6 +1,7 @@
 import { newId, schema } from "@traiv/db";
 import { and, desc, eq, gt, gte, isNotNull, isNull, lt, sql } from "drizzle-orm";
 import { db } from "../../db.js";
+import { env } from "../../env.js";
 import { badRequest, notFound, tooManyRequests, unauthorized } from "../../errors.js";
 import { sendOtp } from "../../integrations/otp/index.js";
 import { hash, hashOtp, newOtp, newSessionToken, otpMatches } from "../../lib/crypto.js";
@@ -250,6 +251,67 @@ export async function verifyChallenge(input: {
 
   if (!won) throw badRequest("code_used", "That code has already been used.");
 
+  return establishSession({
+    phone,
+    pendingName: challenge.pendingName,
+    pendingEndorserCode: challenge.pendingEndorserCode,
+    ip: input.ip,
+    userAgent: input.userAgent,
+  });
+}
+
+/**
+ * Sign in with a phone number and nothing else.
+ *
+ * Only reachable when `OTP=NO`, which production refuses to boot with — otherwise
+ * knowing somebody's number would be enough to become them. It exists so development
+ * does not require reading a code out of a log on every single sign-in.
+ *
+ * It deliberately runs the same `establishSession` as the real flow, so what gets
+ * created, attributed and sessioned is identical. The only thing skipped is the proof.
+ */
+export async function signInDirect(input: {
+  phone: string;
+  name?: string | undefined;
+  endorserCode?: string | undefined;
+  ip?: string | undefined;
+  userAgent?: string | undefined;
+}) {
+  if (env.OTP) {
+    throw badRequest("otp_required", "A verification code is required.");
+  }
+
+  const phone = toE164(input.phone);
+  const endorserCode = input.endorserCode?.trim() ? normaliseCode(input.endorserCode) : null;
+  // Checked the same way the OTP path checks it, so a bad code fails here too rather
+  // than being silently dropped.
+  if (endorserCode) await previewEndorserCode(endorserCode);
+
+  return establishSession({
+    phone,
+    pendingName: input.name?.trim() || null,
+    pendingEndorserCode: endorserCode,
+    ip: input.ip,
+    userAgent: input.userAgent,
+  });
+}
+
+/**
+ * Everything that happens once a phone number has been proven.
+ *
+ * Shared by both ways in — the OTP flow, and the direct path used when `OTP=NO` in
+ * development. One function on purpose: account creation, the default studio, referral
+ * attribution and the session must behave identically however the number was proven,
+ * and two copies would drift the first time either changed.
+ */
+async function establishSession(input: {
+  phone: string;
+  pendingName: string | null;
+  pendingEndorserCode: string | null;
+  ip?: string | undefined;
+  userAgent?: string | undefined;
+}) {
+  const { phone } = input;
   let referred = false;
 
   return db.transaction(async (tx) => {
@@ -262,7 +324,7 @@ export async function verifyChallenge(input: {
     const isNew = !user;
 
     if (!user) {
-      const name = challenge.pendingName ?? "";
+      const name = input.pendingName ?? "";
       const [created] = await tx
         .insert(schema.users)
         .values({
@@ -287,11 +349,11 @@ export async function verifyChallenge(input: {
         // And the attribution with it. A referral recorded in a second transaction could
         // be lost while the account it belongs to survives, which is the one outcome
         // nobody can detect afterwards.
-        if (challenge.pendingEndorserCode) {
+        if (input.pendingEndorserCode) {
           referred = await attributeStudio(tx, {
             studioId,
             ownerUserId: user.id,
-            code: challenge.pendingEndorserCode,
+            code: input.pendingEndorserCode,
           });
         }
       }

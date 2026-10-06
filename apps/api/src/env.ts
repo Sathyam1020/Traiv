@@ -28,6 +28,26 @@ const schema = z.object({
     .default("false")
     .transform((v) => v === "true"),
 
+  /**
+   * The single platform administrator, by phone number.
+   *
+   * One admin by construction: there is one value here, and no endpoint that grants the
+   * role. Admin access is therefore revoked by changing this and restarting, which is
+   * the only control that cannot itself be compromised by a bug in the admin surface.
+   * Unset means nobody is an admin and the admin API answers 403 to everyone.
+   */
+  ADMIN_PHONE: z.string().optional(),
+
+  /**
+   * `OTP=NO` skips code verification entirely: a phone number and a name create or open
+   * an account. Development only — it means anyone who knows a number can sign in as
+   * that person, so production refuses to boot with it.
+   */
+  OTP: z
+    .enum(["YES", "NO"])
+    .default("YES")
+    .transform((v) => v === "YES"),
+
   // --- OTP delivery ---
   // Switching the primary channel is a one-line change here.
   OTP_TRANSPORT: z.enum(["sms", "whatsapp", "console"]).default("sms"),
@@ -92,6 +112,9 @@ function load() {
     }
     if (env.OTP_TRANSPORT === "console") {
       missing.push("OTP_TRANSPORT=console is not permitted in production");
+    }
+    if (!env.OTP) {
+      missing.push("OTP=NO is not permitted in production — anyone could sign in as anyone");
     }
     if (missing.length) {
       throw new Error(

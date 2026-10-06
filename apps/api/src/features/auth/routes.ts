@@ -18,6 +18,7 @@ import {
   publicUser,
   requestChallenge,
   revokeSession,
+  signInDirect,
   verifyChallenge,
 } from "./service.js";
 
@@ -25,7 +26,32 @@ export const auth: Router = Router();
 
 /** What the sign-in screen is allowed to offer. Keeps the UI from promising what isn't wired. */
 auth.get("/config", (_req, res) => {
-  res.json({ google: googleEnabled, otp: otpChannels });
+  // `otpRequired: false` is what tells each app to collect a name and number and stop.
+  res.json({ google: googleEnabled, otp: otpChannels, otpRequired: env.OTP });
+});
+
+/**
+ * Sign in with a phone number alone. Enabled only when `OTP=NO`, which production
+ * refuses to boot with.
+ */
+auth.post("/direct", async (req, res) => {
+  const body = z
+    .object({
+      phone,
+      name: z.string().max(120).optional(),
+      endorserCode: z.string().max(16).optional(),
+    })
+    .parse(req.body);
+
+  const { user, session, isNew, referred } = await signInDirect({
+    phone: body.phone,
+    name: body.name,
+    endorserCode: body.endorserCode,
+    ip: req.ip,
+    userAgent: req.get("user-agent"),
+  });
+  setSessionCookie(res, session.token, session.expiresAt);
+  res.json({ user: publicUser(user), isNew, referred });
 });
 
 /* ---- Google ---------------------------------------------------------------- */

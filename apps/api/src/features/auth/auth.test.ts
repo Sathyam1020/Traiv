@@ -9,6 +9,7 @@ import {
   getUser,
   requestChallenge,
   revokeSession,
+  signInDirect,
   toE164,
   verifyChallenge,
 } from "./service.js";
@@ -251,6 +252,20 @@ describe("sessions", () => {
     const others = sessions.filter((s) => s.id !== toRevoke.id);
     expect(others[0]?.revokedAt).toBeNull();
     expect(b.user.id).toBe(a.user.id);
+  });
+
+  it("refuses to skip the code when OTP is required", async () => {
+    // The guard is in the service, not only the route, so no caller can route around it.
+    // Production additionally refuses to boot with OTP=NO — see env.ts.
+    await expect(signInDirect({ phone: N1, name: "Rahul" })).rejects.toMatchObject({
+      code: "otp_required",
+    });
+
+    const rows = await db
+      .select()
+      .from(schema.users)
+      .where(eq(schema.users.phone, toE164(N1)));
+    expect(rows).toHaveLength(0); // and nothing was created on the way out
   });
 
   it("keeps the phone credential in one place", async () => {
