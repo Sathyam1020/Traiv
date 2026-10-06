@@ -1,6 +1,8 @@
 "use client";
 
 import { Button } from "@traiv/ui/components/button";
+import { Input } from "@traiv/ui/components/input";
+import { Label } from "@traiv/ui/components/label";
 import { Logo } from "@traiv/ui/components/logo";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useState } from "react";
@@ -53,6 +55,19 @@ export function SignInCard({ onDone }: { onDone: () => void }) {
                   : "Development mode — no code needed."}
               </p>
             </header>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="name">
+                Your name <span className="font-normal text-fg-subtle">(new accounts)</span>
+              </Label>
+              <Input
+                id="name"
+                value={flow.name}
+                onChange={(e) => flow.setName(e.target.value)}
+                placeholder="Sathyam Sahu"
+                autoComplete="name"
+              />
+            </div>
 
             <PhoneField value={flow.phone} onChange={flow.setPhone} />
 

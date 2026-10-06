@@ -361,10 +361,17 @@ async function establishSession(input: {
       // Refreshed on every successful OTP, not only the first. Indian carriers reassign
       // disconnected numbers after about 90 days, and this is the column that makes
       // "how long since this number proved itself" answerable at all.
+      //
+      // A name is filled in only if there isn't one. An account can be created by an app
+      // that never asked for a name — and then stay nameless forever, which shows up as
+      // "Referred by A Traiv endorser" to whoever types their code. It never overwrites
+      // a name the person already has.
+      const fillName = !user.name && input.pendingName ? { name: input.pendingName } : {};
       await tx
         .update(schema.users)
-        .set({ phoneVerifiedAt: new Date(), updatedAt: new Date() })
+        .set({ phoneVerifiedAt: new Date(), updatedAt: new Date(), ...fillName })
         .where(eq(schema.users.id, user.id));
+      if (fillName.name) user = { ...user, name: fillName.name };
     }
 
     if (!user) throw badRequest("user_failed", "Could not create the account.");

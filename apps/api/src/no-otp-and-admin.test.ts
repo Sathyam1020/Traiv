@@ -133,6 +133,20 @@ describe("OTP=NO", () => {
     expect(res.status).toBe(400);
   });
 
+  it("fills in a missing name, and never replaces one", async () => {
+    // The endorser and admin apps did not collect a name, so accounts created there were
+    // nameless — and a nameless endorser shows up as "Referred by A Traiv endorser" to
+    // whoever types their code.
+    const created = await direct(COACH);
+    expect(created.user.name).toBe("");
+
+    const named = await direct(COACH, "Sathyam Sahu");
+    expect(named.user.name).toBe("Sathyam Sahu");
+
+    const again = await direct(COACH, "Someone Else");
+    expect(again.user.name).toBe("Sathyam Sahu");
+  });
+
   it("reports itself in /auth/config so the apps know to skip the code step", async () => {
     const res = await new Agent(api.url).get("/auth/config");
     expect(res.body.otpRequired).toBe(false);
