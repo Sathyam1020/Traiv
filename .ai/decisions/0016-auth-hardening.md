@@ -67,6 +67,30 @@ every page load a write on the hottest table.
 dead sessions after 30 days and scrubs IP and user-agent from older rows. Nothing was ever
 deleted before, and those columns are personal data under the DPDP Act.
 
+## A second pass, on the modules the review never saw
+
+Reviewing `features/client` and `features/studio` with the same eyes found five more:
+
+- **The seat count held seats it should not.** It counted every undeleted row, so an
+  archived client kept their place forever and queued or frozen clients would have blocked
+  each other out of the list they were queued in. Narrowed to active and paused, per
+  ADR 0013 — which had specified this and then not been applied.
+- **The duplicate check ran before the lock.** Two taps in the same second both read no
+  existing row and both inserted; the second hit the unique index as a 500 instead of
+  returning "already joined". The studio row is now locked on the way into the
+  transaction, so every join into a studio serialises.
+- **Two definitions of an active membership.** `requireStudio` required
+  `status = 'active'`; `joinByCode` checked only `deletedAt`. A suspended owner could
+  still be handed new clients. `membershipIsLive` is now the only definition, exactly as
+  the review warned would be needed.
+- **A soft-deleted user's sessions kept working.** `loadSession` read the session without
+  looking at the account, so deletion did not end access. It joins `user` now, which makes
+  that the one place that has to remember.
+- **Random values met unique indexes with no handling.** A join-code or slug collision
+  surfaced as a 500, and in `createDefaultStudio` it would abort the signup transaction
+  and lose the user along with the studio. Both retry; studio creation uses
+  `onConflictDoNothing` so a clash costs an attempt rather than the account.
+
 ## Known and deliberately not fixed
 
 - **No captcha on send.** Per-phone, per-IP and country limits are in; Turnstile needs an

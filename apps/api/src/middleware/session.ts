@@ -28,6 +28,9 @@ export async function loadSession(req: Request, _res: Response, next: NextFuncti
   const token = readCookie(req, SESSION_COOKIE);
   if (!token) return next();
 
+  // Joined to the user, because deletion is soft: a deleted account's sessions stay in
+  // the table and would keep authenticating until every call remembered to check. One
+  // join here is the only place that has to remember.
   const [row] = await db
     .select({
       id: schema.sessions.id,
@@ -35,11 +38,13 @@ export async function loadSession(req: Request, _res: Response, next: NextFuncti
       activeStudioId: schema.sessions.activeStudioId,
     })
     .from(schema.sessions)
+    .innerJoin(schema.users, eq(schema.users.id, schema.sessions.userId))
     .where(
       and(
         eq(schema.sessions.tokenHash, hash(token)),
         isNull(schema.sessions.revokedAt),
         gt(schema.sessions.expiresAt, new Date()),
+        isNull(schema.users.deletedAt),
       ),
     )
     .limit(1);

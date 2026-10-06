@@ -1,8 +1,9 @@
 import { randomInt } from "node:crypto";
 import { newId, schema } from "@traiv/db";
-import { and, eq, isNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "../../db.js";
 import { badRequest, forbidden, notFound } from "../../errors.js";
+import { membershipIsLive } from "../studio/service.js";
 
 // No 0/O/1/I/L/U — these codes get read aloud in a gym and typed by hand when a camera
 // won't focus, so every character has to be unmistakable.
@@ -10,6 +11,9 @@ const CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTVWXYZ";
 const CODE_LENGTH = 8;
 
 /** Free and Starter cap the roster; Pro and Studio do not. Mirrors ADR 0001. */
+/** Active and paused hold a seat; waiting, frozen and archived do not. ADR 0013. */
+const SEAT_CONSUMING = ["active", "paused"] as const;
+
 const SEAT_LIMIT: Record<string, number | null> = {
   free: 2,
   starter: 8,
@@ -57,11 +61,17 @@ export async function joinByCode(userId: string, rawCode: string): Promise<JoinO
   const code = rawCode.toUpperCase();
 
   return db.transaction(async (tx) => {
+    // Locked on the way in, not just around the seat count. The duplicate check was a
+    // read before the lock, so two taps in the same second both saw no existing row,
+    // both inserted, and the second hit the unique index as a 500 instead of coming back
+    // as "already joined". Holding the row for the whole transaction serialises every
+    // join into this studio.
     const [studio] = await tx
       .select()
       .from(schema.studios)
       .where(and(eq(schema.studios.joinCode, code), isNull(schema.studios.deletedAt)))
-      .limit(1);
+      .limit(1)
+      .for("update");
 
     if (!studio) throw notFound("That link isn't valid any more.");
     if (!studio.joinEnabled) {
@@ -76,7 +86,7 @@ export async function joinByCode(userId: string, rawCode: string): Promise<JoinO
         and(
           eq(schema.memberships.studioId, studio.id),
           eq(schema.memberships.userId, userId),
-          isNull(schema.memberships.deletedAt),
+          membershipIsLive(schema.memberships),
         ),
       )
       .limit(1);
@@ -107,17 +117,19 @@ export async function joinByCode(userId: string, rawCode: string): Promise<JoinO
 
     const limit = SEAT_LIMIT[studio.tier] ?? null;
     if (limit !== null) {
-      // Lock the studio row so concurrent joins serialise on the count.
-      await tx
-        .select({ id: schema.studios.id })
-        .from(schema.studios)
-        .where(eq(schema.studios.id, studio.id))
-        .for("update");
-
+      // Only statuses that actually occupy a seat — ADR 0013. Counting every undeleted
+      // row meant an archived client held a place forever, and would mean queued and
+      // frozen clients blocked each other out of the very list they are queued in.
       const [{ count } = { count: 0 }] = await tx
         .select({ count: sql<number>`count(*)::int` })
         .from(schema.clients)
-        .where(and(eq(schema.clients.studioId, studio.id), isNull(schema.clients.deletedAt)));
+        .where(
+          and(
+            eq(schema.clients.studioId, studio.id),
+            isNull(schema.clients.deletedAt),
+            inArray(schema.clients.status, SEAT_CONSUMING),
+          ),
+        );
 
       if (count >= limit) {
         throw forbidden("This coach's roster is full. Ask them to upgrade, then try again.");
@@ -132,7 +144,7 @@ export async function joinByCode(userId: string, rawCode: string): Promise<JoinO
         and(
           eq(schema.memberships.studioId, studio.id),
           eq(schema.memberships.role, "owner"),
-          isNull(schema.memberships.deletedAt),
+          membershipIsLive(schema.memberships),
         ),
       )
       .limit(1);
@@ -164,14 +176,36 @@ export async function joinByCode(userId: string, rawCode: string): Promise<JoinO
   });
 }
 
-/** Rotating kills every QR and link already in circulation. */
+/**
+ * Rotating kills every QR and link already in circulation.
+ *
+ * Retries on collision. A random code meeting a unique index is a 1-in-6.5e11 event per
+ * attempt, which is small enough to ignore right up until it happens to a coach mid-
+ * demo and surfaces as a 500. Retrying is three lines; explaining the 500 is not.
+ */
 export async function rotateJoinCode(studioId: string) {
-  const code = newJoinCode();
-  await db
-    .update(schema.studios)
-    .set({ joinCode: code, updatedAt: new Date() })
-    .where(eq(schema.studios.id, studioId));
-  return code;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const code = newJoinCode();
+    try {
+      const [updated] = await db
+        .update(schema.studios)
+        .set({ joinCode: code, updatedAt: new Date() })
+        .where(and(eq(schema.studios.id, studioId), isNull(schema.studios.deletedAt)))
+        .returning({ id: schema.studios.id });
+
+      if (!updated) throw notFound("That studio no longer exists.");
+      return code;
+    } catch (err) {
+      if (!isUniqueViolation(err) || attempt === 4) throw err;
+    }
+  }
+  // Unreachable: the loop either returns or throws.
+  throw new Error("could not allocate a join code");
+}
+
+/** Postgres 23505. Drizzle surfaces the driver error unchanged. */
+function isUniqueViolation(err: unknown): boolean {
+  return typeof err === "object" && err !== null && "code" in err && err.code === "23505";
 }
 
 export async function setJoinEnabled(studioId: string, enabled: boolean) {
