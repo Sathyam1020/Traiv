@@ -1,5 +1,5 @@
 import { schema } from "@traiv/db";
-import { desc, isNull } from "drizzle-orm";
+import { and, desc, inArray, isNotNull, isNull } from "drizzle-orm";
 import { Router } from "express";
 import { z } from "zod";
 import { db } from "../../db.js";
@@ -135,8 +135,22 @@ function assertDev() {
   }
 }
 
-auth.get("/dev/users", async (_req, res) => {
+auth.get("/dev/users", async (req, res) => {
   assertDev();
+  const { role } = z.object({ role: z.enum(["client"]).optional() }).parse(req.query);
+
+  // The client app asks for `role=client` so its panel offers accounts that app can
+  // actually do something with. A coach account signed in there has no coaching
+  // relationship and lands on an empty dashboard, which looks like a bug rather than
+  // the correct answer.
+  const isClient = inArray(
+    schema.users.id,
+    db
+      .select({ id: schema.clients.userId })
+      .from(schema.clients)
+      .where(and(isNotNull(schema.clients.userId), isNull(schema.clients.deletedAt))),
+  );
+
   const users = await db
     .select({
       id: schema.users.id,
@@ -145,7 +159,11 @@ auth.get("/dev/users", async (_req, res) => {
       email: schema.users.email,
     })
     .from(schema.users)
-    .where(isNull(schema.users.deletedAt))
+    .where(
+      role === "client"
+        ? and(isNull(schema.users.deletedAt), isClient)
+        : isNull(schema.users.deletedAt),
+    )
     .orderBy(desc(schema.users.createdAt))
     .limit(12);
   res.json({ users });

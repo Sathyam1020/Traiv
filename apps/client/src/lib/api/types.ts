@@ -40,3 +40,5 @@ export type Coach = {
   joinedAt: string;
   studio: { id: string; name: string; logoUrl: string | null; color: string | null };
 };
+
+export type DevUser = { id: string; name: string; phone: string | null; email: string | null };

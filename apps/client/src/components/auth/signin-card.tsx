@@ -4,6 +4,7 @@ import { Button } from "@traiv/ui/components/button";
 import { Logo } from "@traiv/ui/components/logo";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useState } from "react";
+import { DevBypass } from "@/components/auth/dev-bypass";
 import { useSignInFlow } from "@/components/auth/use-signin-flow";
 import { OtpInput } from "@/components/common/otp-input";
 import { PhoneField } from "@/components/common/phone-field";
@@ -101,6 +102,8 @@ export function SignInCard({ onDone }: { onDone: () => void }) {
           </form>
         )}
       </div>
+
+      <DevBypass onSignedIn={onDone} />
 
       {/* The one thing this screen has to make clear: there is no self-serve signup.
           A coach's link is what creates the relationship, and nothing here can. */}

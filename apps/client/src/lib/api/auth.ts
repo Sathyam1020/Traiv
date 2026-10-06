@@ -1,5 +1,5 @@
 import { http } from "./client";
-import type { AuthConfig, TransportName, User } from "./types";
+import type { AuthConfig, DevUser, TransportName, User } from "./types";
 
 export const authApi = {
   config: async () => (await http.get<AuthConfig>("/auth/config")).data,
@@ -14,4 +14,14 @@ export const authApi = {
     (await http.post<{ user: User; isNew: boolean }>("/auth/verify", input)).data,
 
   logout: async () => (await http.post<{ ok: true }>("/auth/logout")).data,
+
+  /**
+   * `role=client` so the panel only offers accounts this app can do something with —
+   * a coach account here lands on an empty dashboard, which reads as a bug.
+   */
+  devUsers: async () =>
+    (await http.get<{ users: DevUser[] }>("/auth/dev/users", { params: { role: "client" } })).data,
+
+  devLogin: async (userId: string) =>
+    (await http.post<{ user: User }>("/auth/dev/login", { userId })).data,
 };

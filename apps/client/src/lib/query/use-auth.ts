@@ -39,3 +39,21 @@ export function useLogout() {
     onSettled: () => qc.clear(),
   });
 }
+
+/** Both refuse to answer in production — the API will not even boot with the bypass on. */
+export function useDevUsers() {
+  return useQuery({
+    queryKey: ["auth", "dev-users"],
+    queryFn: authApi.devUsers,
+    retry: false,
+    staleTime: Number.POSITIVE_INFINITY,
+  });
+}
+
+export function useDevLogin() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: authApi.devLogin,
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.auth.session }),
+  });
+}
