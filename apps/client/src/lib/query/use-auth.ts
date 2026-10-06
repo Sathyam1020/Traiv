@@ -24,6 +24,14 @@ export function useRequestCode() {
   return useMutation({ mutationFn: authApi.challenge });
 }
 
+export function useDirectSignIn() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: authApi.direct,
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.auth.session }),
+  });
+}
+
 export function useVerifyCode() {
   const qc = useQueryClient();
   return useMutation({

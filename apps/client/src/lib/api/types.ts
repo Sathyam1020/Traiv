@@ -12,6 +12,8 @@ export type TransportName = "whatsapp" | "sms" | "console";
 export type AuthConfig = {
   google: boolean;
   otp: { primary: TransportName; fallback: TransportName | null; live: boolean };
+  /** False in development with OTP=NO: a name and a number are enough. */
+  otpRequired: boolean;
 };
 
 /** What a scanner sees before being asked to sign in — `GET /join/:code`, public. */

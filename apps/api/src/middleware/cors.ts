@@ -6,10 +6,15 @@ import { env } from "../env.js";
  * `Allow-Origin` must echo one specific origin rather than `*`, because `*` is rejected
  * whenever credentials are included, so the matched origin is echoed back verbatim.
  *
- * Two apps, one API: the coach app and the client app are separate origins and both
+ * Four apps, one API: coach, client, endorser and admin are separate origins and all
  * carry the session cookie.
  */
-const ALLOWED: readonly string[] = [env.WEB_ORIGIN, env.CLIENT_ORIGIN];
+const ALLOWED: readonly string[] = [
+  env.WEB_ORIGIN,
+  env.CLIENT_ORIGIN,
+  env.ENDORSE_ORIGIN,
+  env.ADMIN_ORIGIN,
+];
 
 export function cors(req: Request, res: Response, next: NextFunction) {
   const origin = req.headers.origin;

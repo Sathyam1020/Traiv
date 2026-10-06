@@ -12,6 +12,10 @@ export const authApi = {
   verify: async (input: { phone: string; code: string }) =>
     (await http.post<{ user: User; isNew: boolean }>("/auth/verify", input)).data,
 
+  /** Only answers when the API reports `otpRequired: false`. */
+  direct: async (input: { phone: string; name?: string }) =>
+    (await http.post<{ user: User; isNew: boolean }>("/auth/direct", input)).data,
+
   updateProfile: async (input: { email?: string; name?: string }) =>
     (await http.post<{ user: User }>("/auth/profile", input)).data,
 

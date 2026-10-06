@@ -36,7 +36,10 @@ export function SignInCard({ onDone }: { onDone: () => void }) {
             className="flex flex-col gap-4"
             onSubmit={(e) => {
               e.preventDefault();
-              if (canSend) void flow.sendCode();
+              if (!canSend) return;
+              void flow.sendCode().then((done) => {
+                if (done) onDone();
+              });
             }}
           >
             <header className="flex flex-col gap-1.5">
@@ -53,7 +56,7 @@ export function SignInCard({ onDone }: { onDone: () => void }) {
             {flow.error ? <p className="text-caption text-danger">{flow.error}</p> : null}
 
             <Button type="submit" className="h-10 w-full gap-2" disabled={!canSend}>
-              {flow.busy ? "Sending…" : "Continue"}
+              {flow.busy ? "Signing in…" : flow.otpRequired ? "Continue" : "Sign in"}
               {flow.busy ? null : <ArrowRight className="size-4" />}
             </Button>
           </form>

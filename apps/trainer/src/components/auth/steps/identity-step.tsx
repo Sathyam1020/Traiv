@@ -22,9 +22,11 @@ export function IdentityStep({ mode, flow }: { mode: AuthMode; flow: AuthFlow })
           {isSignup ? "Create your account" : "Welcome back"}
         </h1>
         <p className="text-body-sm text-fg-muted">
-          {isSignup
-            ? "Free for your first two clients. No card needed."
-            : "Sign in to continue to your account."}
+          {flow.otpRequired
+            ? isSignup
+              ? "Free for your first two clients. No card needed."
+              : "Sign in to continue to your account."
+            : "Development mode — no code needed."}
         </p>
       </header>
 

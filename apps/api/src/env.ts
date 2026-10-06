@@ -69,6 +69,8 @@ const schema = z.object({
   // Where the client app runs. A second origin, not a second API — both are allowed
   // through CORS, and credentials require echoing the exact origin that called.
   CLIENT_ORIGIN: z.string().url().default("http://localhost:3001"),
+  ENDORSE_ORIGIN: z.string().url().default("http://localhost:3002"),
+  ADMIN_ORIGIN: z.string().url().default("http://localhost:3003"),
   // Unset in development so the cookie stays host-only on localhost.
   COOKIE_DOMAIN: z.string().optional(),
 

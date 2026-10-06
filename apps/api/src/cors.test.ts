@@ -47,9 +47,20 @@ describe("cors", () => {
     expect(res.allowCredentials).toBe("true");
   });
 
-  it("the two apps are different origins", () => {
+  it("allows the endorser app", async () => {
+    const res = await preflight(env.ENDORSE_ORIGIN);
+    expect(res.allowOrigin).toBe(env.ENDORSE_ORIGIN);
+  });
+
+  it("allows the admin app", async () => {
+    const res = await preflight(env.ADMIN_ORIGIN);
+    expect(res.allowOrigin).toBe(env.ADMIN_ORIGIN);
+  });
+
+  it("the apps are different origins", () => {
     // If these ever collapse to one value the tests above both pass while proving nothing.
-    expect(env.WEB_ORIGIN).not.toBe(env.CLIENT_ORIGIN);
+    const all = [env.WEB_ORIGIN, env.CLIENT_ORIGIN, env.ENDORSE_ORIGIN, env.ADMIN_ORIGIN];
+    expect(new Set(all).size).toBe(all.length);
   });
 
   it("refuses an origin that is not on the list", async () => {

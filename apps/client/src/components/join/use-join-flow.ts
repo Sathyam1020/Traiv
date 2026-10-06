@@ -3,7 +3,13 @@
 import { useCallback, useState } from "react";
 import { isApiError } from "@/lib/api";
 import { forget } from "@/lib/join-code";
-import { useAttach, useRequestCode, useVerifyCode } from "@/lib/query";
+import {
+  useAttach,
+  useAuthConfig,
+  useDirectSignIn,
+  useRequestCode,
+  useVerifyCode,
+} from "@/lib/query";
 
 export type JoinStep = "identity" | "code" | "attaching";
 
@@ -26,19 +32,46 @@ export function useJoinFlow(code: string) {
 
   const request = useRequestCode();
   const verify = useVerifyCode();
+  const direct = useDirectSignIn();
   const attach = useAttach();
+  const { data: config } = useAuthConfig();
 
-  const busy = request.isPending || verify.isPending || attach.isPending;
+  const otpRequired = config?.otpRequired !== false;
+  const busy = request.isPending || verify.isPending || direct.isPending || attach.isPending;
 
+  /** Attaching, kept in one place so both ways in behave identically afterwards. */
+  const attachNow = useCallback(async () => {
+    setStep("attaching");
+    try {
+      const outcome = await attach.mutateAsync(code);
+      forget();
+      return outcome;
+    } catch (e) {
+      setError(
+        isApiError(e)
+          ? e.message
+          : "You're signed in, but we couldn't add you to this coach. Try the link again.",
+      );
+      return undefined;
+    }
+  }, [attach, code]);
+
+  /** Returns the outcome when the no-OTP path completed the whole thing here. */
   const sendCode = useCallback(async () => {
     setError(null);
     try {
+      if (!otpRequired) {
+        await direct.mutateAsync({ phone, name: name.trim() || undefined });
+        return attachNow();
+      }
       await request.mutateAsync({ phone, name: name.trim() || undefined });
       setStep("code");
+      return undefined;
     } catch (e) {
-      setError(isApiError(e) ? e.message : "Couldn't send the code. Try again.");
+      setError(isApiError(e) ? e.message : "Couldn't sign you in. Try again.");
+      return undefined;
     }
-  }, [request, phone, name]);
+  }, [request, direct, otpRequired, attachNow, phone, name]);
 
   const submitCode = useCallback(
     async (otp: string) => {
@@ -52,38 +85,20 @@ export function useJoinFlow(code: string) {
 
       // Signed in. Attaching is a separate call and a separate failure — a wrong code and
       // a full roster are different problems and must not share a message.
-      setStep("attaching");
-      try {
-        const outcome = await attach.mutateAsync(code);
-        forget();
-        return outcome;
-      } catch (e) {
-        setStep("code");
-        setError(
-          isApiError(e)
-            ? e.message
-            : "You're signed in, but we couldn't add you to this coach. Try the link again.",
-        );
-        return;
-      }
+      const outcome = await attachNow();
+      if (!outcome) setStep("code");
+      return outcome;
     },
-    [verify, attach, phone, code],
+    [verify, attachNow, phone],
   );
 
   /** Already signed in when the link was opened — skip signup entirely. */
   const attachOnly = useCallback(async () => {
     setError(null);
-    setStep("attaching");
-    try {
-      const outcome = await attach.mutateAsync(code);
-      forget();
-      return outcome;
-    } catch (e) {
-      setStep("identity");
-      setError(isApiError(e) ? e.message : "Couldn't add you to this coach.");
-      return;
-    }
-  }, [attach, code]);
+    const outcome = await attachNow();
+    if (!outcome) setStep("identity");
+    return outcome;
+  }, [attachNow]);
 
   const back = useCallback(() => {
     setError(null);
@@ -98,6 +113,7 @@ export function useJoinFlow(code: string) {
     setName,
     error,
     busy,
+    otpRequired,
     sendCode,
     submitCode,
     attachOnly,

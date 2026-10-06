@@ -4,6 +4,7 @@ export {
   useAuthConfig,
   useDevLogin,
   useDevUsers,
+  useDirectSignIn,
   useLogout,
   useRequestCode,
   useSession,

@@ -35,7 +35,9 @@ export function JoinCard({
   const canSend = VALID_PHONE.test(flow.phone) && !flow.busy;
 
   async function send() {
-    await flow.sendCode();
+    // The no-OTP path signs in and attaches in one go, so it returns the outcome here.
+    const outcome = await flow.sendCode();
+    if (outcome) onDone(outcome.studioName);
   }
 
   async function submit() {
@@ -86,7 +88,9 @@ export function JoinCard({
                 Create your account
               </h1>
               <p className="text-body-sm text-fg-muted">
-                Free. Your coach sets everything else up.
+                {flow.otpRequired
+                  ? "Free. Your coach sets everything else up."
+                  : "Development mode — no code needed."}
               </p>
             </header>
 

@@ -3,7 +3,13 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { isApiError, type TransportName } from "@/lib/api";
-import { useRequestCode, useUpdateProfile, useVerifyCode } from "@/lib/query";
+import {
+  useAuthConfig,
+  useDirectSignIn,
+  useRequestCode,
+  useUpdateProfile,
+  useVerifyCode,
+} from "@/lib/query";
 
 export type AuthMode = "signin" | "signup";
 export type AuthStep = "identity" | "code" | "profile";
@@ -39,11 +45,21 @@ export function useAuthFlow(mode: AuthMode) {
 
   const requestCode = useRequestCode();
   const verifyCode = useVerifyCode();
+  const directSignIn = useDirectSignIn();
+  const { data: authConfig } = useAuthConfig();
+
+  // The API decides. With OTP=NO there is no code to send, so showing the code screen
+  // would be a dead end.
+  const otpRequired = authConfig?.otpRequired !== false;
   const updateProfile = useUpdateProfile();
 
   const phoneValid = /^[6-9]\d{9}$/.test(phone);
   const canSubmitIdentity = mode === "signin" ? phoneValid : phoneValid && name.trim().length >= 2;
-  const busy = requestCode.isPending || verifyCode.isPending || updateProfile.isPending;
+  const busy =
+    requestCode.isPending ||
+    verifyCode.isPending ||
+    directSignIn.isPending ||
+    updateProfile.isPending;
 
   // Errors arrive back from the OAuth callback as a query param.
   useEffect(() => {
@@ -64,6 +80,17 @@ export function useAuthFlow(mode: AuthMode) {
   const sendCode = useCallback(async () => {
     setError(null);
     try {
+      if (!otpRequired) {
+        const { user } = await directSignIn.mutateAsync({
+          phone,
+          ...(mode === "signup" && name.trim() ? { name: name.trim() } : {}),
+        });
+        // Same landing as the verified path, including the profile step.
+        if (user.needsProfile) setStep("profile");
+        else router.push("/dashboard");
+        return;
+      }
+
       const res = await requestCode.mutateAsync({
         phone,
         ...(mode === "signup" && name.trim() ? { name: name.trim() } : {}),
@@ -75,7 +102,7 @@ export function useAuthFlow(mode: AuthMode) {
     } catch (e) {
       fail(e);
     }
-  }, [requestCode, phone, name, mode, fail]);
+  }, [requestCode, directSignIn, otpRequired, phone, name, mode, router, fail]);
 
   const submitCode = useCallback(async () => {
     setError(null);
@@ -115,6 +142,7 @@ export function useAuthFlow(mode: AuthMode) {
     code,
     error,
     busy,
+    otpRequired,
     secondsLeft,
     transport,
     phoneValid,

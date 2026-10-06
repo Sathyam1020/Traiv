@@ -32,7 +32,14 @@ export default defineConfig({
     environment: "node",
     include: ["src/**/*.test.ts"],
     globals: true,
-    ...(testDatabaseUrl ? { env: { DATABASE_URL: testDatabaseUrl } } : {}),
+    env: {
+      ...(testDatabaseUrl ? { DATABASE_URL: testDatabaseUrl } : {}),
+      // Production-like by default, whatever .env says. OTP=NO is a development
+      // convenience, and a suite that silently inherited it would stop testing the one
+      // guard that keeps code verification from being skippable. The file that needs it
+      // off mocks the env for itself.
+      OTP: "YES",
+    },
     // Scenario tests share one real database, so they run serially. Parallel runs would
     // have them tripping over each other's rows.
     sequence: { concurrent: false },
