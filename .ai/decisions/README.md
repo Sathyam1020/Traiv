@@ -50,3 +50,4 @@ overwrite.
 | 0014 | Client authorization | accepted · not implemented |
 | 0015 | cal.com as the visual direction | accepted · supersedes 0006's palette |
 | 0016 | Auth hardening after external review | accepted |
+| 0017 | Endorsers and referral attribution | accepted · attribution only |

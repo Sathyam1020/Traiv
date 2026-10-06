@@ -4,6 +4,7 @@ import { db } from "../../db.js";
 import { badRequest, notFound, tooManyRequests, unauthorized } from "../../errors.js";
 import { sendOtp } from "../../integrations/otp/index.js";
 import { hash, hashOtp, newOtp, newSessionToken, otpMatches } from "../../lib/crypto.js";
+import { attributeStudio, normaliseCode, previewEndorserCode } from "../endorse/service.js";
 import { createDefaultStudio, defaultStudioFor, resolveActiveStudio } from "../studio/service.js";
 
 const OTP_TTL_MS = 5 * 60 * 1000;
@@ -57,8 +58,15 @@ export async function requestChallenge(input: {
   phone: string;
   name?: string | undefined;
   ip?: string | undefined;
+  endorserCode?: string | undefined;
 }) {
   const phone = toE164(input.phone);
+
+  // Checked here, before the code is sent, so a typo is caught while the person can
+  // still fix it. Validating after verification instead would mean silently dropping a
+  // referral an endorser had earned, with neither side ever finding out.
+  const endorserCode = input.endorserCode?.trim() ? normaliseCode(input.endorserCode) : null;
+  if (endorserCode) await previewEndorserCode(endorserCode);
   const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
 
   const [{ count } = { count: 0 }] = await db
@@ -123,6 +131,7 @@ export async function requestChallenge(input: {
       expiresAt: new Date(Date.now() + OTP_TTL_MS),
       requestIp: input.ip ?? null,
       pendingName: input.name?.trim() || null,
+      pendingEndorserCode: endorserCode,
     });
   });
 
@@ -241,6 +250,8 @@ export async function verifyChallenge(input: {
 
   if (!won) throw badRequest("code_used", "That code has already been used.");
 
+  let referred = false;
+
   return db.transaction(async (tx) => {
     let [user] = await tx
       .select()
@@ -271,7 +282,18 @@ export async function verifyChallenge(input: {
         //
         // Same transaction as the user, so "every trainer has a studio" cannot be broken
         // by a partial failure.
-        await createDefaultStudio(tx, user);
+        const studioId = await createDefaultStudio(tx, user);
+
+        // And the attribution with it. A referral recorded in a second transaction could
+        // be lost while the account it belongs to survives, which is the one outcome
+        // nobody can detect afterwards.
+        if (challenge.pendingEndorserCode) {
+          referred = await attributeStudio(tx, {
+            studioId,
+            ownerUserId: user.id,
+            code: challenge.pendingEndorserCode,
+          });
+        }
       }
     } else {
       // Refreshed on every successful OTP, not only the first. Indian carriers reassign
@@ -291,6 +313,7 @@ export async function verifyChallenge(input: {
       user: { ...user, phoneVerifiedAt: user.phoneVerifiedAt ?? new Date() },
       session,
       isNew,
+      referred,
     };
   });
 }

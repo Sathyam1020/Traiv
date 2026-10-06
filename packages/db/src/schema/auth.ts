@@ -80,6 +80,9 @@ export const authChallenges = pgTable(
     // Carried from signup to verification. Held here rather than in process memory so a
     // restart, or a second instance, cannot silently drop the name the user typed.
     pendingName: text(),
+    // Same reasoning: signup spans two requests, and an endorser who loses attribution
+    // because the server restarted between them has lost real money.
+    pendingEndorserCode: text(),
 
     codeHash: text().notNull(),
     attempts: integer().notNull().default(0),

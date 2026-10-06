@@ -74,10 +74,17 @@ auth.get("/google/callback", async (req, res) => {
 const phone = z.string().regex(/^[6-9]\d{9}$/, "Enter a valid Indian mobile number.");
 
 auth.post("/challenge", async (req, res) => {
-  const body = z.object({ phone, name: z.string().max(120).optional() }).parse(req.body);
+  const body = z
+    .object({
+      phone,
+      name: z.string().max(120).optional(),
+      endorserCode: z.string().max(16).optional(),
+    })
+    .parse(req.body);
   const { transport } = await requestChallenge({
     phone: body.phone,
     name: body.name,
+    endorserCode: body.endorserCode,
     ip: req.ip,
   });
   // Never reveals whether the number is already registered.
@@ -86,14 +93,14 @@ auth.post("/challenge", async (req, res) => {
 
 auth.post("/verify", async (req, res) => {
   const body = z.object({ phone, code: z.string().regex(/^\d{6}$/) }).parse(req.body);
-  const { user, session, isNew } = await verifyChallenge({
+  const { user, session, isNew, referred } = await verifyChallenge({
     phone: body.phone,
     code: body.code,
     ip: req.ip,
     userAgent: req.get("user-agent"),
   });
   setSessionCookie(res, session.token, session.expiresAt);
-  res.json({ user: publicUser(user), isNew });
+  res.json({ user: publicUser(user), isNew, referred });
 });
 
 auth.post("/profile", async (req, res) => {

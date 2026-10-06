@@ -71,6 +71,13 @@
       "when": 1791288223159,
       "tag": "0009_drop_phone_identities",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791308396377,
+      "tag": "0010_endorsers_and_referrals",
+      "breakpoints": true
     }
   ]
 }

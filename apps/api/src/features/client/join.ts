@@ -3,6 +3,7 @@ import { newId, schema } from "@traiv/db";
 import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "../../db.js";
 import { badRequest, forbidden, notFound } from "../../errors.js";
+import { isUniqueViolation } from "../../lib/db-errors.js";
 import { membershipIsLive } from "../studio/service.js";
 
 // No 0/O/1/I/L/U — these codes get read aloud in a gym and typed by hand when a camera
@@ -201,11 +202,6 @@ export async function rotateJoinCode(studioId: string) {
   }
   // Unreachable: the loop either returns or throws.
   throw new Error("could not allocate a join code");
-}
-
-/** Postgres 23505. Drizzle surfaces the driver error unchanged. */
-function isUniqueViolation(err: unknown): boolean {
-  return typeof err === "object" && err !== null && "code" in err && err.code === "23505";
 }
 
 export async function setJoinEnabled(studioId: string, enabled: boolean) {

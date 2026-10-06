@@ -1,6 +1,7 @@
 import express, { type Express } from "express";
 import { auth } from "./features/auth/routes.js";
 import { clientApp, join, studioJoin } from "./features/client/routes.js";
+import { endorse } from "./features/endorse/routes.js";
 import { studios } from "./features/studio/routes.js";
 import { cors } from "./middleware/cors.js";
 import { errorHandler } from "./middleware/error.js";
@@ -24,6 +25,9 @@ export function createApp(): Express {
   app.use("/join", join);
   // Client app. The studio is always in the path — never the session. See ADR 0014.
   app.use("/c", clientApp);
+  // Endorsers. Every route is scoped to the caller's own record, so there is no tenant
+  // and nothing to pass — see the comment on requireStudio for why that matters.
+  app.use("/e", endorse);
 
   // Registered last — it owns all error-to-HTTP mapping.
   app.use(errorHandler);
