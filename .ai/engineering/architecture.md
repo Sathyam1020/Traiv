@@ -5,16 +5,17 @@
 Monorepo. One backend, several Next.js frontends, one Postgres.
 
 ```
-traiv.app             marketing, blog, macro calculator etc   Next.js (static)
-trainer.traiv.app     coach app                           Next.js (SSR)
-my.traiv.app          client PWA                          Next.js (static export + service worker)
-endorse.traiv.app     affiliate portal                    Next.js (static)
-admin.traiv.app       platform admin                      Next.js (static)
-api.traiv.app         single API                          Node + Express 5
+traiv.fit             marketing, blog, macro calculator etc   Next.js (static)
+trainer.traiv.fit     coach app                           Next.js (SSR)
+my.traiv.fit          client PWA                          Next.js (static export + service worker)
+endorse.traiv.fit     affiliate portal                    Next.js (static)
+admin.traiv.fit       platform admin                      Next.js (static)
+api.traiv.fit         single API                          Node + Express 5
 ```
 
-`traiv.app` is canonical. `traiv.dev` and `traiv.in` redirect to it.
-Wildcard `*.traiv.app` is reserved — the client app moves to `<coach-slug>.traiv.app`
+`traiv.fit` is canonical as of 2026-10-09 — the earlier `traiv.app` was never
+registered. Any `traiv.app` / `traiv.dev` / `traiv.in` that is acquired redirects to it.
+Wildcard `*.traiv.fit` is reserved — the client app moves to `<coach-slug>.traiv.fit`
 when white-label branding ships.
 
 ## Planned layout

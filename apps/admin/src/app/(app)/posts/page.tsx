@@ -34,7 +34,7 @@ export default function PostsPage() {
         <div className="flex flex-col gap-1">
           <h1 className="text-display font-semibold tracking-[-0.03em]">Blog</h1>
           <p className="text-body-sm text-fg-muted">
-            Published posts appear on traiv.in/blog within a minute. Drafts are invisible to
+            Published posts appear on traiv.fit/blog within a minute. Drafts are invisible to
             everyone, including by direct link.
           </p>
         </div>

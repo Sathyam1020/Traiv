@@ -49,7 +49,7 @@ afterAll(wipe);
 
 describe("slug", () => {
   // Regression: the suffix was base64url, which emits `-` and `_`. An underscore is not
-  // legal in a hostname and this becomes <slug>.traiv.app. One sample only caught it
+  // legal in a hostname and this becomes <slug>.traiv.fit. One sample only caught it
   // intermittently, so check enough to be certain.
   it("is always first name plus six url-safe characters", () => {
     const bad = Array.from({ length: 5000 }, () => studioSlug("Sathyam Sahu")).filter(

@@ -11,11 +11,11 @@ type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0] | typeof db;
  * `sathyam-k3n9qa` — first name plus six random characters.
  *
  * A random suffix rather than collision-retry logic: one insert, no read-then-write race,
- * and no `-2` / `-3` tails. This becomes `<slug>.traiv.app` when white-label ships, so it
+ * and no `-2` / `-3` tails. This becomes `<slug>.traiv.fit` when white-label ships, so it
  * has to be URL-safe and stable.
  */
 // Explicit alphabet. base64url would have been shorter to write, but it emits `-` and
-// `_` — an underscore is not legal in a hostname, and this becomes <slug>.traiv.app.
+// `_` — an underscore is not legal in a hostname, and this becomes <slug>.traiv.fit.
 const SLUG_CHARS = "abcdefghijklmnopqrstuvwxyz0123456789";
 
 export function studioSlug(name: string): string {

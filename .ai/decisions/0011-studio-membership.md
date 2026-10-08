@@ -20,7 +20,7 @@ here — **billing attaches to the workspace, not the person.**
 so "at least one studio" cannot be broken by a partial failure. Slug is
 `firstname-xxxxxx` — first name plus six random characters. A random suffix rather than
 collision retries: one insert, no read-then-write race, no `-2` tails. It becomes
-`<slug>.traiv.app` when white-label ships.
+`<slug>.traiv.fit` when white-label ships.
 
 **A trainer with no usable name gets "My studio"**, renameable in settings.
 

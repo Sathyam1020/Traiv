@@ -100,7 +100,7 @@ export default function PostEditorPage() {
       toast(status === "published" ? "Published" : "Saved as a draft", {
         description:
           status === "published"
-            ? "It will be on traiv.in/blog within a minute."
+            ? "It will be on traiv.fit/blog within a minute."
             : "Nobody can see it, including by direct link.",
       });
       if (isNew) router.replace(`/posts/${saved.id}`);
@@ -177,7 +177,7 @@ export default function PostEditorPage() {
             <Field
               id={slugId}
               label="Link"
-              hint={`traiv.in/blog/${form.slug || "…"} — changing this on a live post breaks links to it.`}
+              hint={`traiv.fit/blog/${form.slug || "…"} — changing this on a live post breaks links to it.`}
             >
               <Input
                 id={slugId}

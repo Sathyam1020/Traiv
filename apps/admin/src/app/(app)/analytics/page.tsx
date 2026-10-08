@@ -36,7 +36,7 @@ export default function AnalyticsPage() {
         <div className="flex flex-col gap-1">
           <h1 className="text-display font-semibold tracking-[-0.03em]">Marketing</h1>
           <p className="text-body-sm text-fg-muted">
-            traiv.in, measured by us. No third party, no cookie, no banner.
+            traiv.fit, measured by us. No third party, no cookie, no banner.
           </p>
         </div>
 

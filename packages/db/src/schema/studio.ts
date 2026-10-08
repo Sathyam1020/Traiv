@@ -19,7 +19,7 @@ export const studios = pgTable(
   {
     id: text().primaryKey(),
     // firstname + 6 random chars, e.g. "sathyam-k3n9qa". Random suffix rather than
-    // collision retries, and it becomes <slug>.traiv.app when white-label ships.
+    // collision retries, and it becomes <slug>.traiv.fit when white-label ships.
     slug: text().notNull(),
     name: text().notNull(),
 

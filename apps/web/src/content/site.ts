@@ -18,7 +18,7 @@ export const SITE = {
    *
    * Everything canonical hangs off it — `metadataBase`, every page's canonical tag,
    * `sitemap.xml`, `robots.txt` and the JSON-LD. Hardcoding the production domain means
-   * a preview deployment tells Google its pages live at traiv.in, which is a slow,
+   * a preview deployment tells Google its pages live at traiv.fit, which is a slow,
    * quiet way to lose the real ones. Vercel sets `VERCEL_PROJECT_PRODUCTION_URL` on
    * every build, so the fallback is right without anybody configuring it.
    */
@@ -26,12 +26,12 @@ export const SITE = {
     process.env.NEXT_PUBLIC_SITE_URL ??
     (process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
       ? `https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}`
-      : "https://traiv.in"),
+      : "https://traiv.fit"),
   /** The product apps, for links out of the marketing site. */
   app: {
-    signup: "https://app.traiv.in/signup",
-    signin: "https://app.traiv.in/signin",
-    affiliate: "https://refer.traiv.in",
+    signup: "https://app.traiv.fit/signup",
+    signin: "https://app.traiv.fit/signin",
+    affiliate: "https://refer.traiv.fit",
   },
 } as const;
 

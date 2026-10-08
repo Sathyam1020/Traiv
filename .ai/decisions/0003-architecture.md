@@ -1,4 +1,8 @@
 # 0003 — Monorepo, single API, five frontends
+
+> **Superseded in part, 2026-10-09:** the domain is `traiv.fit`. `traiv.app` was
+> never registered. Everything else below stands — read `traiv.app` as `traiv.fit`
+> throughout, including the cookie scope and the white-label wildcard.
 2026-09-11 · Status: accepted
 
 ## Context
