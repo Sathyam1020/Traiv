@@ -13,8 +13,8 @@ import { requestChallenge, toE164, verifyChallenge } from "./service.js";
  * someone is actively trying to break it: concurrent guesses, concurrent wins, resend
  * used to reset a limit, and input shaped to defeat a uniqueness constraint.
  */
-const N1 = "7950000001";
-const N2 = "7950000002";
+const N1 = "8800000001";
+const N2 = "8800000002";
 const ALL = [N1, N2];
 
 async function wipe() {

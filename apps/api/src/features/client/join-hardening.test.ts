@@ -13,10 +13,10 @@ import { joinByCode, rotateJoinCode } from "./join.js";
  * The existing join tests cover the happy path and the obvious refusals. These cover what
  * the review found everywhere else: concurrency, and statuses that should not count.
  */
-const COACH = "7960000001";
-const C1 = "7960000002";
-const C2 = "7960000003";
-const C3 = "7960000004";
+const COACH = "8900000001";
+const C1 = "8900000002";
+const C2 = "8900000003";
+const C3 = "8900000004";
 const ALL = [COACH, C1, C2, C3];
 
 async function wipe() {

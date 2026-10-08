@@ -19,10 +19,10 @@ import { resetPhones } from "./test-support/reset.js";
  *
  * Numbers are in a reserved 793xxxx range so they cannot collide with the other suites.
  */
-const OWNER_A = "7930000001";
-const COACH_A = "7930000002";
-const OWNER_B = "7930000003";
-const LONER = "7930000004";
+const OWNER_A = "8200000001";
+const COACH_A = "8200000002";
+const OWNER_B = "8200000003";
+const LONER = "8200000004";
 const ALL = [OWNER_A, COACH_A, OWNER_B, LONER];
 
 let api: TestServer;

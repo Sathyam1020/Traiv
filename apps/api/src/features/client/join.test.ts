@@ -7,10 +7,10 @@ import { requestChallenge, toE164, verifyChallenge } from "../auth/service.js";
 import { listStudios } from "../studio/service.js";
 import { joinByCode, newJoinCode, previewJoin, rotateJoinCode, setJoinEnabled } from "./join.js";
 
-const COACH = "7920000001";
-const CLIENT_A = "7920000002";
-const CLIENT_B = "7920000003";
-const CLIENT_C = "7920000004";
+const COACH = "8100000001";
+const CLIENT_A = "8100000002";
+const CLIENT_B = "8100000003";
+const CLIENT_C = "8100000004";
 const ALL = [COACH, CLIENT_A, CLIENT_B, CLIENT_C];
 
 async function codeFor(phone: string) {

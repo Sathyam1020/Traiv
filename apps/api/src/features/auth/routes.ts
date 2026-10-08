@@ -1,4 +1,5 @@
 import { schema } from "@traiv/db";
+import { DEFAULT_COUNTRY, parsePhone, phoneProblemMessage } from "@traiv/phone";
 import { and, desc, inArray, isNotNull, isNull } from "drizzle-orm";
 import { Router } from "express";
 import { z } from "zod";
@@ -97,7 +98,27 @@ auth.get("/google/callback", async (req, res) => {
   res.redirect(`${env.WEB_ORIGIN}/dashboard`);
 });
 
-const phone = z.string().regex(/^[6-9]\d{9}$/, "Enter a valid Indian mobile number.");
+/**
+ * Any country's mobile number, in any written form.
+ *
+ * Validated by the same package the apps use, so there is no shape the form accepts and
+ * this refuses. The transform means every handler below receives E.164 and nothing else.
+ */
+const phone = z
+  .string()
+  .min(4)
+  .max(24)
+  .transform((v, ctx) => {
+    const parsed = parsePhone(v, DEFAULT_COUNTRY);
+    if (!parsed.ok) {
+      ctx.addIssue({
+        code: "custom",
+        message: phoneProblemMessage(parsed.problem, DEFAULT_COUNTRY),
+      });
+      return z.NEVER;
+    }
+    return parsed.e164;
+  });
 
 auth.post("/challenge", async (req, res) => {
   const body = z

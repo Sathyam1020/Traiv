@@ -1,16 +1,16 @@
 "use client";
 
+import { isValidMobile } from "@traiv/phone";
 import { Button } from "@traiv/ui/components/button";
 import { Input } from "@traiv/ui/components/input";
 import { Label } from "@traiv/ui/components/label";
 import { Logo } from "@traiv/ui/components/logo";
+import { PhoneField } from "@traiv/ui/components/phone-field";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useState } from "react";
 import { OtpInput } from "@/components/common/otp-input";
-import { PhoneField } from "@/components/common/phone-field";
 import { useJoinFlow } from "@/components/join/use-join-flow";
-
-const VALID_PHONE = /^[6-9]\d{9}$/;
+import type { JoinOutcome } from "@/lib/api";
 
 /**
  * Signing up to a specific coach.
@@ -27,28 +27,28 @@ export function JoinCard({
   code: string;
   studioName: string;
   signedIn: boolean;
-  onDone: (studioName: string) => void;
+  onDone: (outcome: JoinOutcome) => void;
 }) {
   const flow = useJoinFlow(code);
   const [otp, setOtp] = useState("");
 
-  const canSend = VALID_PHONE.test(flow.phone) && !flow.busy;
+  const canSend = isValidMobile(flow.phone, flow.countryCode) && !flow.busy;
 
   async function send() {
     // The no-OTP path signs in and attaches in one go, so it returns the outcome here.
     const outcome = await flow.sendCode();
-    if (outcome) onDone(outcome.studioName);
+    if (outcome) onDone(outcome);
   }
 
   async function submit() {
     const outcome = await flow.submitCode(otp);
-    if (outcome) onDone(outcome.studioName);
+    if (outcome) onDone(outcome);
     else setOtp("");
   }
 
   async function attachExisting() {
     const outcome = await flow.attachOnly();
-    if (outcome) onDone(outcome.studioName);
+    if (outcome) onDone(outcome);
   }
 
   return (
@@ -108,6 +108,8 @@ export function JoinCard({
             <PhoneField
               value={flow.phone}
               onChange={flow.setPhone}
+              countryCode={flow.countryCode}
+              onCountryChange={flow.setCountryCode}
               hint="We'll text you a code to verify your number."
             />
 

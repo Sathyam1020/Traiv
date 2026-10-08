@@ -18,10 +18,10 @@ import { resetPhones } from "./test-support/reset.js";
  *
  * Numbers are in a reserved 794xxxx range so they cannot collide with the other suites.
  */
-const COACH_A = "7940000001";
-const COACH_B = "7940000002";
-const PERSON = "7940000003";
-const OUTSIDER = "7940000004";
+const COACH_A = "8300000001";
+const COACH_B = "8300000002";
+const PERSON = "8300000003";
+const OUTSIDER = "8300000004";
 const ALL = [COACH_A, COACH_B, PERSON, OUTSIDER];
 
 let api: TestServer;

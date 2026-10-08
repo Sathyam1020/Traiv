@@ -21,6 +21,23 @@ The client app is used one-handed, on a budget Android, in a basement with no si
 Design at 360px first. A desktop layout squeezed down is a listed slop pattern.
 Tap targets ≥ 44×44px.
 
+**And then it has to grow.** Mobile-first means start at 360 and expand — not stop there.
+Three apps shipped as a 512px column stranded in the middle of a desktop because this
+principle said where to start and never said where to go.
+
+| | |
+|---|---|
+| **360** | One column. Floating tab bar. Nothing scrolls sideways, ever. |
+| **sm · 640** | Cards that were stacked go two across. |
+| **lg · 1024** | Sidebar replaces the tab bar. This is the one breakpoint where navigation changes shape, and it lives in `AppShell` so no app can pick a different one. |
+| **xl · 1280** | Third column where a grid has enough to fill it. |
+| **beyond** | Content caps at `max-w-[1280px]` and centres. `Page` is that container; use it rather than a new number. |
+
+**What stays narrow, deliberately:** a single-task form — sign-in, one intake question —
+is worse at 1280px, not better. So is long-form text, which holds a 65–75 character
+measure per `typography.md` §5. Narrow is a decision there, not an oversight; everywhere
+else it is the oversight.
+
 ## 5. Every async surface has four states
 
 Loading, empty, error, and populated — all four designed, none of them an afterthought.

@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* Every shadcn component's open/close transition is written with `animate-in`,
+   `fade-in-0`, `zoom-in-95` and `slide-in-from-*`. Those utilities are not in Tailwind —
+   they come from here. Without this import every dialog, dropdown, sheet and tooltip in
+   the product appeared and vanished with no transition at all, and nothing warned us:
+   an unknown utility class is simply not emitted. */
+@import "tw-animate-css";
+
 /* Tailwind scans relative to this file. Both the component package and every app that
    consumes it must be scanned, or classes used in apps get tree-shaken away. */
 @source "../../src";
@@ -173,6 +180,12 @@
     var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
     "Apple Color Emoji", Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Headlines on the marketing site only. The product apps never set --font-display, so
+     `font-display` there falls through to the same Inter stack as everything else — one
+     token, no second type system to keep in sync. */
+  --font-display: var(--font-display-family, var(--font-inter)), -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
 
   /* Eight sizes. Nothing above 24px in product UI. */
   --text-caption: 0.75rem;

@@ -1,4 +1,5 @@
 import { newId, schema } from "@traiv/db";
+import { DEFAULT_COUNTRY, parsePhone, phoneProblemMessage } from "@traiv/phone";
 import { and, desc, eq, gt, gte, isNotNull, isNull, lt, sql } from "drizzle-orm";
 import { db } from "../../db.js";
 import { env } from "../../env.js";
@@ -20,33 +21,23 @@ const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 /**
  * The one way a phone number becomes storable.
  *
- * It used to be `+91${input}` with no validation, which meant an already-normalised
- * number came back as `+91+919876543210` and anything at all could be written to a column
- * whose uniqueness depends on a single representation. Everything that reaches the
- * database goes through here, and the CHECK constraints catch anything that does not.
+ * It was `+91${input}` with no validation at all, so an already-normalised number came
+ * back as `+91+919876543210`. Then it was a hand-written Indian regex — correct, and
+ * wrong the first time somebody outside India signed up.
  *
- * India only, deliberately — it is the market we serve, and accepting other country codes
- * is how an OTP endpoint becomes a route to premium-rate numbers.
+ * `@traiv/phone` is now the only definition, shared with every app, so the form cannot
+ * accept what this refuses. It also rejects landlines: a number that cannot receive the
+ * code we are about to send it would become an account nobody can ever sign into.
+ *
+ * Still accepts a bare Indian national number, because that is what the apps sent before
+ * they learned to send E.164 and what most callers here still pass.
  */
 export function toE164(input: string): string {
-  const digits = input.replace(/[\s()\-.]/g, "");
-
-  const national = digits.startsWith("+91")
-    ? digits.slice(3)
-    : digits.startsWith("0091")
-      ? digits.slice(4)
-      : digits.startsWith("91") && digits.length === 12
-        ? digits.slice(2)
-        : digits.startsWith("0")
-          ? digits.slice(1)
-          : digits;
-
-  // Indian mobile numbers are ten digits starting 6-9. Landlines cannot receive an SMS,
-  // so refusing them here is a feature rather than a gap.
-  if (!/^[6-9]\d{9}$/.test(national)) {
-    throw badRequest("phone_invalid", "Enter a valid Indian mobile number.");
+  const parsed = parsePhone(input, DEFAULT_COUNTRY);
+  if (!parsed.ok) {
+    throw badRequest("phone_invalid", phoneProblemMessage(parsed.problem, DEFAULT_COUNTRY));
   }
-  return `+91${national}`;
+  return parsed.e164;
 }
 
 /**

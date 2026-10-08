@@ -1,5 +1,6 @@
 "use client";
 
+import { type CountryCode, DEFAULT_COUNTRY, parsePhone } from "@traiv/phone";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { isApiError, type TransportName } from "@/lib/api";
@@ -36,6 +37,7 @@ export function useAuthFlow(mode: AuthMode) {
 
   const [step, setStep] = useState<AuthStep>("identity");
   const [phone, setPhone] = useState("");
+  const [countryCode, setCountryCode] = useState<CountryCode>(DEFAULT_COUNTRY);
   const [name, setName] = useState("");
   // Optional, and signup only. Someone who was not referred leaves it blank.
   const [endorserCode, setEndorserCode] = useState("");
@@ -55,7 +57,8 @@ export function useAuthFlow(mode: AuthMode) {
   const otpRequired = authConfig?.otpRequired !== false;
   const updateProfile = useUpdateProfile();
 
-  const phoneValid = /^[6-9]\d{9}$/.test(phone);
+  const parsedPhone = parsePhone(phone, countryCode);
+  const phoneValid = parsedPhone.ok;
   const canSubmitIdentity = mode === "signin" ? phoneValid : phoneValid && name.trim().length >= 2;
   const busy =
     requestCode.isPending ||
@@ -81,10 +84,15 @@ export function useAuthFlow(mode: AuthMode) {
 
   const sendCode = useCallback(async () => {
     setError(null);
+    if (!parsedPhone.ok) {
+      setError("Enter a valid mobile number.");
+      return;
+    }
+    const e164 = parsedPhone.e164;
     try {
       if (!otpRequired) {
         const { user } = await directSignIn.mutateAsync({
-          phone,
+          phone: e164,
           ...(mode === "signup" && name.trim() ? { name: name.trim() } : {}),
           ...(mode === "signup" && endorserCode.trim()
             ? { endorserCode: endorserCode.trim() }
@@ -97,7 +105,7 @@ export function useAuthFlow(mode: AuthMode) {
       }
 
       const res = await requestCode.mutateAsync({
-        phone,
+        phone: e164,
         ...(mode === "signup" && name.trim() ? { name: name.trim() } : {}),
         ...(mode === "signup" && endorserCode.trim() ? { endorserCode: endorserCode.trim() } : {}),
       });
@@ -108,18 +116,21 @@ export function useAuthFlow(mode: AuthMode) {
     } catch (e) {
       fail(e);
     }
-  }, [requestCode, directSignIn, otpRequired, phone, name, endorserCode, mode, router, fail]);
+  }, [requestCode, directSignIn, otpRequired, parsedPhone, name, endorserCode, mode, router, fail]);
 
   const submitCode = useCallback(async () => {
     setError(null);
     try {
-      const { user } = await verifyCode.mutateAsync({ phone, code });
+      const { user } = await verifyCode.mutateAsync({
+        phone: parsedPhone.ok ? parsedPhone.e164 : phone,
+        code,
+      });
       if (user.needsProfile) setStep("profile");
       else router.push("/dashboard");
     } catch (e) {
       fail(e);
     }
-  }, [verifyCode, phone, code, router, fail]);
+  }, [verifyCode, parsedPhone, phone, code, router, fail]);
 
   const submitProfile = useCallback(async () => {
     setError(null);
@@ -143,6 +154,8 @@ export function useAuthFlow(mode: AuthMode) {
   return {
     step,
     phone,
+    countryCode,
+    setCountryCode,
     name,
     email,
     code,

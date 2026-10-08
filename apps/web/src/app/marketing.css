@@ -1,0 +1,81 @@
+/*
+ * Scroll animation for the marketing site.
+ *
+ * Done in CSS with a class toggled by one IntersectionObserver, rather than with a
+ * motion component per section. Two reasons, and the first is the one that matters:
+ *
+ * 1. **The page must read with no JavaScript.** A library's `initial={{ opacity: 0 }}`
+ *    is rendered into the HTML, so if the bundle fails — a flaky connection, an old
+ *    browser, a crawler that does not execute scripts — the entire page is invisible
+ *    and nobody is told why. Here the hidden state is applied only under `[data-js]`,
+ *    a flag set by a one-line inline script. No script, no hiding: the content is
+ *    simply there.
+ * 2. Fifty sections each with their own observer and their own spring is a measurable
+ *    amount of main-thread work on a mid-range Android, which is most of this audience.
+ *
+ * `prefers-reduced-motion` turns all of it off, including the transition, so a reader
+ * who has asked for stillness gets the finished page immediately.
+ */
+
+@media (prefers-reduced-motion: no-preference) {
+  [data-js] .reveal {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  [data-js] .reveal-left {
+    transform: translateX(-18px);
+  }
+
+  [data-js] .reveal-right {
+    transform: translateX(18px);
+  }
+
+  [data-js] .reveal-scale {
+    transform: scale(0.97);
+  }
+
+  [data-js] .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+    /* Entrances decelerate — the same curve as --ease-out-soft in the design system. */
+    transition:
+      opacity 620ms cubic-bezier(0.16, 1, 0.3, 1),
+      transform 620ms cubic-bezier(0.16, 1, 0.3, 1);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+}
+
+/*
+ * The header capsule, once the page has moved.
+ *
+ * At the top of a page the header is part of the hero and wants no edge at all; over
+ * content it needs one, or the text scrolls into it. The class is toggled once at 8px
+ * rather than animated against scroll position, because a value tied to scroll repaints
+ * on every frame of every scroll for a border nobody is watching.
+ */
+.nav-capsule {
+  transition:
+    box-shadow 240ms cubic-bezier(0.25, 0.1, 0.25, 1),
+    background-color 240ms cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+/* The underline that draws itself under a link on hover. */
+.link-underline {
+  background-image: linear-gradient(currentColor, currentColor);
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0% 1px;
+  transition: background-size 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.link-underline:hover {
+  background-size: 100% 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link-underline {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}

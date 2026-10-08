@@ -70,6 +70,10 @@ Adding a catalog entry means the process above was completed first.
 | class-variance-authority | 0.7.1 | trainer | shadcn variants |
 | lucide-react | 1.44.0 | trainer | icons |
 | vitest | 5.0.0 | api | scenario tests |
+| libphonenumber-js | 1.13.14 | phone | phone validation, every country |
+| tw-animate-css | 1.4.0 | ui | the `animate-in` utilities every shadcn component already uses |
+| react-markdown | 10.1.0 | web | rendering blog posts written in the admin app |
+| remark-gfm | 4.0.1 | web | tables, strikethrough and task lists in those posts |
 
 **Not installed yet:** Serwist (client PWA), AWS SDK (SES), Razorpay SDK, Playwright.
 
@@ -93,7 +97,26 @@ Kept as evidence that step 3 is not optional:
   passing one value down.
 - **shadcn** — now ships its own `cn` package and the unified `radix-ui` package. Writing a
   `cn` util by hand creates a duplicate.
+- **react-markdown** — picked over `marked` specifically because it does **not** render
+  raw HTML and never touches `dangerouslySetInnerHTML`: it parses to React elements, so
+  a post body cannot carry a script tag no matter what is typed into the editor. The
+  `marked` route would have needed a sanitiser alongside it, and `isomorphic-dompurify`
+  pulls in jsdom. v10's default export is `Markdown`, it is a server component by
+  default, and `urlTransform` already restricts link protocols.
+- **tw-animate-css** — shadcn components are written against `animate-in` / `fade-in-0` /
+  `zoom-in-95`, which are **not** Tailwind utilities and were silently doing nothing here
+  for months, because an unrecognised class is simply not emitted rather than reported.
+  It is the Tailwind 4 replacement for `tailwindcss-animate`, a pure CSS file with no
+  plugin and no JS: one `@import "tw-animate-css"` in `globals.css` is the whole install.
 - **Node** — native type-stripping does not resolve `.js` specifiers back to `.ts`.
+- **libphonenumber-js** — three metadata sets, not one, and the default import is the
+  largest. `/max` adds number *type* detection we do not need; `/min` cannot tell a mobile
+  from a landline. We import `/mobile`, which can — a landline passes a naive check and
+  then can never receive the code, so the account is unreachable the moment it is created.
+  Also: `parsePhoneNumberWithError` throws for a malformed number and *returns* for a
+  well-formed invalid one, so both paths have to be handled; and `getExampleNumber` needs
+  its examples file passed in (`libphonenumber-js/mobile/examples`) rather than reading it
+  from the metadata.
 
 **Version traps — current docs are mandatory for all four:**
 - **TypeScript 7** is the native-Go compiler rewrite

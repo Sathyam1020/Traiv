@@ -1,0 +1,20 @@
+{
+  "name": "@traiv/nutrition",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./bmr": "./src/bmr.ts",
+    "./flags": "./src/flags.ts",
+    "./targets": "./src/targets.ts",
+    "./types": "./src/types.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

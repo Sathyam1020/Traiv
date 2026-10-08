@@ -6,14 +6,17 @@ import { env } from "../env.js";
  * `Allow-Origin` must echo one specific origin rather than `*`, because `*` is rejected
  * whenever credentials are included, so the matched origin is echoed back verbatim.
  *
- * Four apps, one API: coach, client, endorser and admin are separate origins and all
- * carry the session cookie.
+ * Five apps, one API: coach, client, endorser and admin are separate origins and all
+ * carry the session cookie. The marketing site is the odd one out — it has no session at
+ * all, and the three routes it calls are public — but it still needs the header, because
+ * a browser blocks a cross-origin POST on the response, not on the request.
  */
 const ALLOWED: readonly string[] = [
   env.WEB_ORIGIN,
   env.CLIENT_ORIGIN,
   env.ENDORSE_ORIGIN,
   env.ADMIN_ORIGIN,
+  env.MARKETING_ORIGIN,
 ];
 
 export function cors(req: Request, res: Response, next: NextFunction) {

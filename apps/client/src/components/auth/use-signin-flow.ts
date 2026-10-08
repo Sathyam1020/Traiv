@@ -1,5 +1,6 @@
 "use client";
 
+import { type CountryCode, DEFAULT_COUNTRY, parsePhone } from "@traiv/phone";
 import { useCallback, useState } from "react";
 import { isApiError } from "@/lib/api";
 import { useAuthConfig, useDirectSignIn, useRequestCode, useVerifyCode } from "@/lib/query";
@@ -23,6 +24,7 @@ export type SignInStep = "phone" | "code";
 export function useSignInFlow() {
   const [step, setStep] = useState<SignInStep>("phone");
   const [phone, setPhone] = useState("");
+  const [countryCode, setCountryCode] = useState<CountryCode>(DEFAULT_COUNTRY);
   const [error, setError] = useState<string | null>(null);
 
   const request = useRequestCode();
@@ -38,32 +40,38 @@ export function useSignInFlow() {
   /** Returns true when sign-in is already complete — the no-OTP path finishes here. */
   const sendCode = useCallback(async () => {
     setError(null);
+    const parsed = parsePhone(phone, countryCode);
+    if (!parsed.ok) {
+      setError("Enter a valid mobile number.");
+      return false;
+    }
+    const e164 = parsed.e164;
     try {
       if (!otpRequired) {
-        await direct.mutateAsync({ phone });
+        await direct.mutateAsync({ phone: e164 });
         return true;
       }
-      await request.mutateAsync({ phone });
+      await request.mutateAsync({ phone: e164 });
       setStep("code");
       return false;
     } catch (e) {
       setError(isApiError(e) ? e.message : "Couldn't sign you in. Try again.");
       return false;
     }
-  }, [request, direct, otpRequired, phone]);
+  }, [request, direct, otpRequired, phone, countryCode]);
 
   const submitCode = useCallback(
     async (otp: string) => {
       setError(null);
       try {
-        await verify.mutateAsync({ phone, code: otp });
+        await verify.mutateAsync({ phone: e164Of(phone, countryCode), code: otp });
         return true;
       } catch (e) {
         setError(isApiError(e) ? e.message : "That code didn't work.");
         return false;
       }
     },
-    [verify, phone],
+    [verify, phone, countryCode],
   );
 
   const back = useCallback(() => {
@@ -75,6 +83,8 @@ export function useSignInFlow() {
     step,
     phone,
     setPhone,
+    countryCode,
+    setCountryCode,
     error,
     busy,
     otpRequired,
@@ -82,4 +92,10 @@ export function useSignInFlow() {
     submitCode,
     back,
   };
+}
+
+/** The stored form of what is in the field, for the second step of the OTP flow. */
+function e164Of(input: string, forCountry: CountryCode): string {
+  const parsed = parsePhone(input, forCountry);
+  return parsed.ok ? parsed.e164 : input;
 }

@@ -4,9 +4,9 @@ import { Button } from "@traiv/ui/components/button";
 import { GoogleButton } from "@traiv/ui/components/google-button";
 import { Input } from "@traiv/ui/components/input";
 import { Label } from "@traiv/ui/components/label";
+import { PhoneField } from "@traiv/ui/components/phone-field";
 import { ArrowRight } from "lucide-react";
-import { EndorserField } from "@/components/auth/endorser-field";
-import { PhoneField } from "@/components/auth/phone-field";
+import { EndorserField, useEndorserCode } from "@/components/auth/endorser-field";
 import { TrustMarkers } from "@/components/auth/trust-markers";
 import type { AuthFlow, AuthMode } from "@/components/auth/use-auth-flow";
 import { API_BASE } from "@/lib/api";
@@ -15,6 +15,11 @@ import { useAuthConfig } from "@/lib/query";
 export function IdentityStep({ mode, flow }: { mode: AuthMode; flow: AuthFlow }) {
   const { data: config } = useAuthConfig();
   const isSignup = mode === "signup";
+
+  // A referral code that is still being checked is not a reason to block somebody who
+  // never entered one, so an empty code is ready. Everything else waits for an answer.
+  const endorser = useEndorserCode(isSignup ? flow.endorserCode : "");
+  const canContinue = flow.canSubmitIdentity && endorser.ready && !flow.busy;
 
   return (
     <div className="flex flex-col gap-5">
@@ -49,7 +54,7 @@ export function IdentityStep({ mode, flow }: { mode: AuthMode; flow: AuthFlow })
         className="flex flex-col gap-4"
         onSubmit={(e) => {
           e.preventDefault();
-          if (flow.canSubmitIdentity) void flow.sendCode();
+          if (canContinue) void flow.sendCode();
         }}
       >
         {isSignup ? (
@@ -67,6 +72,8 @@ export function IdentityStep({ mode, flow }: { mode: AuthMode; flow: AuthFlow })
         <PhoneField
           value={flow.phone}
           onChange={flow.setPhone}
+          countryCode={flow.countryCode}
+          onCountryChange={flow.setCountryCode}
           hint={
             config?.otp.primary === "whatsapp"
               ? "We'll send a WhatsApp code to verify your number."
@@ -76,16 +83,16 @@ export function IdentityStep({ mode, flow }: { mode: AuthMode; flow: AuthFlow })
 
         {/* Signup only — there is nothing to attribute when an account already exists. */}
         {isSignup ? (
-          <EndorserField value={flow.endorserCode} onChange={flow.setEndorserCode} />
+          <EndorserField
+            value={flow.endorserCode}
+            onChange={flow.setEndorserCode}
+            state={endorser}
+          />
         ) : null}
 
         {flow.error ? <p className="text-caption text-danger">{flow.error}</p> : null}
 
-        <Button
-          type="submit"
-          className="h-11 w-full gap-2"
-          disabled={!flow.canSubmitIdentity || flow.busy}
-        >
+        <Button type="submit" className="h-11 w-full gap-2" disabled={!canContinue}>
           {flow.busy ? "Sending…" : "Continue"}
           {!flow.busy && <ArrowRight className="size-4" />}
         </Button>

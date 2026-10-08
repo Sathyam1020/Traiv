@@ -1,22 +1,21 @@
 "use client";
 
+import { isValidMobile } from "@traiv/phone";
 import { Button } from "@traiv/ui/components/button";
 import { GoogleButton } from "@traiv/ui/components/google-button";
 import { Input } from "@traiv/ui/components/input";
 import { Label } from "@traiv/ui/components/label";
 import { Logo } from "@traiv/ui/components/logo";
+import { PhoneField } from "@traiv/ui/components/phone-field";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { DevBypass } from "@/components/auth/dev-bypass";
 import { type AuthMode, useSignInFlow } from "@/components/auth/use-signin-flow";
 import { OtpInput } from "@/components/common/otp-input";
-import { PhoneField } from "@/components/common/phone-field";
 import { TrustMarkers } from "@/components/common/trust-markers";
 import { API_BASE } from "@/lib/api";
 import { useAuthConfig } from "@/lib/query";
-
-const VALID_PHONE = /^[6-9]\d{9}$/;
 
 /**
  * The same shape as the coach app's sign-in, minus the referral code — there is nothing
@@ -30,7 +29,7 @@ export function SignInCard({ mode, onDone }: { mode: AuthMode; onDone: () => voi
   const { data: config } = useAuthConfig();
   const [otp, setOtp] = useState("");
 
-  const canSend = VALID_PHONE.test(flow.phone) && !flow.busy;
+  const canSend = isValidMobile(flow.phone, flow.countryCode) && !flow.busy;
 
   async function submit() {
     const ok = await flow.submitCode(otp);
@@ -102,6 +101,8 @@ export function SignInCard({ mode, onDone }: { mode: AuthMode; onDone: () => voi
               <PhoneField
                 value={flow.phone}
                 onChange={flow.setPhone}
+                countryCode={flow.countryCode}
+                onCountryChange={flow.setCountryCode}
                 hint={
                   flow.otpRequired
                     ? config?.otp.primary === "whatsapp"

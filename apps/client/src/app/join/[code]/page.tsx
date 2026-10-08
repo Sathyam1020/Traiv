@@ -6,7 +6,9 @@ import { Skeleton } from "@traiv/ui/components/skeleton";
 import { CircleCheck } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { IntakeFlow } from "@/components/intake/intake-flow";
 import { JoinCard } from "@/components/join/join-card";
+import type { JoinOutcome } from "@/lib/api";
 import { isApiError } from "@/lib/api";
 import { isJoinCode, normalise, remember } from "@/lib/join-code";
 import { useJoinPreview, useSession } from "@/lib/query";
@@ -20,6 +22,7 @@ import { useJoinPreview, useSession } from "@/lib/query";
  * in another app reading their SMS.
  */
 export default function JoinPage() {
+  const router = useRouter();
   const params = useParams<{ code: string }>();
   const raw = typeof params.code === "string" ? params.code : "";
   const code = isJoinCode(raw) ? normalise(raw) : null;
@@ -31,9 +34,32 @@ export default function JoinPage() {
 
   const preview = useJoinPreview(code);
   const session = useSession();
-  const [joined, setJoined] = useState<string | null>(null);
+  const [outcome, setOutcome] = useState<JoinOutcome | null>(null);
 
-  if (joined) return <Done studioName={joined} />;
+  // Onboarding runs here rather than on a route of its own, for the same reason the rest
+  // of this flow does: the moment the page navigates, the code in the URL stops being the
+  // thing holding the signup together.
+  //
+  // Only a fresh join is asked. Somebody re-scanning a link they already used has either
+  // answered these questions or deliberately skipped them, and asking again reads as the
+  // app having forgotten them.
+  if (outcome?.status === "joined" && preview.data) {
+    return (
+      <main className="flex min-h-dvh items-center justify-center px-5 py-10">
+        <div className="w-full max-w-[25rem]">
+          <IntakeFlow
+            studioId={preview.data.studioId}
+            coachName={outcome.studioName}
+            // `replace`, not `push`: the join link is spent, and leaving it in history
+            // sends anyone who taps back into a flow they have already finished.
+            onDone={() => router.replace("/dashboard")}
+          />
+        </div>
+      </main>
+    );
+  }
+
+  if (outcome) return <Done studioName={outcome.studioName} />;
 
   if (!code) {
     return (
@@ -69,7 +95,7 @@ export default function JoinPage() {
         code={code}
         studioName={preview.data.name}
         signedIn={Boolean(session.data?.user)}
-        onDone={setJoined}
+        onDone={setOutcome}
       />
     </main>
   );

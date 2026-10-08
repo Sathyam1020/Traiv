@@ -16,5 +16,6 @@ export const queryKeys = {
   client: {
     coaches: ["client", "coaches"] as const,
     me: (studioId: string) => ["client", "me", studioId] as const,
+    intake: (studioId: string) => ["client", "intake", studioId] as const,
   },
 } as const;

@@ -6,8 +6,8 @@ import { authorizeStudio } from "../../middleware/authorize.js";
 import { requestChallenge, toE164, verifyChallenge } from "../auth/service.js";
 import { activateStudio, listStudios, resolveActiveStudio, studioSlug } from "./service.js";
 
-const A = "7910000001";
-const B = "7910000002";
+const A = "8600000001";
+const B = "8600000002";
 
 async function codeFor(phone: string) {
   const res = await requestChallenge({ phone });

@@ -1,5 +1,6 @@
 "use client";
 
+import { Page } from "@traiv/ui/components/shell/page";
 import { motion } from "motion/react";
 import { NeedsYou } from "./_components/needs-you";
 import { OnTrack } from "./_components/on-track";
@@ -16,7 +17,7 @@ const ease = [0.16, 1, 0.3, 1] as const;
  */
 export default function DashboardPage() {
   return (
-    <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-8 py-2">
+    <Page className="gap-8 py-2">
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -36,6 +37,6 @@ export default function DashboardPage() {
       </div>
 
       <OnTrack roster={roster} total={summary.total} />
-    </div>
+    </Page>
   );
 }

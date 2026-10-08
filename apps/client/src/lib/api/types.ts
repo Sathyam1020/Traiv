@@ -44,3 +44,59 @@ export type Coach = {
 };
 
 export type DevUser = { id: string; name: string; phone: string | null; email: string | null };
+
+export type Goal =
+  | "lose_fat"
+  | "build_muscle"
+  | "get_stronger"
+  | "maintain"
+  | "improve_fitness"
+  | "general_health";
+
+export type Sex = "male" | "female" | "undisclosed";
+export type ActivityLevel = "sedentary" | "light" | "moderate" | "very" | "extra";
+export type Experience = "new" | "some" | "experienced";
+export type DietType = "vegetarian" | "non_vegetarian" | "eggetarian" | "vegan" | "jain";
+
+export type Intake = {
+  goal: Goal | null;
+  targetWeightKg: number | null;
+  sex: Sex | null;
+  birthYear: number | null;
+  heightCm: number | null;
+  dailyActivity: ActivityLevel | null;
+  experience: Experience | null;
+  daysPerWeek: number | null;
+  sessionMinutes: number | null;
+  equipment: string[] | null;
+  diet: DietType | null;
+  allergies: string | null;
+  dislikes: string | null;
+  mealsPerDay: number | null;
+  healthFlags: string[] | null;
+  healthNote: string | null;
+  trainingDays: string[] | null;
+  preferredTime: string | null;
+  lastStep: number | null;
+  completedAt: string | null;
+};
+
+export type NutritionTarget = {
+  kcal: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+};
+
+export type IntakeState = {
+  intake: Intake | null;
+  weightKg: number | null;
+  target: NutritionTarget | null;
+  /** The coach has to look at this client's numbers before they reach them. */
+  awaitingReview: boolean;
+};
+
+/** Every field optional — skipping a step is a supported answer, not a failure. */
+export type IntakePatch = Partial<Omit<Intake, "lastStep" | "completedAt">> & {
+  weightKg?: number;
+};

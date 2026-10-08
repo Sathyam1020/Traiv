@@ -10,6 +10,7 @@ import {
   requireClientAuth,
 } from "../../middleware/client-authorize.js";
 import { requireSession } from "../../middleware/session.js";
+import { completeIntake, FIRST_STEP, getIntake, LAST_STEP, saveStep } from "./intake.js";
 import { joinByCode, previewJoin, rotateJoinCode, setJoinEnabled } from "./join.js";
 
 export const join: Router = Router();
@@ -170,4 +171,87 @@ clientApp.get("/:studioId/me", requireClient(), async (req, res) => {
       color: studio?.brandColor ?? null,
     },
   });
+});
+
+/**
+ * Onboarding.
+ *
+ * The answers belong to the person, not to one coaching relationship — somebody who hires
+ * a dietitian alongside their lifting coach should not be asked their height twice.
+ *
+ * Still mounted under a studio, because that is what establishes the right to be here: you
+ * may edit your own profile while you are somebody's client. The studio decides whether the
+ * request is allowed; the session decides whose row it touches, so there is no id in the
+ * body for anyone to swap for somebody else's.
+ */
+
+const EQUIPMENT = ["full_gym", "home_basics", "dumbbells", "bodyweight", "bands"] as const;
+const HEALTH_FLAGS = [
+  "knee",
+  "lower_back",
+  "shoulder",
+  "diabetes",
+  "blood_pressure",
+  "thyroid",
+  "pcos",
+  "pregnancy",
+] as const;
+const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+
+/**
+ * Every field optional, because every step is skippable. The ranges match the check
+ * constraints on the table — the database is the one that actually enforces them, this
+ * just means a slipped decimal comes back as a message instead of a 500.
+ */
+const intakePatch = z
+  .object({
+    goal: z.enum([
+      "lose_fat",
+      "build_muscle",
+      "get_stronger",
+      "maintain",
+      "improve_fitness",
+      "general_health",
+    ]),
+    targetWeightKg: z.number().min(25).max(400),
+    sex: z.enum(["male", "female", "undisclosed"]),
+    birthYear: z.int().min(1900).max(2100),
+    heightCm: z.number().min(90).max(250),
+    weightKg: z.number().min(25).max(400),
+    dailyActivity: z.enum(["sedentary", "light", "moderate", "very", "extra"]),
+    experience: z.enum(["new", "some", "experienced"]),
+    daysPerWeek: z.int().min(1).max(7),
+    sessionMinutes: z.int().min(10).max(240),
+    equipment: z.array(z.enum(EQUIPMENT)).max(EQUIPMENT.length),
+    diet: z.enum(["vegetarian", "non_vegetarian", "eggetarian", "vegan", "jain"]),
+    allergies: z.string().max(500),
+    dislikes: z.string().max(500),
+    mealsPerDay: z.int().min(1).max(8),
+    healthFlags: z.array(z.enum(HEALTH_FLAGS)).max(HEALTH_FLAGS.length),
+    healthNote: z.string().max(1000),
+    trainingDays: z.array(z.enum(DAYS)).max(7),
+    preferredTime: z.enum(["morning", "afternoon", "evening", "varies"]),
+  })
+  .partial();
+
+clientApp.get("/:studioId/intake", requireClient(), async (req, res) => {
+  const { userId } = requireSession(req);
+  res.json(await getIntake(userId));
+});
+
+clientApp.patch("/:studioId/intake", requireClient({ write: true }), async (req, res) => {
+  const { userId } = requireSession(req);
+  const { step, ...patch } = z
+    .object({ step: z.int().min(FIRST_STEP).max(LAST_STEP) })
+    .extend(intakePatch.shape)
+    .parse(req.body);
+
+  await saveStep(userId, step, patch);
+  res.json(await getIntake(userId));
+});
+
+clientApp.post("/:studioId/intake/complete", requireClient({ write: true }), async (req, res) => {
+  const { userId } = requireSession(req);
+  const { target, awaitingReview } = await completeIntake(userId);
+  res.json({ target, awaitingReview });
 });

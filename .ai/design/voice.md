@@ -60,5 +60,6 @@ Current product vocabulary — use these exact terms, don't invent synonyms:
 | session | workout instance, log entry |
 | check-in | survey, form, questionnaire |
 | Today | Dashboard, Home, Overview |
+| You | Profile, My Account, Settings (on the client app) |
 
 Adding a term to this table is a product decision. Ask.

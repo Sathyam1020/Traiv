@@ -1,6 +1,8 @@
-import { LayoutDashboard, Settings } from "lucide-react";
+import type { NavItem } from "@traiv/ui/components/shell/app-shell";
+import { Home, Settings } from "lucide-react";
 
-export const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+/** "Dashboard" is banned by voice.md — the coach's home is Today. */
+export const navItems: readonly NavItem[] = [
+  { href: "/dashboard", label: "Today", icon: Home },
   { href: "/settings", label: "Settings", icon: Settings },
-] as const;
+];

@@ -1,5 +1,6 @@
 "use client";
 
+import { type CountryCode, DEFAULT_COUNTRY, parsePhone } from "@traiv/phone";
 import { useCallback, useState } from "react";
 import { isApiError } from "@/lib/api";
 import { useAuthConfig, useDirectSignIn, useRequestCode, useVerifyCode } from "@/lib/query";
@@ -23,6 +24,7 @@ export type AuthMode = "signin" | "signup";
 export function useSignInFlow(mode: AuthMode = "signin") {
   const [step, setStep] = useState<SignInStep>("phone");
   const [phone, setPhone] = useState("");
+  const [countryCode, setCountryCode] = useState<CountryCode>(DEFAULT_COUNTRY);
   // Optional, and only used if this number has no account yet — or has one with no name.
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -40,16 +42,22 @@ export function useSignInFlow(mode: AuthMode = "signin") {
   /** Returns true when sign-in is already complete — the no-OTP path finishes here. */
   const sendCode = useCallback(async () => {
     setError(null);
+    const parsed = parsePhone(phone, countryCode);
+    if (!parsed.ok) {
+      setError("Enter a valid mobile number.");
+      return false;
+    }
+    const e164 = parsed.e164;
     try {
       if (!otpRequired) {
         await direct.mutateAsync({
-          phone,
+          phone: e164,
           ...(mode === "signup" && name.trim() ? { name: name.trim() } : {}),
         });
         return true;
       }
       await request.mutateAsync({
-        phone,
+        phone: e164,
         ...(mode === "signup" && name.trim() ? { name: name.trim() } : {}),
       });
       setStep("code");
@@ -58,20 +66,20 @@ export function useSignInFlow(mode: AuthMode = "signin") {
       setError(isApiError(e) ? e.message : "Couldn't sign you in. Try again.");
       return false;
     }
-  }, [request, direct, otpRequired, phone, name, mode]);
+  }, [request, direct, otpRequired, phone, countryCode, name, mode]);
 
   const submitCode = useCallback(
     async (otp: string) => {
       setError(null);
       try {
-        await verify.mutateAsync({ phone, code: otp });
+        await verify.mutateAsync({ phone: e164Of(phone, countryCode), code: otp });
         return true;
       } catch (e) {
         setError(isApiError(e) ? e.message : "That code didn't work.");
         return false;
       }
     },
-    [verify, phone],
+    [verify, phone, countryCode],
   );
 
   const back = useCallback(() => {
@@ -83,6 +91,8 @@ export function useSignInFlow(mode: AuthMode = "signin") {
     step,
     phone,
     setPhone,
+    countryCode,
+    setCountryCode,
     name,
     setName,
     error,
@@ -92,4 +102,10 @@ export function useSignInFlow(mode: AuthMode = "signin") {
     submitCode,
     back,
   };
+}
+
+/** The stored form of what is in the field, for the second step of the OTP flow. */
+function e164Of(input: string, forCountry: CountryCode): string {
+  const parsed = parsePhone(input, forCountry);
+  return parsed.ok ? parsed.e164 : input;
 }

@@ -18,7 +18,8 @@
     "qrcode.react": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "zustand": "catalog:"
+    "zustand": "catalog:",
+    "@traiv/phone": "workspace:*"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "catalog:",

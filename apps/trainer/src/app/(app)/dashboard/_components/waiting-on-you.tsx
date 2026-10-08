@@ -1,4 +1,4 @@
-import { Avatar } from "@/components/common/avatar";
+import { Avatar } from "@traiv/ui/components/avatar";
 import type { WaitingCheckin } from "../_lib/roster";
 import { press, Section } from "./section";
 

@@ -10,10 +10,13 @@
     "test": "vitest run",
     "seed": "tsx src/seed.ts",
     "test:watch": "vitest",
-    "retention": "tsx src/features/auth/retention.ts"
+    "retention": "tsx src/features/auth/retention.ts",
+    "seed:library": "tsx src/library/seed.ts"
   },
   "dependencies": {
     "@traiv/db": "workspace:*",
+    "@traiv/nutrition": "workspace:*",
+    "@traiv/phone": "workspace:*",
     "drizzle-orm": "catalog:",
     "express": "catalog:",
     "zod": "catalog:"

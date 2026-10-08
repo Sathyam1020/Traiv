@@ -8,6 +8,48 @@ import { useEndorserName } from "@/lib/query";
 
 const CODE_LENGTH = 8;
 
+export type EndorserCodeState =
+  | { status: "empty"; ready: true }
+  | { status: "typing"; ready: false }
+  | { status: "checking"; ready: false }
+  | { status: "valid"; ready: true; name: string }
+  | { status: "invalid"; ready: false };
+
+/**
+ * The state of the referral code, owned by the step rather than the field.
+ *
+ * The Continue button has to know about it — submitting while the code is still being
+ * checked sends a code we have not confirmed, and the server rejects it after the person
+ * has already committed to the click. The field used to hold this itself, which meant
+ * the button could not see it.
+ *
+ * `ready` is what gates submission, and an empty code is ready: the field is optional, so
+ * not using it must never block anybody.
+ */
+export function useEndorserCode(value: string): EndorserCodeState {
+  const [debounced, setDebounced] = useState(value);
+
+  // One request once typing settles, not one per keystroke.
+  useEffect(() => {
+    const id = setTimeout(() => setDebounced(value), 350);
+    return () => clearTimeout(id);
+  }, [value]);
+
+  const { data, isError } = useEndorserName(debounced);
+
+  if (!value) return { status: "empty", ready: true };
+
+  // Still mid-word, or the debounce has not caught up — either way what we know is stale,
+  // so this window must be closed too, not just the request itself.
+  if (value.length < CODE_LENGTH || debounced !== value) return { status: "typing", ready: false };
+
+  if (data) return { status: "valid", ready: true, name: data.name };
+  if (isError) return { status: "invalid", ready: false };
+
+  // In flight, or settled and about to be. Both mean we do not know yet.
+  return { status: "checking", ready: false };
+}
+
 /**
  * The optional referral code, collapsed until asked for.
  *
@@ -21,21 +63,13 @@ const CODE_LENGTH = 8;
 export function EndorserField({
   value,
   onChange,
+  state,
 }: {
   value: string;
   onChange: (v: string) => void;
+  state: EndorserCodeState;
 }) {
   const [open, setOpen] = useState(Boolean(value));
-  const [debounced, setDebounced] = useState(value);
-
-  // One request once typing settles, not one per keystroke.
-  useEffect(() => {
-    const id = setTimeout(() => setDebounced(value), 350);
-    return () => clearTimeout(id);
-  }, [value]);
-
-  const complete = debounced.length === CODE_LENGTH;
-  const { data, isError, isFetching } = useEndorserName(debounced);
 
   if (!open) {
     return (
@@ -71,32 +105,39 @@ export function EndorserField({
         placeholder="ABCD2345"
         autoComplete="off"
         spellCheck={false}
-        className="font-mono tracking-[0.12em]"
+        aria-invalid={state.status === "invalid" || undefined}
         aria-describedby="endorser-code-status"
+        className="font-mono tracking-[0.12em]"
       />
 
-      <p id="endorser-code-status" className="flex items-center gap-1.5 text-caption">
-        {!complete ? (
+      <p
+        id="endorser-code-status"
+        aria-live="polite"
+        className="flex items-center gap-1.5 text-caption"
+      >
+        {state.status === "empty" ? (
+          <span className="text-fg-subtle">Leave this blank if nobody referred you.</span>
+        ) : state.status === "typing" ? (
           <span className="text-fg-subtle">
-            {value.length
+            {value.length < CODE_LENGTH
               ? `${CODE_LENGTH - value.length} more characters`
-              : "Leave this blank if nobody referred you."}
+              : "Checking…"}
           </span>
-        ) : isFetching ? (
+        ) : state.status === "checking" ? (
           <span className="text-fg-subtle">Checking…</span>
-        ) : data ? (
+        ) : state.status === "valid" ? (
           <>
             <Check className="size-3.5 shrink-0 text-success" />
             <span className="text-fg-muted">
-              Referred by <span className="font-medium text-fg">{data.name}</span>
+              Referred by <span className="font-medium text-fg">{state.name}</span>
             </span>
           </>
-        ) : isError ? (
+        ) : (
           <>
             <CircleAlert className="size-3.5 shrink-0 text-danger" />
-            <span className="text-danger">That code isn't valid.</span>
+            <span className="text-danger">That code isn't valid. Clear it to continue.</span>
           </>
-        ) : null}
+        )}
       </p>
     </div>
   );

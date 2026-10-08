@@ -78,6 +78,41 @@
       "when": 1791308396377,
       "tag": "0010_endorsers_and_referrals",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1791360237514,
+      "tag": "0011_intake_and_targets",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1791361552630,
+      "tag": "0012_drop_client_keyed_intake",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1791361562114,
+      "tag": "0013_intake_on_user",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1791398439169,
+      "tag": "0014_plans_library_jobs",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1791475205319,
+      "tag": "0015_flaky_deathstrike",
+      "breakpoints": true
     }
   ]
 }

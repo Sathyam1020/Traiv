@@ -10,4 +10,12 @@ export {
   useSession,
   useVerifyCode,
 } from "./use-auth";
-export { useAttach, useClientMe, useCoaches, useJoinPreview } from "./use-join";
+export {
+  useAttach,
+  useClientMe,
+  useCoaches,
+  useCompleteIntake,
+  useIntake,
+  useJoinPreview,
+  useSaveStep,
+} from "./use-join";

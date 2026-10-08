@@ -1,26 +1,25 @@
 "use client";
 
+import { isValidMobile } from "@traiv/phone";
 import { Button } from "@traiv/ui/components/button";
 import { GoogleButton } from "@traiv/ui/components/google-button";
 import { Logo } from "@traiv/ui/components/logo";
+import { PhoneField } from "@traiv/ui/components/phone-field";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { useState } from "react";
 import { DevBypass } from "@/components/auth/dev-bypass";
 import { useSignInFlow } from "@/components/auth/use-signin-flow";
 import { OtpInput } from "@/components/common/otp-input";
-import { PhoneField } from "@/components/common/phone-field";
 import { TrustMarkers } from "@/components/common/trust-markers";
 import { API_BASE } from "@/lib/api";
 import { useAuthConfig } from "@/lib/query";
-
-const VALID_PHONE = /^[6-9]\d{9}$/;
 
 export function SignInCard({ onDone }: { onDone: () => void }) {
   const flow = useSignInFlow();
   const { data: config } = useAuthConfig();
   const [otp, setOtp] = useState("");
 
-  const canSend = VALID_PHONE.test(flow.phone) && !flow.busy;
+  const canSend = isValidMobile(flow.phone, flow.countryCode) && !flow.busy;
 
   async function submit() {
     const ok = await flow.submitCode(otp);
@@ -71,6 +70,8 @@ export function SignInCard({ onDone }: { onDone: () => void }) {
             <PhoneField
               value={flow.phone}
               onChange={flow.setPhone}
+              countryCode={flow.countryCode}
+              onCountryChange={flow.setCountryCode}
               hint="We'll text you a code to verify your number."
             />
 

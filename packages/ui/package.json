@@ -17,16 +17,20 @@
     "cn": "catalog:",
     "lucide-react": "catalog:",
     "radix-ui": "catalog:",
-    "sonner": "catalog:"
+    "sonner": "catalog:",
+    "@traiv/phone": "workspace:*",
+    "motion": "catalog:"
   },
   "devDependencies": {
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
     "react": "catalog:",
     "tailwindcss": "catalog:",
+    "tw-animate-css": "catalog:",
     "typescript": "catalog:"
   },
   "peerDependencies": {
-    "react": "catalog:"
+    "react": "catalog:",
+    "next": "catalog:"
   }
 }

@@ -51,3 +51,7 @@ overwrite.
 | 0015 | cal.com as the visual direction | accepted · supersedes 0006's palette |
 | 0016 | Auth hardening after external review | accepted |
 | 0017 | Endorsers and referral attribution | accepted · attribution only |
+| 0018 | One definition of a phone number | accepted · `@traiv/phone`, all countries |
+| 0019 | Client onboarding and the calorie calculator | accepted · `@traiv/nutrition` owns the number |
+| 0020 | One app shell, and the client's tabs | accepted · `lg` is the only nav breakpoint |
+| 0021 | Our own analytics, launch list and CMS | accepted · cookieless, no third party |

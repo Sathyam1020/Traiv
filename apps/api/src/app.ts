@@ -3,6 +3,8 @@ import { admin } from "./features/admin/routes.js";
 import { auth } from "./features/auth/routes.js";
 import { clientApp, join, studioJoin } from "./features/client/routes.js";
 import { endorse } from "./features/endorse/routes.js";
+import { marketingAdmin } from "./features/marketing/admin.js";
+import { marketing } from "./features/marketing/routes.js";
 import { studios } from "./features/studio/routes.js";
 import { cors } from "./middleware/cors.js";
 import { errorHandler } from "./middleware/error.js";
@@ -29,8 +31,15 @@ export function createApp(): Express {
   // Endorsers. Every route is scoped to the caller's own record, so there is no tenant
   // and nothing to pass — see the comment on requireStudio for why that matters.
   app.use("/e", endorse);
+  // The public marketing site: the launch list, the analytics beacon and the blog.
+  // No session, no tenant, nothing personal returned — see the file for why each one is
+  // safe to leave open.
+  app.use("/m", marketing);
+
   // Single administrator, named by ADMIN_PHONE. No endpoint grants the role.
   app.use("/admin", admin);
+  // Also admin-gated, in its own file because it is a different subject entirely.
+  app.use("/admin", marketingAdmin);
 
   // Registered last — it owns all error-to-HTTP mapping.
   app.use(errorHandler);

@@ -71,6 +71,10 @@ const schema = z.object({
   CLIENT_ORIGIN: z.string().url().default("http://localhost:3001"),
   ENDORSE_ORIGIN: z.string().url().default("http://localhost:3002"),
   ADMIN_ORIGIN: z.string().url().default("http://localhost:3003"),
+  // The public marketing site. Allowed through CORS for the waitlist, the analytics
+  // beacon and the blog — none of which carry a session, which is why those routes are
+  // mounted outside every authorisation gate rather than given a weaker one.
+  MARKETING_ORIGIN: z.string().url().default("http://localhost:3004"),
   // Unset in development so the cookie stays host-only on localhost.
   COOKIE_DOMAIN: z.string().optional(),
 
