@@ -206,9 +206,19 @@ Three things to know before touching it:
 extension off a `.ts` file, so the public calculator could not bundle the package at all.
 A new module in that package needs an `exports` entry.
 
-360px is still unverified by eye on the marketing site — the browser extension was not
-connected. Every table is inside its own `overflow-x-auto`, which is the only place the
-page can go wider than the viewport.
+**The marketing site is checked at 320 · 390 · 430 · 768 · 1024 · 1280 · 2000**, on all
+21 routes, by `pnpm --filter @traiv/web audit:responsive` — headless Chrome with touch
+emulation below 1024, reporting sideways scroll, tap targets under 44px and text under
+11.5px. All clean. The product apps have not been through it yet; the script's `ROUTES`
+list is where they would go.
+
+What it caught, none of which was visible in the markup: a `min-w-[32rem]` table inside
+an `overflow-x-auto` dragging its whole grid column to 534px on a 360px screen (grid
+items are `min-width: auto`, so the fix is `min-w-0` on the *column*); the hero doing the
+same thing at 320; footer rows and the sheet's links at 17px against a 44px rule; shadcn
+controls defaulting to 36px; a range input with a 16px hit area; and a hydration mismatch
+on every page, from an inline script stamping `data-js` on `<html>` — now replaced by the
+`scripting: enabled` media query, which asks the same question in CSS and costs nothing.
 
 ### Components, animation and the blog
 

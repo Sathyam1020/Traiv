@@ -108,20 +108,24 @@ export default async function ComparisonPage({ params }: Params) {
             title="Moving is free and we do it"
             lede="Send us your export, or your login if you would rather. Clients, plans and history come across, usually within a day, and your clients keep their history."
           />
-          <p className="mt-6 text-body-sm leading-relaxed text-fg-muted">
-            Comparing something else?{" "}
-            {COMPETITORS.filter((other) => other.slug !== c.slug).map((other, i, arr) => (
-              <span key={other.slug}>
-                <Link
-                  href={`/compare/${other.slug}`}
-                  className="underline decoration-line-strong underline-offset-2 hover:text-fg"
-                >
-                  {other.name}
-                </Link>
-                {i < arr.length - 1 ? ", " : "."}
-              </span>
-            ))}
-          </p>
+          {/* Chips rather than links in a sentence. Four comma-separated links inside a
+              line of prose are 17px tall and sit a thumb-width apart, which is fine with
+              a mouse and unusable on a phone. */}
+          <div className="mt-8 flex flex-col gap-3">
+            <p className="text-body-sm text-fg-muted">Comparing something else?</p>
+            <ul className="flex flex-wrap gap-2">
+              {COMPETITORS.filter((other) => other.slug !== c.slug).map((other) => (
+                <li key={other.slug}>
+                  <Link
+                    href={`/compare/${other.slug}`}
+                    className="inline-flex min-h-11 items-center rounded-control border border-line-strong bg-surface px-4 text-body-sm font-medium transition-colors hover:bg-hover"
+                  >
+                    {other.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </Container>
       </Section>
 

@@ -7,9 +7,12 @@
  * 1. **The page must read with no JavaScript.** A library's `initial={{ opacity: 0 }}`
  *    is rendered into the HTML, so if the bundle fails — a flaky connection, an old
  *    browser, a crawler that does not execute scripts — the entire page is invisible
- *    and nobody is told why. Here the hidden state is applied only under `[data-js]`,
- *    a flag set by a one-line inline script. No script, no hiding: the content is
- *    simply there.
+ *    and nobody is told why. Here the hidden state sits behind `scripting: enabled`,
+ *    so a browser that is not running the script never hides anything. An earlier
+ *    version used an attribute stamped on `<html>` by an inline script, which worked
+ *    and cost a hydration mismatch on every page — React diffs that element too. A
+ *    browser too old to know the `scripting` feature simply ignores the block and
+ *    shows the content, which is the right way for this to fail.
  * 2. Fifty sections each with their own observer and their own spring is a measurable
  *    amount of main-thread work on a mid-range Android, which is most of this audience.
  *
@@ -17,25 +20,25 @@
  * who has asked for stillness gets the finished page immediately.
  */
 
-@media (prefers-reduced-motion: no-preference) {
-  [data-js] .reveal {
+@media (prefers-reduced-motion: no-preference) and (scripting: enabled) {
+  .reveal {
     opacity: 0;
     transform: translateY(14px);
   }
 
-  [data-js] .reveal-left {
+  .reveal-left {
     transform: translateX(-18px);
   }
 
-  [data-js] .reveal-right {
+  .reveal-right {
     transform: translateX(18px);
   }
 
-  [data-js] .reveal-scale {
+  .reveal-scale {
     transform: scale(0.97);
   }
 
-  [data-js] .reveal.is-visible {
+  .reveal.is-visible {
     opacity: 1;
     transform: none;
     /* Entrances decelerate — the same curve as --ease-out-soft in the design system. */

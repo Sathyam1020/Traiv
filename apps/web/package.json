@@ -6,7 +6,8 @@
     "dev": "next dev --port 3004",
     "build": "next build",
     "start": "next start",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "audit:responsive": "node scripts/responsive-audit.mjs"
   },
   "dependencies": {
     "@traiv/nutrition": "workspace:*",

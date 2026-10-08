@@ -189,7 +189,7 @@ export function CalorieCalculator() {
                 value={h.value}
                 // Every item its own pill rather than a joined bar: these are unrelated
                 // conditions, and a segmented strip implies they are alternatives.
-                className="h-auto cursor-pointer rounded-full border px-3.5 py-2 text-body-sm first:rounded-full last:rounded-full data-[state=on]:border-fg data-[state=on]:bg-brand data-[state=on]:text-brand-fg"
+                className="h-auto cursor-pointer rounded-full border px-3.5 py-2 text-body-sm first:rounded-full last:rounded-full data-[state=on]:border-fg data-[state=on]:bg-brand data-[state=on]:text-brand-fg pointer-coarse:h-11 pointer-coarse:px-4 pointer-coarse:py-0"
               >
                 {h.label}
               </ToggleGroupItem>
@@ -199,7 +199,7 @@ export function CalorieCalculator() {
       </form>
 
       {target && complete ? (
-        <div className="flex flex-col gap-6">
+        <div className="flex min-w-0 flex-col gap-6">
           <div className="rounded-panel border border-line bg-surface p-6 sm:p-8">
             <p className="text-caption font-semibold uppercase tracking-[0.07em] text-fg-subtle">
               Daily target

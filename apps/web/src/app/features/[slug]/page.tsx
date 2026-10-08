@@ -88,7 +88,7 @@ export default async function FeaturePage({ params }: Params) {
           </ul>
           <Link
             href="/features"
-            className="mt-6 inline-flex items-center gap-2 text-body-sm font-medium underline decoration-line-strong underline-offset-4 hover:text-fg"
+            className="mt-4 inline-flex min-h-11 items-center gap-2 text-body-sm font-medium underline decoration-line-strong underline-offset-4 hover:text-fg"
           >
             All features
           </Link>

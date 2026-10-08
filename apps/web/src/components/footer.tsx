@@ -21,12 +21,14 @@ export function Footer() {
                 <h2 className="text-caption font-semibold uppercase tracking-[0.07em] text-fg-subtle">
                   {group.heading}
                 </h2>
-                <ul className="flex flex-col gap-2">
+                {/* No gap on a phone: the rows themselves are 44px tall, which spaces
+                    them, and a gap on top of that turns five links into a screenful. */}
+                <ul className="flex flex-col gap-2 pointer-coarse:gap-0">
                   {group.links.map((link) => (
                     <li key={link.href}>
                       <Link
                         href={link.href}
-                        className="text-body-sm text-fg-muted transition-colors hover:text-fg"
+                        className="flex items-center text-body-sm text-fg-muted transition-colors hover:text-fg pointer-coarse:min-h-11"
                       >
                         {link.label}
                       </Link>

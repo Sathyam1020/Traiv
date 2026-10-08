@@ -24,12 +24,12 @@ export default function NotFound() {
             <h2 className="text-caption font-semibold uppercase tracking-[0.07em] text-fg-subtle">
               {group.heading}
             </h2>
-            <ul className="flex flex-col gap-2">
+            <ul className="flex flex-col gap-2 pointer-coarse:gap-0">
               {group.links.map((link) => (
                 <li key={link.href}>
                   <Link
                     href={link.href}
-                    className="text-body-sm text-fg-muted transition-colors hover:text-fg"
+                    className="flex items-center text-body-sm text-fg-muted transition-colors hover:text-fg pointer-coarse:min-h-11"
                   >
                     {link.label}
                   </Link>

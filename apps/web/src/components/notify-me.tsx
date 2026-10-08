@@ -36,9 +36,9 @@ const VARIANTS: Record<Variant, string> = {
   primary: "h-12 rounded-control px-6 text-body-sm",
   outline: "h-12 rounded-control border border-line-strong bg-surface px-6 text-body-sm",
   // Inside the header bar, where the control sits in an existing surface.
-  pill: "h-auto rounded-control px-4 py-2 text-body-sm",
+  pill: "h-auto rounded-control px-4 py-2 text-body-sm pointer-coarse:h-11 pointer-coarse:py-0",
   quiet:
-    "h-auto rounded-control bg-transparent px-3.5 py-2 text-body-sm font-normal text-fg-muted hover:bg-hover hover:text-fg",
+    "h-auto rounded-control bg-transparent px-3.5 py-2 text-body-sm font-normal text-fg-muted hover:bg-hover hover:text-fg pointer-coarse:h-11 pointer-coarse:py-0",
 };
 
 export function NotifyMe({

@@ -33,6 +33,23 @@ principle said where to start and never said where to go.
 | **xl · 1280** | Third column where a grid has enough to fill it. |
 | **beyond** | Content caps at `max-w-[1280px]` and centres. `Page` is that container; use it rather than a new number. |
 
+**Tap-target size follows the pointer, not the width.** `pointer-coarse:` in
+`packages/ui`, never `sm:`. Width is the wrong question: a phone held sideways is 844px
+and still a thumb, a touchscreen laptop is 1400px and still a thumb, and a 700px window
+on a desktop is a mouse. Layout stays width-driven and mobile-first; only *how big a
+thing you have to hit* is keyed to the input device.
+
+**The bug that causes almost every sideways scroll: `min-width: auto`.** A grid or flex
+item refuses to shrink below its content's min-content width, so one `min-w-[32rem]`
+table inside an `overflow-x-auto` drags its whole column past the viewport — and the
+*page* scrolls sideways instead of the table. `min-w-0` on the column, not on the
+scroller. This is what put the income calculator at 534px on a 360px screen, and it had
+been invisible because the scroller looked like it was already handling it.
+
+**Checked, not assumed.** `pnpm --filter @traiv/web audit:responsive 320 390 768 1280`
+drives headless Chrome over every route and reports sideways scroll, sub-44px targets
+and sub-11.5px text. Reading class names is assuming.
+
 **What stays narrow, deliberately:** a single-task form — sign-in, one intake question —
 is worse at 1280px, not better. So is long-form text, which holds a 65–75 character
 measure per `typography.md` §5. Narrow is a decision there, not an oversight; everywhere

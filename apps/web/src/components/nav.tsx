@@ -169,7 +169,7 @@ export function Nav() {
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger
               aria-label="Open menu"
-              className="cursor-pointer rounded-control bg-surface/90 p-2.5 text-fg shadow-sm ring-1 ring-line backdrop-blur-xl"
+              className="flex size-11 cursor-pointer items-center justify-center rounded-control bg-surface/90 text-fg shadow-sm ring-1 ring-line backdrop-blur-xl"
             >
               <Menu className="size-5" />
             </SheetTrigger>
@@ -239,7 +239,7 @@ function MobileGroup({
             <Link
               href={i.href}
               onClick={onNavigate}
-              className="block rounded-control px-2 py-2.5 text-body-sm text-fg-muted transition-colors hover:bg-hover hover:text-fg"
+              className="flex items-center rounded-control px-2 py-2.5 text-body-sm text-fg-muted transition-colors hover:bg-hover hover:text-fg pointer-coarse:min-h-11 pointer-coarse:py-0"
             >
               {i.label}
             </Link>

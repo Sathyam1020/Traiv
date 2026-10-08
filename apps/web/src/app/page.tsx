@@ -41,7 +41,7 @@ function Hero() {
     <section className="overflow-hidden border-b border-line">
       <div className="mx-auto w-full max-w-[76rem] px-5 pt-10 pb-16 sm:px-8 sm:pt-14 sm:pb-24">
         <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-8">
-          <div className="max-w-[34rem]">
+          <div className="min-w-0 max-w-[34rem]">
             <Reveal>
               <h1 className="font-display text-[clamp(2.25rem,5.5vw,3.75rem)] font-semibold leading-[1.04] tracking-[-0.04em] text-balance">
                 Coach fifty people like you coach ten
@@ -72,7 +72,13 @@ function Hero() {
             </Reveal>
           </div>
 
-          <Reveal direction="right" delay={120} className="relative -mr-5 sm:-mr-8 lg:mr-0">
+          <Reveal
+            direction="right"
+            delay={120}
+            // The mock bleeds off the right edge — but not on the narrowest phones, where
+            // the few pixels it gains cost it its own right-hand edge.
+            className="relative min-w-0 mr-0 min-[400px]:-mr-5 sm:-mr-8 lg:mr-0"
+          >
             <HeroDashboard />
           </Reveal>
         </div>
@@ -320,7 +326,7 @@ function Pricing() {
                 <div className="flex items-center gap-2">
                   <h3 className="text-body font-semibold">{tier.name}</h3>
                   {tier.hero ? (
-                    <span className="rounded-full bg-brand px-2 py-0.5 text-[11px] font-medium text-brand-fg">
+                    <span className="rounded-full bg-brand px-2 py-0.5 text-caption font-medium text-brand-fg">
                       Most coaches
                     </span>
                   ) : null}
@@ -375,7 +381,7 @@ function Faq() {
         </div>
         <Link
           href="/pricing"
-          className="mt-8 inline-flex items-center gap-2 text-body-sm font-medium underline decoration-line-strong underline-offset-4 hover:text-fg"
+          className="mt-6 inline-flex min-h-11 items-center gap-2 text-body-sm font-medium underline decoration-line-strong underline-offset-4 hover:text-fg"
         >
           More questions about the price
         </Link>

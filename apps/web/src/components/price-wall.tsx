@@ -1,6 +1,7 @@
 "use client";
 
 import { useId, useState } from "react";
+import { Slider } from "@/components/tool-controls";
 import { COACHWAY, coachwayMonthly, EUR_TO_INR, traivMonthly } from "@/content/comparison";
 
 const MIN = 5;
@@ -87,7 +88,7 @@ export function PriceWall() {
                       x={PAD.left - 10}
                       y={y(CEILING * t) + 4}
                       textAnchor="end"
-                      className="fill-fg-subtle text-[11px] tabular-nums"
+                      className="fill-fg-subtle text-caption tabular-nums"
                     >
                       {t === 0 ? "₹0" : `₹${Math.round((CEILING * t) / 1000)}k`}
                     </text>
@@ -100,7 +101,7 @@ export function PriceWall() {
                     x={x(n)}
                     y={H - 12}
                     textAnchor="middle"
-                    className="fill-fg-subtle text-[11px] tabular-nums"
+                    className="fill-fg-subtle text-caption tabular-nums"
                   >
                     {n}
                   </text>
@@ -138,15 +139,9 @@ export function PriceWall() {
             <label htmlFor={id} className="mt-6 block text-body-sm font-medium">
               <span className="tabular-nums">{clients}</span> clients
             </label>
-            <input
-              id={id}
-              type="range"
-              min={MIN}
-              max={MAX}
-              value={clients}
-              onChange={(e) => setClients(Number(e.target.value))}
-              className="mt-2 w-full accent-[var(--color-brand)]"
-            />
+            <div className="mt-2">
+              <Slider id={id} min={MIN} max={MAX} value={clients} onChange={setClients} />
+            </div>
           </div>
 
           <div className="flex shrink-0 flex-col gap-4 lg:w-[19rem]">

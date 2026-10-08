@@ -76,15 +76,15 @@ export function HeroDashboard() {
                 </div>
               </div>
 
-              <div className="flex gap-4 border-b border-line text-[11px]">
+              <div className="flex gap-4 overflow-hidden border-b border-line text-[11px] whitespace-nowrap">
                 {["Overview", "Plan", "Nutrition", "Check-ins", "Progress"].map((t, i) => (
                   <span
                     key={t}
-                    className={
+                    className={`shrink-0 ${
                       i === 0
                         ? "border-b-2 border-fg pb-2 font-medium text-fg"
                         : "pb-2 text-fg-subtle"
-                    }
+                    }`}
                   >
                     {t}
                   </span>

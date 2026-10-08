@@ -1,5 +1,6 @@
 "use client";
 
+import { Input } from "@traiv/ui/components/input";
 import { Label } from "@traiv/ui/components/label";
 import {
   SelectContent,
@@ -105,7 +106,7 @@ export function NumberField({
 }) {
   return (
     <div className="relative flex items-center">
-      <input
+      <Input
         id={id}
         type="number"
         inputMode="numeric"
@@ -113,11 +114,8 @@ export function NumberField({
         min={min}
         max={max}
         onChange={(e) => onChange(e.target.value === "" ? "" : Number(e.target.value))}
-        // The shadcn Input, with the one change a measurement needs: lining figures, so
-        // 72 and 165 do not jump about as they are typed.
-        className={`h-11 w-full min-w-0 rounded-md border border-input bg-transparent px-3 py-1 text-base tabular-nums shadow-xs transition-[color,box-shadow] outline-none selection:bg-primary selection:text-primary-foreground focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50 md:text-sm dark:bg-input/30 ${
-          suffix ? "pr-12" : ""
-        }`}
+        // Lining figures, so 72 and 165 do not jump about as they are typed.
+        className={`tabular-nums ${suffix ? "pr-12" : ""}`}
       />
       {suffix ? (
         <span className="pointer-events-none absolute right-3 text-caption text-fg-subtle">
@@ -158,7 +156,9 @@ export function Slider({
       step={step}
       value={[value]}
       onValueChange={([v]) => onChange(v ?? min)}
-      className="py-2"
+      // A range input's hit area is its own box, and the default is the height of
+      // the track — about 6px. Padding does not help; the box has to be tall.
+      className="py-2 pointer-coarse:h-11"
     />
   );
 }

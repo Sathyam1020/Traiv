@@ -28,7 +28,7 @@ export function IncomeCalculator() {
 
   return (
     <div className="grid gap-10 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:gap-14">
-      <form className="flex flex-col gap-8" onSubmit={(e) => e.preventDefault()}>
+      <form className="flex min-w-0 flex-col gap-8" onSubmit={(e) => e.preventDefault()}>
         <Field label="Clients you coach">
           {(id) => (
             <div className="flex flex-col gap-3 pt-1">
@@ -52,7 +52,7 @@ export function IncomeCalculator() {
         </Field>
       </form>
 
-      <div className="flex flex-col gap-5">
+      <div className="flex min-w-0 flex-col gap-5">
         <div className="rounded-panel border border-line bg-surface p-6 sm:p-8">
           <p className="text-caption font-semibold uppercase tracking-[0.07em] text-fg-subtle">
             Your revenue

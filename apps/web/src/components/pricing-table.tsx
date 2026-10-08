@@ -63,7 +63,7 @@ export function PricingTable() {
                 <div className="flex items-center gap-2">
                   <h3 className="text-body font-semibold">{tier.name}</h3>
                   {tier.hero ? (
-                    <span className="rounded-full bg-brand px-2 py-0.5 text-[11px] font-medium text-brand-fg">
+                    <span className="rounded-full bg-brand px-2 py-0.5 text-caption font-medium text-brand-fg">
                       Most coaches
                     </span>
                   ) : null}

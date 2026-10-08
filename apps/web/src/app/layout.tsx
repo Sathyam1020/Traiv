@@ -54,16 +54,6 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-IN" className={`${inter.variable} ${bricolage.variable}`}>
-      <head>
-        {/*
-          Scroll animations hide their element until it arrives — but only once this
-          has run. Without it the page renders fully visible, which is the right
-          failure: a bundle that never loads must not leave the content invisible.
-          Inline and synchronous on purpose, so the flag is set before first paint and
-          nothing flashes in and back out.
-        */}
-        <script dangerouslySetInnerHTML={{ __html: 'document.documentElement.dataset.js="1"' }} />
-      </head>
       <body className="bg-canvas">
         <Nav />
         {/* The capsule header floats over the page, so content starts below it. */}

@@ -68,7 +68,7 @@ export default async function LegalPage({ params }: Params) {
               <Link
                 key={o.slug}
                 href={`/legal/${o.slug}`}
-                className="text-body-sm text-fg-muted underline decoration-line-strong underline-offset-4 hover:text-fg"
+                className="inline-flex min-h-11 items-center text-body-sm text-fg-muted underline decoration-line-strong underline-offset-4 hover:text-fg"
               >
                 {o.title}
               </Link>
