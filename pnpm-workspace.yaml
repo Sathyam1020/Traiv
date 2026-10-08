@@ -2,8 +2,17 @@ packages:
   - "apps/*"
   - "packages/*"
 
+# pnpm blocks a dependency's install scripts until somebody says yes, and with
+# `strictDepBuilds` (the default since v11) an unanswered one fails the install rather
+# than warning. This entry was auto-written by pnpm with a literal "set this to true or
+# false" placeholder, which is not a boolean — so esbuild stayed unapproved and every
+# cold install died with ERR_PNPM_IGNORED_BUILDS. It never showed up locally, because a
+# warm node_modules makes install a no-op and no script runs at all.
+#
+# esbuild is here because tsx bundles it and it unpacks a platform binary on install.
+# Nothing else in the tree is allowed to run a script.
 allowBuilds:
-  esbuild: set this to true or false
+  esbuild: true
 
 # Single source of truth for every dependency version in the monorepo.
 # Packages reference these with "catalog:" — never a literal version.
@@ -65,8 +74,3 @@ minimumReleaseAgeExclude:
   - '@biomejs/cli-win32-arm64@2.5.13'
   - '@biomejs/cli-win32-x64@2.5.13'
   - zod@4.6.2
-
-# pnpm blocks package postinstall scripts by default (supply-chain protection).
-# Only packages that genuinely need to build a native binary are allowed through.
-onlyBuiltDependencies:
-  - esbuild

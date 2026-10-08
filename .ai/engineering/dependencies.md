@@ -162,6 +162,20 @@ Kept as evidence that step 3 is not optional:
   its examples file passed in (`libphonenumber-js/mobile/examples`) rather than reading it
   from the metadata.
 
+- **pnpm 11 fails an install over an unapproved build script, and a warm `node_modules`
+  hides it.** `strictDepBuilds` defaults to true, so a dependency with a postinstall
+  script that nobody has said yes to exits non-zero rather than warning. pnpm writes the
+  entry for you with a literal `set this to true or false` placeholder — which is a
+  string, not a boolean, so the package stays unapproved. Locally every install was
+  "Already up to date", no script ran, and nothing failed; the first cold install (a
+  Vercel deploy) died with `ERR_PNPM_IGNORED_BUILDS: esbuild`.
+
+  The current key is `allowBuilds: { esbuild: true }`. `onlyBuiltDependencies`,
+  `neverBuiltDependencies` and `ignoredBuiltDependencies` are the deprecated spellings;
+  we had both, which is two places to disagree. To reproduce CI behaviour before
+  pushing: clone to a temp directory and `CI=1 pnpm install --frozen-lockfile`. A warm
+  tree will not tell you.
+
 **Version traps — current docs are mandatory for all four:**
 - **TypeScript 7** is the native-Go compiler rewrite
 - **Tailwind 4** has a different config model to v3
