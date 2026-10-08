@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "cn";
+import { cn } from "@traiv/ui/lib/cn";
 import { Switch as SwitchPrimitive } from "radix-ui";
 import type * as React from "react";
 

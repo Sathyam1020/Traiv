@@ -97,6 +97,33 @@ Kept as evidence that step 3 is not optional:
   passing one value down.
 - **shadcn** — now ships its own `cn` package and the unified `radix-ui` package. Writing a
   `cn` util by hand creates a duplicate.
+- **`cn` has to be told about our type scale, or it eats text colours.** `cn` resolves
+  conflicts by sorting classes into groups, and it only knows Tailwind's own scales.
+  `text-sm` is obviously a font size; `text-body-sm` is not obviously anything, so it is
+  filed under *text colour* — and the merge then discards the real colour beside it:
+
+  ```
+  cn("bg-primary text-primary-foreground", "text-body-sm")  →  "bg-primary text-body-sm"
+  ```
+
+  Which is how every primary button that took a `text-body-sm` className rendered as a
+  black rectangle with black text on it. Nothing errored; one class was silently dropped.
+  The same thing happens to **every custom scale**, not just type: `rounded-control` was
+  not recognised as a radius either, so it could not replace the `rounded-sm` a shadcn
+  component had already set — both survived and stylesheet order decided, which is why
+  some menu items were pill-shaped on hover and others were not.
+
+  `packages/ui/src/lib/cn.ts` now names all four custom scales (`--text-*`, `--radius-*`,
+  `--font-display`, `--ease-*`) via `createCn` from `cn/config`, and **every component
+  imports from `@traiv/ui/lib/cn`, never from `"cn"`** — `components.json` points
+  shadcn's generator at the same path so new components land correct. **Add a token to
+  `@theme` in `globals.css` and you must add it there too**, or the first component to
+  use it alongside a built-in utility of the same kind silently keeps both.
+- **Radix `asChild` merges `className` by joining strings, not through `cn`.** So a class
+  written on the child sits next to the component's own and the winner is whatever the
+  stylesheet happens to order last. That is why some nav items rounded fully on hover and
+  others did not. Put the className on the Radix component, which runs it through `cn`,
+  and leave the child bare.
 - **react-markdown** — picked over `marked` specifically because it does **not** render
   raw HTML and never touches `dangerouslySetInnerHTML`: it parses to React elements, so
   a post body cannot carry a script tag no matter what is typed into the editor. The
@@ -108,6 +135,23 @@ Kept as evidence that step 3 is not optional:
   for months, because an unrecognised class is simply not emitted rather than reported.
   It is the Tailwind 4 replacement for `tailwindcss-animate`, a pure CSS file with no
   plugin and no JS: one `@import "tw-animate-css"` in `globals.css` is the whole install.
+
+  Two traps, both of which cost an hour:
+
+  **It must be declared by every app, not only by `packages/ui`.** The `@import` lives in
+  `packages/ui/src/styles/globals.css`, but it is resolved by `@tailwindcss/postcss`
+  running under each *app's* `postcss.config.mjs`, and which directory that resolver
+  treats as its root is not something to rely on. Declaring it once in `packages/ui` made
+  it resolve in one app and fail in the next with
+  `Can't resolve 'tw-animate-css'`. It is now a devDependency of `packages/ui` **and** of
+  all five apps. Any new app that imports `globals.css` needs the same line.
+
+  **A failed CSS resolution is cached by the Turbopack dev server.** After adding a
+  package that `globals.css` imports, `next dev` keeps failing until `apps/<app>/.next`
+  is deleted — a restart alone is not enough, and the error names the real file so it
+  reads like a genuine missing dependency rather than a stale cache. `next build` is
+  unaffected, which is the tell: if the production build is clean and dev is not, delete
+  `.next`.
 - **Node** — native type-stripping does not resolve `.js` specifiers back to `.ts`.
 - **libphonenumber-js** — three metadata sets, not one, and the default import is the
   largest. `/max` adds number *type* detection we do not need; `/min` cannot tell a mobile

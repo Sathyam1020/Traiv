@@ -125,9 +125,6 @@ importers:
       turbo:
         specifier: 'catalog:'
         version: 2.10.12
-      tw-animate-css:
-        specifier: 'catalog:'
-        version: 1.4.0
       typescript:
         specifier: 'catalog:'
         version: 7.0.2
@@ -180,6 +177,9 @@ importers:
       tailwindcss:
         specifier: 'catalog:'
         version: 4.3.3
+      tw-animate-css:
+        specifier: 'catalog:'
+        version: 1.4.0
       typescript:
         specifier: 'catalog:'
         version: 7.0.2
@@ -272,6 +272,9 @@ importers:
       tailwindcss:
         specifier: 'catalog:'
         version: 4.3.3
+      tw-animate-css:
+        specifier: 'catalog:'
+        version: 1.4.0
       typescript:
         specifier: 'catalog:'
         version: 7.0.2
@@ -324,6 +327,9 @@ importers:
       tailwindcss:
         specifier: 'catalog:'
         version: 4.3.3
+      tw-animate-css:
+        specifier: 'catalog:'
+        version: 1.4.0
       typescript:
         specifier: 'catalog:'
         version: 7.0.2
@@ -379,6 +385,9 @@ importers:
       tailwindcss:
         specifier: 'catalog:'
         version: 4.3.3
+      tw-animate-css:
+        specifier: 'catalog:'
+        version: 1.4.0
       typescript:
         specifier: 'catalog:'
         version: 7.0.2
@@ -431,6 +440,9 @@ importers:
       tailwindcss:
         specifier: 'catalog:'
         version: 4.3.3
+      tw-animate-css:
+        specifier: 'catalog:'
+        version: 1.4.0
       typescript:
         specifier: 'catalog:'
         version: 7.0.2

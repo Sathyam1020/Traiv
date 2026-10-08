@@ -35,10 +35,10 @@ type Variant = "primary" | "outline" | "pill" | "quiet";
 const VARIANTS: Record<Variant, string> = {
   primary: "h-12 rounded-control px-6 text-body-sm",
   outline: "h-12 rounded-control border border-line-strong bg-surface px-6 text-body-sm",
-  // The nav capsule, where the control has to sit inside an existing pill.
-  pill: "h-auto rounded-full px-4 py-2 text-body-sm",
+  // Inside the header bar, where the control sits in an existing surface.
+  pill: "h-auto rounded-control px-4 py-2 text-body-sm",
   quiet:
-    "h-auto rounded-full bg-transparent px-3.5 py-2 text-body-sm font-normal text-fg-muted hover:bg-hover hover:text-fg",
+    "h-auto rounded-control bg-transparent px-3.5 py-2 text-body-sm font-normal text-fg-muted hover:bg-hover hover:text-fg",
 };
 
 export function NotifyMe({

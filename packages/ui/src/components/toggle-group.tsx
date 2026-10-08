@@ -1,8 +1,8 @@
 "use client";
 
 import { toggleVariants } from "@traiv/ui/components/toggle";
+import { cn } from "@traiv/ui/lib/cn";
 import type { VariantProps } from "class-variance-authority";
-import { cn } from "cn";
 import { ToggleGroup as ToggleGroupPrimitive } from "radix-ui";
 import * as React from "react";
 

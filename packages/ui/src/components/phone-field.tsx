@@ -90,7 +90,7 @@ export function PhoneField({
           <DropdownMenuTrigger
             type="button"
             aria-label={`Country: ${selected.name}`}
-            className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-control border border-line-strong bg-surface px-2.5 text-body-sm tabular-nums text-fg-muted transition-colors hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-[-1px] focus-visible:outline-line-focus"
+            className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-control border border-line-strong bg-surface px-2.5 text-body-sm tabular-nums text-fg-muted transition-colors hover:bg-hover focus-visible:border-line-focus"
           >
             <span aria-hidden="true">{selected.flag}</span>+{selected.dial}
             <ChevronsUpDown className="size-3.5 shrink-0 text-fg-subtle" />
@@ -143,7 +143,7 @@ export function PhoneField({
           // Punctuation is kept: people paste numbers with spaces, dashes and brackets,
           // and the parser handles all of it.
           onChange={(e) => onChange(e.target.value.replace(/[^\d+\s().-]/g, "").slice(0, 24))}
-          className={`h-10 min-w-0 flex-1 rounded-control border bg-surface px-3 text-body-sm tabular-nums outline-none placeholder:text-fg-subtle focus-visible:outline-2 focus-visible:outline-offset-[-1px] focus-visible:outline-line-focus ${
+          className={`h-10 min-w-0 flex-1 rounded-control border bg-surface px-3 text-body-sm tabular-nums outline-none placeholder:text-fg-subtle focus-visible:border-line-focus ${
             invalid ? "border-danger" : "border-line-strong"
           }`}
         />

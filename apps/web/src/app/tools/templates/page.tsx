@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: "Templates for coaches",
   description:
     "Six client messages you can send as they are, a six-question weekly check-in, and the seven things to ask before you write anybody a plan. Free, no signup.",
-  alternates: { canonical: "/guides/templates" },
+  alternates: { canonical: "/tools/templates" },
 };
 
 export default function TemplatesPage() {
@@ -100,7 +100,7 @@ export default function TemplatesPage() {
       <CtaBand
         source="guides-templates-close"
         title="Stop retyping these every week"
-        secondary={{ href: "/guides", label: "Read the guides" }}
+        secondary={{ href: "/blog", label: "Read the writing" }}
       />
     </>
   );

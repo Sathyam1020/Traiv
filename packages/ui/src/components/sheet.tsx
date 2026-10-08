@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "cn";
+import { cn } from "@traiv/ui/lib/cn";
 import { XIcon } from "lucide-react";
 import { Dialog as SheetPrimitive } from "radix-ui";
 import type * as React from "react";

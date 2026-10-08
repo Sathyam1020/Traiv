@@ -65,7 +65,10 @@ export default async function BlogPage() {
         </Container>
       </Section>
 
-      <CtaBand source="blog-close" secondary={{ href: "/guides", label: "Read the guides" }} />
+      <CtaBand
+        source="blog-close"
+        secondary={{ href: "/tools/templates", label: "Get the templates" }}
+      />
     </>
   );
 }

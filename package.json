@@ -16,7 +16,6 @@
   "devDependencies": {
     "@biomejs/biome": "catalog:",
     "turbo": "catalog:",
-    "tw-animate-css": "catalog:",
     "typescript": "catalog:"
   }
 }

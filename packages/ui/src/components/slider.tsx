@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "cn";
+import { cn } from "@traiv/ui/lib/cn";
 import { Slider as SliderPrimitive } from "radix-ui";
 import * as React from "react";
 

@@ -1,7 +1,6 @@
 import type { MetadataRoute } from "next";
 import { COMPETITORS } from "@/content/competitors";
 import { FEATURES } from "@/content/features";
-import { GUIDES } from "@/content/guides";
 import { SITE } from "@/content/site";
 import { TOOLS } from "@/content/tools";
 import { getPosts } from "@/lib/api";
@@ -37,9 +36,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     at("/tools", 0.6),
     // Tool hrefs include the two guides routes, which are listed separately below.
     ...TOOLS.filter((t) => t.href.startsWith("/tools/")).map((t) => at(t.href, 0.7)),
-    at("/guides", 0.6),
-    ...GUIDES.map((g) => at(`/guides/${g.slug}`, 0.6)),
-    at("/guides/templates", 0.6),
+    at("/tools/templates", 0.6),
     at("/blog", 0.7),
     ...posts.map((p) => at(`/blog/${p.slug}`, 0.6)),
     at("/coaches", 0.7),

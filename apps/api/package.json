@@ -11,7 +11,8 @@
     "seed": "tsx src/seed.ts",
     "test:watch": "vitest",
     "retention": "tsx src/features/auth/retention.ts",
-    "seed:library": "tsx src/library/seed.ts"
+    "seed:library": "tsx src/library/seed.ts",
+    "seed:posts": "tsx src/seed-posts.ts"
   },
   "dependencies": {
     "@traiv/db": "workspace:*",

@@ -164,8 +164,8 @@ export const FOOTER = [
       { href: "/tools/calorie-calculator", label: "Macro calculator" },
       { href: "/tools/income-calculator", label: "Income calculator" },
       { href: "/tools/pricing-calculator", label: "What to charge" },
-      { href: "/guides", label: "Guides" },
-      { href: "/blog", label: "Blog" },
+      { href: "/tools/templates", label: "Templates" },
+      { href: "/blog", label: "Writing" },
     ],
   },
   {

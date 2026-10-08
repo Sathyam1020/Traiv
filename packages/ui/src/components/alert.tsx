@@ -1,5 +1,5 @@
+import { cn } from "@traiv/ui/lib/cn";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "cn";
 import type * as React from "react";
 
 const alertVariants = cva(

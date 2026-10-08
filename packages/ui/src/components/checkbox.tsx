@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "cn";
+import { cn } from "@traiv/ui/lib/cn";
 import { CheckIcon } from "lucide-react";
 import { Checkbox as CheckboxPrimitive } from "radix-ui";
 import type * as React from "react";

@@ -84,6 +84,14 @@ no deploy — which is the entire reason posts are rows.
 `dynamicParams` stays on. Without it a post published after the last deploy would 404
 until somebody redeployed, defeating the point.
 
+**One writing section, not two.** The site briefly had `/guides` (three long pieces, in
+the repo) alongside `/blog` (the database). That is one thing with two names: a reader
+cannot tell which holds what, the author has to decide every time, and the search
+authority splits across two sections for no gain. The guides are now ordinary posts,
+seeded once by `seed:posts`; `/guides/*` redirects permanently. The templates pack moved
+to `/tools/templates`, because a list of messages to copy is a resource, not an article —
+that distinction is real where guides-versus-blog was not.
+
 ## Consequences
 
 - Three new tables (`waitlist`, `analytics_event`, `post`) plus `analytics_salt`, in

@@ -46,20 +46,6 @@
   }
 }
 
-/*
- * The header capsule, once the page has moved.
- *
- * At the top of a page the header is part of the hero and wants no edge at all; over
- * content it needs one, or the text scrolls into it. The class is toggled once at 8px
- * rather than animated against scroll position, because a value tied to scroll repaints
- * on every frame of every scroll for a border nobody is watching.
- */
-.nav-capsule {
-  transition:
-    box-shadow 240ms cubic-bezier(0.25, 0.1, 0.25, 1),
-    background-color 240ms cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
 /* The underline that draws itself under a link on hover. */
 .link-underline {
   background-image: linear-gradient(currentColor, currentColor);

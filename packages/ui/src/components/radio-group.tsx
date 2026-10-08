@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "cn";
+import { cn } from "@traiv/ui/lib/cn";
 import { CircleIcon } from "lucide-react";
 import { RadioGroup as RadioGroupPrimitive } from "radix-ui";
 import type * as React from "react";

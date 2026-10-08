@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@traiv/ui/components/button";
-import { cn } from "cn";
+import { cn } from "@traiv/ui/lib/cn";
 import { XIcon } from "lucide-react";
 import { Dialog as DialogPrimitive } from "radix-ui";
 import type * as React from "react";

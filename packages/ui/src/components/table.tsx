@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "cn";
+import { cn } from "@traiv/ui/lib/cn";
 import type * as React from "react";
 
 function Table({ className, ...props }: React.ComponentProps<"table">) {

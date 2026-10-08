@@ -13,7 +13,7 @@
   "iconLibrary": "lucide",
   "aliases": {
     "components": "@traiv/ui/components",
-    "utils": "@traiv/ui/lib/utils",
+    "utils": "@traiv/ui/lib/cn",
     "ui": "@traiv/ui/components",
     "hooks": "@traiv/ui/hooks",
     "lib": "@traiv/ui/lib"

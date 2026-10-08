@@ -1,7 +1,7 @@
 "use client";
 
+import { cn } from "@traiv/ui/lib/cn";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "cn";
 import { Toggle as TogglePrimitive } from "radix-ui";
 import type * as React from "react";
 

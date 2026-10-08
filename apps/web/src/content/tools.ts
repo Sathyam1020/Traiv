@@ -40,15 +40,15 @@ export const TOOLS: readonly Tool[] = [
     icon: TrendingUp,
   },
   {
-    href: "/guides",
-    name: "Guides",
-    blurb: "Running and growing a coaching business in India",
-    icon: BookOpen,
-  },
-  {
-    href: "/guides/templates",
+    href: "/tools/templates",
     name: "Templates",
     blurb: "Check-in forms, onboarding messages, scripts",
     icon: FileText,
+  },
+  {
+    href: "/blog",
+    name: "Writing",
+    blurb: "Running and growing a coaching business in India",
+    icon: BookOpen,
   },
 ];

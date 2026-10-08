@@ -178,7 +178,8 @@ competitor, a guide or a tool is a data entry rather than a new page.
 | `/features` + 12 × `/features/[slug]` | Every screen, with the four unbuilt ones marked |
 | `/compare` + 5 × `/compare/[slug]` | Trainerize · FitBudd · Everfit · TrueCoach · Coachway |
 | `/tools` + 3 calculators | Macro calculator (runs `@traiv/nutrition`), income, what to charge |
-| `/guides` + 3 guides + `/guides/templates` | Written, not generated. Templates are copy-to-clipboard |
+| `/blog` + `/blog/[slug]` | Every article. Written in the admin app, rendered from the database |
+| `/tools/templates` | The copy-to-clipboard message pack |
 | `/coaches` · `/about` · `/partnership` · `/affiliate` · `/demo` | |
 | 3 × `/legal/[doc]` | **Drafts, `noindex`, and labelled as drafts on the page** |
 | `sitemap.xml` · `robots.txt` · `not-found` | Sitemap is derived from the content files |
@@ -218,6 +219,20 @@ while you are moving toward it), the mobile menu is `Sheet`, the billing switch 
 hand-rolled `field.tsx` is gone: `globals.css` already aliases every shadcn variable onto
 the three-tier tokens, so shadcn components were always going to match.
 
+**Two class-merging traps, both now fixed, both worth knowing before touching any
+component.** `cn` only knew Tailwind's own scales, so every token this repo invented was
+unrecognised and could not displace the built-in it was meant to replace: `text-body-sm`
+was filed as a *colour* and silently dropped `text-primary-foreground` beside it (every
+dark button in every app rendered black on black), and `rounded-control` could not
+override a shadcn `rounded-sm` (hover shapes differed between items in the same menu).
+`packages/ui/src/lib/cn.ts` now declares all four custom scales, and nothing imports from
+`"cn"` directly. Separately, Radix `asChild` merges `className` by joining strings rather
+than through `cn`, so a class on the child ties with the component's own — put the class
+on the Radix component. Both are written up in `engineering/dependencies.md`.
+
+The header capsule is always solid rather than fading in on scroll. The faded version
+read as a header that had failed to load.
+
 **`tw-animate-css` was missing and nobody knew.** Every shadcn component in the repo is
 written against `animate-in` / `fade-in-0` / `zoom-in-95`, which are not Tailwind
 utilities — so every dialog, dropdown, sheet and tooltip in all five apps had been
@@ -230,6 +245,13 @@ section: a library's `initial={{ opacity: 0 }}` is rendered into the HTML, so a 
 that fails to load leaves the whole page invisible.
 
 `/blog` and `/blog/[slug]` render posts from the database with `revalidate = 60`.
+
+**There is one writing section, not two.** `/guides` and `/blog` were the same thing
+under two names — a reader could not tell which held what, and the author had to decide
+every time. The three guides are now ordinary posts (`pnpm --filter @traiv/api
+seed:posts`, idempotent), the templates pack moved to `/tools/templates` because it is a
+resource rather than an article, and `/guides`, `/guides/:slug` and `/guides/templates`
+308-redirect permanently in `next.config.ts`.
 
 ### The marketing backend
 
