@@ -8,4 +8,5 @@ export * from "./library.js";
 export * from "./marketing.js";
 export * from "./plan.js";
 export * from "./studio.js";
+export * from "./tag.js";
 export * from "./user.js";

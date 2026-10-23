@@ -242,7 +242,13 @@ export const sessions_ = pgTable(
 
     note: text(),
   },
-  (t) => [index("training_session_client_idx").on(t.clientId, t.date)],
+  (t) => [
+    index("training_session_client_idx").on(t.clientId, t.date),
+    // "When did this client last complete a session" — the roster asks it once per row
+    // and four more times for the filter counts, so it is the hottest read in the coach
+    // app. Without this it is a sequential scan per client.
+    index("training_session_completed_idx").on(t.clientId, t.completedAt),
+  ],
 );
 
 export const setLogs = pgTable(

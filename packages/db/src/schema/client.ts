@@ -51,6 +51,16 @@ export const clients = pgTable(
     status: clientStatus().notNull().default("active"),
     joinedVia: text(), // "join_code" | "manual" — how the relationship started
 
+    /**
+     * When the coaching is agreed to finish. Null is open-ended, which is the default —
+     * most coaching has no end date until somebody sets one, and a required date would
+     * mean inventing one for every client.
+     *
+     * It does not change `status` on its own. A date that has passed means the coach
+     * should look, not that the system has quietly ended the relationship behind them.
+     */
+    endsAt: timestamp({ withTimezone: true }),
+
     // The activation metric. Set on their first logged workout, never before.
     activatedAt: timestamp({ withTimezone: true }),
 

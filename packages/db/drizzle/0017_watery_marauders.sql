@@ -1,0 +1,1 @@
+CREATE INDEX "training_session_completed_idx" ON "training_session" USING btree ("client_id","completed_at");
