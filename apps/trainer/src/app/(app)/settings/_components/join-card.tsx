@@ -3,6 +3,7 @@
 import { Button } from "@traiv/ui/components/button";
 import { Skeleton } from "@traiv/ui/components/skeleton";
 import { Switch } from "@traiv/ui/components/switch";
+import { cn } from "@traiv/ui/lib/cn";
 import { Check, Copy, RefreshCw } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
@@ -13,11 +14,15 @@ const CLIENT_APP = process.env.NEXT_PUBLIC_CLIENT_URL ?? "http://localhost:3001"
 /**
  * The QR a coach shows across a gym floor, and the link they send on WhatsApp.
  *
+ * `bare` drops the card's own border and heading, for when it is already inside
+ * something that has both — a dialog. Without it the modal showed "Add a client" twice,
+ * once in the dialog header and once here, inside a box inside a box.
+ *
  * Both carry the same rotatable code. Rotating is the remedy for a QR that ends up
  * somewhere public, so it is offered plainly rather than buried — but it is destructive
  * to every QR already printed, so it says so.
  */
-export function JoinCard() {
+export function JoinCard({ bare = false }: { bare?: boolean }) {
   const { data, isPending, isError, isFetching, refetch } = useJoinCode();
   const rotate = useRotateJoinCode();
   const setEnabled = useSetJoinEnabled();
@@ -26,7 +31,12 @@ export function JoinCard() {
 
   if (isPending) {
     return (
-      <div className="flex flex-col gap-4 rounded-surface border border-line bg-surface p-5">
+      <div
+        className={cn(
+          "flex flex-col gap-4",
+          !bare && "rounded-surface border border-line bg-surface p-5",
+        )}
+      >
         <Skeleton className="h-4 w-40" />
         <Skeleton className="size-44" />
         <Skeleton className="h-10 w-full" />
@@ -39,7 +49,12 @@ export function JoinCard() {
   // and recoverable, never an animation that never ends.
   if (isError || !data) {
     return (
-      <section className="flex flex-col items-start gap-3 rounded-surface border border-line bg-surface p-5 sm:p-6">
+      <section
+        className={cn(
+          "flex flex-col items-start gap-3",
+          !bare && "rounded-surface border border-line bg-surface p-5 sm:p-6",
+        )}
+      >
         <div className="flex flex-col gap-1">
           <h2 className="text-subheading font-semibold">Add a client</h2>
           <p className="text-body-sm text-fg-muted">
@@ -66,27 +81,49 @@ export function JoinCard() {
   }
 
   return (
-    <section className="flex flex-col gap-5 rounded-surface border border-line bg-surface p-5 sm:p-6">
-      <div className="flex flex-col gap-1">
-        <h2 className="text-subheading font-semibold">Add a client</h2>
-        <p className="text-body-sm text-fg-muted">
-          They scan this or open the link, sign in, and land on your roster.
-        </p>
-      </div>
+    <section
+      className={cn(
+        "flex flex-col gap-5",
+        !bare && "rounded-surface border border-line bg-surface p-5 sm:p-6",
+      )}
+    >
+      {bare ? null : (
+        <div className="flex flex-col gap-1">
+          <h2 className="text-subheading font-semibold">Add a client</h2>
+          <p className="text-body-sm text-fg-muted">
+            They scan this or open the link, sign in, and land on your roster.
+          </p>
+        </div>
+      )}
 
-      <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:gap-6">
+      <div
+        className={cn(
+          "flex flex-col items-center gap-4",
+          // Side by side only where there is width for it. In a dialog the right-hand
+          // stack is half the height of the QR, which leaves a hole the size of the QR
+          // next to it — so in there nothing sits beside anything.
+          !bare && "sm:flex-row sm:items-start sm:gap-6",
+        )}
+      >
         <div
-          className={`shrink-0 rounded-surface border border-line bg-white p-3 transition-opacity ${
-            data.joinEnabled ? "" : "opacity-40"
-          }`}
+          className={cn(
+            "shrink-0 rounded-surface border border-line bg-white p-3 transition-opacity",
+            !data.joinEnabled && "opacity-40",
+          )}
         >
           {/* Fixed white ground and black modules — scanners need the contrast, so this
               one surface deliberately ignores the theme. */}
-          <QRCodeSVG value={link} size={168} level="M" bgColor="#FFFFFF" fgColor="#000000" />
+          <QRCodeSVG
+            value={link}
+            size={bare ? 148 : 168}
+            level="M"
+            bgColor="#FFFFFF"
+            fgColor="#000000"
+          />
         </div>
 
-        <div className="flex min-w-0 flex-1 flex-col gap-3">
-          <div className="flex flex-col gap-1.5">
+        <div className={cn("flex w-full min-w-0 flex-col gap-3", !bare && "sm:flex-1")}>
+          <div className={cn("flex flex-col gap-1", bare && "items-center")}>
             <span className="text-caption font-semibold uppercase tracking-[0.07em] text-fg-subtle">
               Your code
             </span>
@@ -100,6 +137,7 @@ export function JoinCard() {
               readOnly
               value={link}
               onFocus={(e) => e.currentTarget.select()}
+              aria-label="Your join link"
               className="h-9 min-w-0 flex-1 rounded-control border border-line-strong bg-sunken px-3 text-body-sm text-fg-muted outline-none"
             />
             <Button
@@ -115,7 +153,7 @@ export function JoinCard() {
         </div>
       </div>
 
-      <div className="flex flex-col gap-3 border-t border-line pt-4">
+      <div className={cn("flex flex-col border-t border-line pt-4", bare ? "gap-4" : "gap-3")}>
         <div className="flex items-center justify-between gap-4">
           <div className="flex flex-col">
             <span className="text-body-sm font-medium">Accepting new clients</span>

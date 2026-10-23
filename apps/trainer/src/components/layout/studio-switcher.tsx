@@ -6,6 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@traiv/ui/components/dropdown-menu";
+import { cn } from "@traiv/ui/lib/cn";
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useActiveStudioId } from "@/lib/active-studio";
 import { useStudios, useSwitchStudio } from "@/lib/query";
@@ -15,7 +16,7 @@ import { useUiStore } from "@/lib/stores";
  * A trainer always has at least one studio — their own. With only one there is nothing to
  * switch, so it renders as plain text rather than a control that does nothing.
  */
-export function StudioSwitcher() {
+export function StudioSwitcher({ tone = "surface" }: { tone?: "surface" | "rail" }) {
   const { data } = useStudios();
   const switchStudio = useSwitchStudio();
   const activeId = useActiveStudioId();
@@ -37,10 +38,20 @@ export function StudioSwitcher() {
     <DropdownMenu>
       <DropdownMenuTrigger
         disabled={switchStudio.isPending}
-        className="flex max-w-[12rem] cursor-pointer items-center gap-1.5 rounded-control px-2 py-1 text-body-sm font-medium transition-colors hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-focus"
+        className={cn(
+          "flex max-w-[12rem] cursor-pointer items-center gap-1.5 rounded-control px-2 py-1 text-body-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2",
+          tone === "rail"
+            ? "-mx-1 max-w-none px-1 py-0 text-caption font-normal text-contrast-fg/50 hover:bg-contrast-fg/8 hover:text-contrast-fg focus-visible:outline-contrast-fg/40"
+            : "hover:bg-hover focus-visible:outline-line-focus",
+        )}
       >
         <span className="truncate">{active.name}</span>
-        <ChevronsUpDown className="size-3.5 shrink-0 text-fg-subtle" />
+        <ChevronsUpDown
+          className={cn(
+            "size-3.5 shrink-0",
+            tone === "rail" ? "text-contrast-fg/40" : "text-fg-subtle",
+          )}
+        />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-60">
         {studios.map((s) => (
