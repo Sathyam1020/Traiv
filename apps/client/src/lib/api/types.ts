@@ -26,7 +26,15 @@ export type JoinOutcome = {
   studioName: string;
 };
 
-export type ClientStatus = "active" | "paused" | "waiting" | "frozen";
+/**
+ * Mirrors `client_status` in the database.
+ *
+ * `archived` is here even though the API does not currently let an archived client read
+ * anything — see READABLE_STATUSES in the API's client-authorize middleware, and the
+ * note on `StatusGate`. The screen for it exists and is correct; the endpoint has to
+ * decide to send it.
+ */
+export type ClientStatus = "active" | "paused" | "archived" | "waiting" | "frozen";
 
 /** `GET /c/:studioId/me` — who the client is to this studio, and whose studio it is. */
 export type ClientMe = {

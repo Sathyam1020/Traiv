@@ -1,10 +1,12 @@
 "use client";
 
-import { Logo, Wordmark } from "@traiv/ui/components/logo";
+import { Logo } from "@traiv/ui/components/logo";
 import { AppShell } from "@traiv/ui/components/shell/app-shell";
 import { MobileHeader } from "@traiv/ui/components/shell/mobile-header";
+import { RailBrand } from "@traiv/ui/components/shell/rail";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { StatusGate } from "@/components/common/status-gate";
 import { AccountButton } from "@/components/layout/account-button";
 import { navItems } from "@/components/layout/nav-items";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
@@ -26,30 +28,43 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const coaches = useCoaches(signedIn);
   // Any one of their coaches will do to ask through — the answers belong to the person,
   // and the studio in the path is what authorises the read, not what scopes it.
-  const studioId = coaches.data?.[0]?.studio.id ?? null;
+  // Any one of their coaches will do to ask through — the answers belong to the person,
+  // and the studio in the path is what authorises the read, not what scopes it.
+  const running = coaches.data?.find((c) => c.status === "active");
+  const studioId = (running ?? coaches.data?.[0])?.studio.id ?? null;
+  // Blocked only when nothing is running. With two coaches and one paused, the app works
+  // and the paused one carries its state on its own card.
+  const blocked = coaches.data?.length ? !running : false;
   const intake = useIntake(studioId);
 
   useEffect(() => {
     if (!session.isPending && !signedIn) router.replace("/");
   }, [session.isPending, signedIn, router]);
 
-  // Onboarding is not optional, so neither is passing through it.
+  // Onboarding is not optional, so neither is passing through it. A client whose
+  // coaching is paused or over is not sent through it at all — asking somebody to fill
+  // in an intake form for a relationship that is not running is absurd, and the gate
+  // below is what they see instead.
   useEffect(() => {
-    if (studioId && intake.data && !intake.data.intake?.completedAt) {
+    if (!blocked && studioId && intake.data && !intake.data.intake?.completedAt) {
       router.replace(`/intake/${studioId}`);
     }
-  }, [studioId, intake.data, router]);
+  }, [blocked, studioId, intake.data, router]);
+
+  if (blocked) {
+    const stalled = coaches.data?.[0];
+    return <StatusGate status={stalled?.status} coachName={stalled?.studio.name} />;
+  }
 
   return (
     <AppShell
       nav={navItems}
       sidebarBrand={
-        <div className="flex items-center justify-between px-2 py-2 pb-4">
-          <Wordmark size={24} />
-          <ThemeToggle />
-        </div>
+        <RailBrand name={session.data?.user.name || "You"} sub="Traiv">
+          <ThemeToggle tone="rail" />
+        </RailBrand>
       }
-      sidebarAccount={<AccountButton />}
+      sidebarAccount={<AccountButton tone="rail" />}
       header={
         <MobileHeader
           left={<Logo size={26} className="shrink-0" />}

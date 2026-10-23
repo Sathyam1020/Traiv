@@ -61,6 +61,11 @@ const STATUS: Record<ClientStatus, { label: string; detail: string; Icon: typeof
     detail: "Their roster is full. They'll add you as soon as a place opens up.",
     Icon: Clock,
   },
+  archived: {
+    label: "Ended",
+    detail: "You and this coach are no longer working together. Your history stays here.",
+    Icon: Pause,
+  },
   paused: {
     label: "Paused",
     detail: "Your coach has paused this for now. Nothing is lost.",

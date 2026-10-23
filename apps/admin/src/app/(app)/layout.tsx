@@ -1,8 +1,9 @@
 "use client";
 
-import { Logo, Wordmark } from "@traiv/ui/components/logo";
+import { Logo } from "@traiv/ui/components/logo";
 import { AppShell } from "@traiv/ui/components/shell/app-shell";
 import { MobileHeader } from "@traiv/ui/components/shell/mobile-header";
+import { RailBrand } from "@traiv/ui/components/shell/rail";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { AccountButton } from "@/components/layout/account-button";
@@ -23,15 +24,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <AppShell
       nav={navItems}
       sidebarBrand={
-        <div className="flex items-center justify-between px-2 py-2">
-          <div className="flex min-w-0 items-center gap-2">
-            <Wordmark size={24} />
-            <span className="text-caption font-medium text-fg-subtle">Admin</span>
-          </div>
-          <ThemeToggle />
-        </div>
+        <RailBrand name={session.data?.user.name || "Admin"} sub="Traiv admin">
+          <ThemeToggle tone="rail" />
+        </RailBrand>
       }
-      sidebarAccount={<AccountButton />}
+      sidebarAccount={<AccountButton tone="rail" />}
       header={
         <MobileHeader
           left={

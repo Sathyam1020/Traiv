@@ -1,4 +1,4 @@
-import type { NavItem } from "@traiv/ui/components/shell/app-shell";
+import type { NavGroup } from "@traiv/ui/components/shell/app-shell";
 import { Home, User } from "lucide-react";
 
 /**
@@ -9,7 +9,11 @@ import { Home, User } from "lucide-react";
  * and leaves most of it empty, and that the one platform doing it well (Trainerize) hides
  * a tab until the coach has put something in it. Adding one here is a line.
  */
-export const navItems: readonly NavItem[] = [
-  { href: "/dashboard", label: "Today", icon: Home },
-  { href: "/you", label: "You", icon: User },
+export const navItems: readonly NavGroup[] = [
+  {
+    items: [
+      { href: "/dashboard", label: "Today", icon: Home },
+      { href: "/you", label: "You", icon: User },
+    ],
+  },
 ];
