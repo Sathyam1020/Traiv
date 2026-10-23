@@ -25,7 +25,12 @@ export function cors(req: Request, res: Response, next: NextFunction) {
     res.header("Access-Control-Allow-Origin", origin);
     res.header("Access-Control-Allow-Credentials", "true");
     res.header("Access-Control-Allow-Headers", "Content-Type");
-    res.header("Access-Control-Allow-Methods", "GET,POST,PATCH,DELETE,OPTIONS");
+    // Every verb the API actually serves. A missing one fails in the most confusing
+    // way available: the preflight answers 204, the browser then refuses to send the
+    // real request, and nothing appears in the server log at all — so it reads as a
+    // hanging request rather than as a rejection. `PUT` was missing and the tag write
+    // vanished exactly like that.
+    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
     res.header("Vary", "Origin");
   }
   if (req.method === "OPTIONS") {

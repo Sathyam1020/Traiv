@@ -86,3 +86,20 @@ describe("cors", () => {
     expect(res.vary).toBe("Origin");
   });
 });
+
+describe("the allowed methods", () => {
+  it("covers every verb the API serves", async () => {
+    const res = await fetch(`${api.url}/health`, {
+      method: "OPTIONS",
+      headers: { Origin: env.WEB_ORIGIN, "Access-Control-Request-Method": "PUT" },
+    });
+
+    const allowed = (res.headers.get("access-control-allow-methods") ?? "").split(",");
+    // A verb the router serves but the header omits fails silently: the preflight
+    // answers 204 and the browser then refuses to send the real request, so nothing
+    // reaches the server and nothing is logged. PUT was missing for exactly that long.
+    for (const verb of ["GET", "POST", "PUT", "PATCH", "DELETE"]) {
+      expect(allowed).toContain(verb);
+    }
+  });
+});
