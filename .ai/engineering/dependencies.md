@@ -152,6 +152,12 @@ Kept as evidence that step 3 is not optional:
   reads like a genuine missing dependency rather than a stale cache. `next build` is
   unaffected, which is the tell: if the production build is clean and dev is not, delete
   `.next`.
+- **Drizzle** — a column interpolated into a `sql` template renders **unqualified**.
+  `sql`... where ts.client_id = ${schema.clients.id}`` emits a bare `"id"`, which inside
+  a correlated subquery resolves to the *inner* table's `id`. The query typechecks, runs,
+  and returns null for every row — while the same fragment used inside `count(*) filter
+  (...)` in the outer query is correct, so the counts agree with reality and the rows do
+  not. Write the outer column out: `sql.raw('"client"."id"')`.
 - **Node** — native type-stripping does not resolve `.js` specifiers back to `.ts`.
 - **libphonenumber-js** — three metadata sets, not one, and the default import is the
   largest. `/max` adds number *type* detection we do not need; `/min` cannot tell a mobile

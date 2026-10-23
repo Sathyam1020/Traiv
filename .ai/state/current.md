@@ -150,8 +150,36 @@ The client app exists but only does auth and attach — no workouts, logs or che
 because those tables do not exist. Endorsers have a tested API and a UI (ADR 0017) but
 payouts need payments, so no money is shown anywhere. The admin app shows counts only.
 
-The trainer and client UIs have had no adversarial review. **360px has never been
-checked** by anyone.
+The trainer and client UIs have had no adversarial review.
+
+### The coach's roster (`/clients`)
+
+The first coach-facing screen on real data. `GET /studios/:id/clients` returns the rows,
+the three tab counts and the five chip counts in one request; `PATCH .../clients/:id`
+changes status and the end date; tags are a studio-scoped table with a join, written as
+a whole set so a double-tap cannot leave a tag the coach unticked.
+
+Two columns are still sample content and say so in the footer: the last message (there is
+no messages table) and the plan icons (there is no generator). "Unread messages" counts
+zero for the same reason — the chip is there so it works the day messaging does.
+"New" and "missing" check-ins are derived from `training_session`, which is real.
+
+`client.ends_at` is new. Null is open-ended and is shown as ∞; a date that has passed
+does **not** change `status` on its own — it means the coach should look, not that the
+system quietly ended the relationship behind them.
+
+Three bugs found by driving it in a real browser, each of which typechecked and ran:
+
+- **A Drizzle column interpolated into a `sql` template renders unqualified.** Inside the
+  correlated subquery for "last session", `${schema.clients.id}` became a bare `"id"` and
+  resolved to `training_session.id`, so every row came back as never having trained —
+  while the chip counts, built from the same fragment, were correct. Written out as
+  `sql.raw('"client"."id"')`, with a regression test.
+- **CORS did not allow `PUT`.** The preflight answered 204 and the browser then refused
+  to send the real request, so the tag write vanished with nothing in the server log.
+  `cors.test.ts` now asserts every verb.
+- **`shadcn add` overwrites `button.tsx`**, which took the `pointer-coarse` tap sizing
+  with it. There is a note in the file now.
 
 ### Layout (ADR 0020)
 
