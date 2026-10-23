@@ -12,6 +12,7 @@
       "!**/.next",
       "!**/node_modules",
       "!**/drizzle",
+      "!research/**/evidence",
       "!**/globals.css",
       "!**/*.svg"
     ]

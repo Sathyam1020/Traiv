@@ -1,0 +1,1099 @@
+{
+  "captured_at": "2026-10-23T20:47:12.731Z",
+  "requested_path": "/settings",
+  "dom": {
+    "url": "/settings/statuses",
+    "title": "Statuses",
+    "headings": [
+      "Quick navigation"
+    ],
+    "links": [
+      "/clients",
+      "/inbox",
+      "/leads",
+      "/automations",
+      "/vault",
+      "/content",
+      "/insights",
+      "/workouts/exercises",
+      "/workouts/templates",
+      "/nutrition/recipes",
+      "/nutrition/ingredients",
+      "/nutrition/templates",
+      "/forms",
+      "/forms/metrics",
+      "/settings",
+      "/settings/billing",
+      "#"
+    ],
+    "buttons": [
+      "TR Traiv Coachway",
+      "Notifications",
+      "Workouts",
+      "Nutrition",
+      "Forms",
+      "3",
+      "S Sathyam sahu Administrator",
+      "Open calendar",
+      "Toggle Sidebar",
+      "Account",
+      "Billing",
+      "Stripe",
+      "App",
+      "Leads",
+      "Email",
+      "Tags",
+      "Statuses",
+      "Team",
+      "Add Status",
+      "Open menu",
+      "Product tour overlay"
+    ],
+    "tabs": [],
+    "tableHeaders": [
+      "Name",
+      "Color",
+      ""
+    ],
+    "inputs": [
+      {
+        "tag": "input",
+        "type": "search",
+        "name": null,
+        "placeholder": "Search statuses...",
+        "required": false,
+        "label": null
+      }
+    ],
+    "dialogs": [],
+    "bodyText": "TR Traiv Coachway Clients Inbox Leads Automations Vault Content Insights Workouts Exercises Templates Nutrition Recipes Ingredients Mealplan"
+  },
+  "console_errors": [],
+  "network": [
+    {
+      "method": "GET",
+      "url": "https://app.coachway.io/settings",
+      "status": 200,
+      "mime": "text/html"
+    },
+    {
+      "method": "POST",
+      "url": "https://o4509909574090752.ingest.de.sentry.io/api/4509909577302096/envelope/",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "POST",
+      "url": "https://o4509909574090752.ingest.de.sentry.io/api/4509909577302096/envelope/",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "GET",
+      "url": "https://r2-cdn.coachway.io/maintenance.json",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "GET",
+      "url": "https://r2-cdn.coachway.io/maintenance.json",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "GET",
+      "url": "https://api.coachway.io/account",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "GET",
+      "url": "https://api.coachway.io/users/team",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "GET",
+      "url": "https://api.coachway.io/users/me",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "GET",
+      "url": "https://app.coachway.io/version.json",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "POST",
+      "url": "https://o4509909574090752.ingest.de.sentry.io/api/4509909577302096/envelope/",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "POST",
+      "url": "https://o4509909574090752.ingest.de.sentry.io/api/4509909577302096/envelope/",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "GET",
+      "url": "https://app.coachway.io/version.json",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "GET",
+      "url": "https://app.coachway.io/version.json",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "POST",
+      "url": "https://api-iam.intercom.io/messenger/web/ping",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "GET",
+      "url": "https://api.coachway.io/notifications/unread-count",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "GET",
+      "url": "https://api.coachway.io/notifications",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "GET",
+      "url": "https://api.coachway.io/inbox/unread-count",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "GET",
+      "url": "https://api.coachway.io/account/nutrition-settings",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "GET",
+      "url": "https://api.coachway.io/inbox/unread-count",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "POST",
+      "url": "https://o4509909574090752.ingest.de.sentry.io/api/4509909577302096/envelope/",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "POST",
+      "url": "https://api-iam.intercom.io/messenger/web/events",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "POST",
+      "url": "https://api-iam.intercom.io/messenger/web/ping",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "POST",
+      "url": "https://api-iam.intercom.io/messenger/web/rulesets/70511465/match",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "POST",
+      "url": "https://api-iam.intercom.io/messenger/web/page_view_events",
+      "status": 204,
+      "mime": "text/plain"
+    },
+    {
+      "method": "POST",
+      "url": "https://api-iam.intercom.io/messenger/web/events",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "POST",
+      "url": "https://api-iam.intercom.io/messenger/web/events",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "POST",
+      "url": "https://api-iam.intercom.io/messenger/web/ping",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "POST",
+      "url": "https://api-iam.intercom.io/messenger/web/ping",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "POST",
+      "url": "https://api-iam.intercom.io/messenger/web/ping",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "POST",
+      "url": "https://api-iam.intercom.io/messenger/web/ping",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "POST",
+      "url": "https://o4509909574090752.ingest.de.sentry.io/api/4509909577302096/envelope/",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "POST",
+      "url": "https://o4509909574090752.ingest.de.sentry.io/api/4509909577302096/envelope/",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "GET",
+      "url": "https://api.coachway.io/lead-status",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "POST",
+      "url": "https://api-iam.intercom.io/messenger/web/ping",
+      "status": 200,
+      "mime": "application/json"
+    },
+    {
+      "method": "POST",
+      "url": "https://api-iam.intercom.io/messenger/web/events",
+      "status": 200,
+      "mime": "application/json"
+    }
+  ],
+  "network_counts": {
+    "Stylesheet": 3,
+    "Script": 22,
+    "Document": 1,
+    "Font": 1,
+    "Fetch": 12,
+    "Other": 9,
+    "XHR": 22,
+    "Image": 1
+  },
+  "api_shapes": [
+    {
+      "method": "POST",
+      "url": "https://o4509909574090752.ingest.de.sentry.io/api/4509909577302096/envelope/",
+      "status": 200,
+      "shape": {}
+    },
+    {
+      "method": "POST",
+      "url": "https://o4509909574090752.ingest.de.sentry.io/api/4509909577302096/envelope/",
+      "status": 200,
+      "shape": {}
+    },
+    {
+      "method": "GET",
+      "url": "https://r2-cdn.coachway.io/maintenance.json",
+      "status": 200,
+      "shape": {
+        "active": "boolean",
+        "scheduled": "boolean",
+        "scheduledStart": "string",
+        "estimatedEnd": "string"
+      }
+    },
+    {
+      "method": "GET",
+      "url": "https://r2-cdn.coachway.io/maintenance.json",
+      "status": 200,
+      "shape": {
+        "active": "boolean",
+        "scheduled": "boolean",
+        "scheduledStart": "string",
+        "estimatedEnd": "string"
+      }
+    },
+    {
+      "method": "GET",
+      "url": "https://api.coachway.io/account",
+      "status": 200,
+      "shape": {
+        "id": "string",
+        "name": "string",
+        "description": "null",
+        "locale": "string",
+        "timezone": "string",
+        "currency": "string",
+        "country": "string",
+        "imageUrl": "null",
+        "email": "string",
+        "phone": "null",
+        "websiteUrl": "null",
+        "termsAndConditionsUrl": "null",
+        "privacyPolicyUrl": "null",
+        "weightUnit": "string",
+        "distanceUnit": "string",
+        "platformStripeCustomerId": "string",
+        "platformSubscriptionId": "string",
+        "platformSubscriptionStatus": "string",
+        "platformTrialEndsAt": "string",
+        "platformCancelAtPeriodEnd": "boolean",
+        "platformCurrentPeriodEnd": "string",
+        "createdAt": "string",
+        "updatedAt": "string",
+        "branding": {
+          "id": "string",
+          "logoImageUrl": "null",
+          "headerImageUrl": "null",
+          "primaryColor": "string",
+          "secondaryColor": "string",
+          "backgroundColor": "string",
+          "createdAt": "string",
+          "updatedAt": "string"
+        },
+        "settings": {
+          "id": "string",
+          "notificationSenderDisplay": "string",
+          "showPreviousWorkoutData": "boolean",
+          "clientActivationMode": "string",
+          "clientAutomationStatusSync": "string",
+          "clientActivationDraftContentSync": "string",
+          "defaultCheckInFrequency": "number",
+          "defaultCheckInPeriod": "string",
+          "defaultCheckInWeekday": "number",
+          "defaultNoContactThresholdDays": "number",
+          "defaultNoContactTrigger": "string",
+          "defaultAppAccessAfterEnd": "string",
+          "defaultAppAccessGracePeriodDays": "null",
+          "createdAt": "string",
+          "updatedAt": "string"
+        },
+        "accessPolicy": {
+          "coachAccessStatus": "string",
+          "coachAccessSuspendedAt": "null",
+          "paymentGraceEndsAt": "null"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "url": "https://api.coachway.io/users/team",
+      "status": 200,
+      "shape": {
+        "members": [
+          {
+            "id": "string",
+            "email": "string",
+            "name": "string",
+            "imageUrl": "null",
+            "status": "string",
+            "role": {
+              "id": "…",
+              "name": "…",
+              "color": "…"
+            },
+            "permissions": [
+              "…"
+            ],
+            "isOwner": "boolean",
+            "createdAt": "string"
+          }
+        ]
+      }
+    },
+    {
+      "method": "GET",
+      "url": "https://api.coachway.io/users/me",
+      "status": 200,
+      "shape": {
+        "id": "string",
+        "name": "string",
+        "email": "string",
+        "emailVerifiedAt": "null",
+        "imageUrl": "null",
+        "locale": "string",
+        "lastLoginAt": "null",
+        "lastLoginIp": "null",
+        "role": {
+          "id": "string",
+          "name": "string",
+          "color": "string"
+        },
+        "permissions": [
+          "string"
+        ],
+        "createdAt": "string",
+        "updatedAt": "string",
+        "isOwner": "boolean",
+        "isSuperAdmin": "boolean"
+      }
+    },
+    {
+      "method": "GET",
+      "url": "https://app.coachway.io/version.json",
+      "status": 200,
+      "shape": {
+        "version": "string",
+        "buildTime": "string"
+      }
+    },
+    {
+      "method": "POST",
+      "url": "https://o4509909574090752.ingest.de.sentry.io/api/4509909577302096/envelope/",
+      "status": 200,
+      "shape": {}
+    },
+    {
+      "method": "POST",
+      "url": "https://o4509909574090752.ingest.de.sentry.io/api/4509909577302096/envelope/",
+      "status": 200,
+      "shape": {}
+    },
+    {
+      "method": "GET",
+      "url": "https://app.coachway.io/version.json",
+      "status": 200,
+      "shape": {
+        "version": "string",
+        "buildTime": "string"
+      }
+    },
+    {
+      "method": "GET",
+      "url": "https://app.coachway.io/version.json",
+      "status": 200,
+      "shape": {
+        "version": "string",
+        "buildTime": "string"
+      }
+    },
+    {
+      "method": "POST",
+      "url": "https://api-iam.intercom.io/messenger/web/ping",
+      "status": 200,
+      "shape": {
+        "app": {
+          "name": "string",
+          "audio_enabled": "boolean",
+          "show_powered_by": "boolean",
+          "team_intro": "string",
+          "team_greeting": "string",
+          "messenger_background": "string",
+          "expected_response_delay_translation_key": "string",
+          "launcher_expected_response_delay_translation_key": "string",
+          "sms_notifications_enabled": "boolean",
+          "email_follow_ups_enabled": "boolean",
+          "inbound_conversations_disabled": "boolean",
+          "office_hours_response": "string",
+          "help_center_site_url": "string",
+          "messenger_logo_url": "string",
+          "user_conversation_gifs_enabled": "boolean",
+          "user_conversation_emojis_enabled": "boolean",
+          "user_conversation_voice_notes_enabled": "boolean",
+          "developer_workspace": "boolean",
+          "upfront_email_collection_setting": "string",
+          "temporary_expectations_message": "null",
+          "localized_expected_response_delay_short_text": "string",
+          "localized_expected_response_delay_long_text": "string",
+          "help_center_id": "null",
+          "article_auto_reaction_enabled": "boolean",
+          "conversation_history_ttl_days": "number",
+          "ticket_terminology": "string",
+          "use_cache_for": []
+        },
+        "user": {
+          "id": "string",
+          "role": "string",
+          "locale": "string",
+          "has_conversations": "boolean",
+          "active_company_id": "string",
+          "country_code": "string",
+          "last_contacted_at": "string",
+          "new_session": "boolean",
+          "help_center_require_search": "boolean",
+          "requires_cookie_consent": "boolean",
+          "prevent_multiple_inbound_conversation": "boolean",
+          "user_assignments": {}
+        },
+        "client_matches": [
+          {
+            "user_id": "string",
+            "company_id": "string",
+            "predicates": [
+              "…"
+            ],
+            "ruleset_id": "number",
+            "ruleset_match_behavior": "string",
+            "ruleset_link_id": "number",
+            "ruleset_link_object_type": "string",
+            "serialized_object": "null",
+            "checkpoint_id": "number",
+            "notification_record_id": "null",
+            "matching_locations": [
+              "…"
+            ],
+            "extra_context": {},
+            "contains_lca_predicate": "boolean"
+          }
+        ],
+        "launcher_settings": {
+          "alignment": "string",
+          "color": "string",
+          "color_dark": "string",
+          "has_required_features": "boolean",
+          "horizontal_padding": "number",
+          "instant_boot_enabled": "boolean",
+          "launcher_logo_url": "null",
+          "launcher_logo_dark_url": "null",
+          "messenger_layout": "string",
+          "messenger_mode_switcher_enabled": "boolean",
+          "secondary_color": "string",
+          "secondary_color_dark": "string",
+          "show_launcher": "boolean",
+          "theme_mode": "string",
+          "updated_at": "number",
+          "vertical_padding": "number"
+        },
+        "modules": {
+          "messages": {
+            "google_analytics_tracking_id": "null"
+          },
+          "rtm": {
+            "endpoints": [
+              "…"
+            ],
+            "options": {
+              "PING_TIMEOUT": "…",
+              "PONG_TIMEOUT": "…"
+            }
+          },
+          "metrics": {
+            "enabled": "boolean"
+          },
+          "error_reporting": {
+            "disabled": "boolean"
+          },
+          "customization": {
+            "brand_name": "string",
+            "messenger_logo_url": "string",
+            "messenger_wallpaper": "string",
+            "action": {
+              "background_color": "…",
+              "foreground_color": "…",
+              "foreground_color_low_contrast": "…",
+              "background_color_dark": "…",
+              "foreground_color_dark": "…",
+              "foreground_color_low_contrast_dark": "…"
+            },
+            "action_contrast_white": "null",
+            "action_contrast_dark": {
+              "background_color": "…",
+              "foreground_color": "…"
+            },
+            "header": {
+              "background_color": "…",
+              "foreground_color": "…",
+              "background_color_dark": "…",
+              "foreground_color_dark": "…"
+            },
+            "theme_mode": "string",
+            "launcher_logo_dark_url": "null",
+            "messenger_logo_dark_url": "null",
+            "custom_font": "null"
+          },
+          "home": {
+            "header": {
+              "background": "…",
+              "content": "…",
+              "header_expanded": "…",
+              "identity": "…"
+            },
+            "open_config": "null"
+          },
+          "features": {
+            "checklists": "boolean",
+            "checklists_reminders": "boolean",
+            "inbound_messages": "boolean",
+            "inbound_lead_messaging": "boolean",
+            "inbound_lead_messaging_docs_site": "boolean",
+            "launcher_discovery_mode": "boolean",
+            "marketo_enrichment_installed": "boolean",
+            "hubspot_installed": "boolean",
+            "google_analytics": "boolean",
+            "single_page_app_rate_limiting": "boolean",
+            "cross_site_cookies": "boolean",
+            "cookie_secure_flag": "boolean",
+            "ticket_creation": "boolean",
+            "google_analytics_4_integration": "boolean",
+            "view_in_help_center_button": "boolean",
+            "customer_privacy_policy": "boolean",
+            "eprivacy_cookie_compliance_required": "boolean",
+            "persist_client_id_for_conversation_parts": "boolean",
+            "composer_is_not_hiding": "boolean",
+            "unified_reply_expectations": "boolean",
+            "disable_fin_image_reading": "boolean",
+            "delay_tour_render": "boolean",
+            "disable_tickets_after_conversation_end": "boolean",
+            "new_mobile_notifications_enabled": "boolean",
+            "nexus_ably": "boolean",
+            "disable_ticket_email_notification": "boolean",
+            "url_based_client_matching": "boolean",
+            "mercury_ui_changes": "boolean",
+            "enable_custom_emojis": "boolean",
+            "asana_limit_uploads_to_5mb": "boolean",
+            "user_images_aspect_ratio": "boolean",
+            "new_privacy_policy_layout": "boolean",
+            "fin_launcher_discovery_mode": "boolean",
+            "ai_titles": "boolean",
+            "client_side_actions": "boolean",
+            "messenger_optimistic_fin_thinking": "boolean",
+            "fin_ecommerce_sync_cart": "boolean",
+            "fin_ecommerce_cart_card": "boolean",
+            "generic_ecommerce_connector_setup": "boolean",
+            "team_workflows_new_conversation_inbound_matching": "boolean"
+          },
+          "plugins": []
+        },
+        "unread_conversation_ids": [],
+        "unread_dismissed_conversation_ids": [
+          "number"
+        ],
+        "anonymous_session": "string",
+        "identity_verification_ready": "boolean",
+        "origin_cookie_domain": "string",
+        "cdas_breaching_limit": [],
+        "checklists": [],
+        "open_config": {
+          "form": "string",
+          "open_to": "string",
+          "spaces": [
+            {
+              "type": "…",
+              "label": "…",
+              "navigation_label": "…",
+              "badge": "…"
+            }
+          ],
+          "user_has_tickets": "boolean",
+          "user_has_received_checklists": "boolean",
+          "user_has_live_newsfeed": "boolean",
+          "unified_style": "boolean"
+        },
+        "session_expiry": "number",
+        "jwt_expired": "boolean",
+        "messenger_security_enabled": "boolean"
+      }
+    },
+    {
+      "method": "GET",
+      "url": "https://api.coachway.io/notifications/unread-count",
+      "status": 200,
+      "shape": {
+        "count": "number"
+      }
+    },
+    {
+      "method": "GET",
+      "url": "https://api.coachway.io/notifications",
+      "status": 200,
+      "shape": {
+        "data": [],
+        "totalItems": "number",
+        "currentPage": "number",
+        "perPage": "number",
+        "totalPages": "number"
+      }
+    },
+    {
+      "method": "GET",
+      "url": "https://api.coachway.io/inbox/unread-count",
+      "status": 200,
+      "shape": {
+        "active": "number",
+        "pending": "number",
+        "paused": "number",
+        "ended": "number",
+        "total": "number"
+      }
+    },
+    {
+      "method": "GET",
+      "url": "https://api.coachway.io/account/nutrition-settings",
+      "status": 200,
+      "shape": {
+        "id": "string",
+        "defaultNutritionVisibility": "string",
+        "defaultAllowFoodDatabaseSearch": "boolean",
+        "defaultAllowFoodBarcodeScanner": "boolean",
+        "defaultAllowFoodPhotoLog": "boolean",
+        "defaultAllowClientRecipeCreation": "boolean",
+        "defaultAllowClientMealPlanCreation": "boolean",
+        "defaultAllowCalorieCalculator": "boolean",
+        "defaultAllowClientTargetEditing": "boolean",
+        "createdAt": "string",
+        "updatedAt": "string"
+      }
+    },
+    {
+      "method": "GET",
+      "url": "https://api.coachway.io/inbox/unread-count",
+      "status": 200,
+      "shape": {
+        "active": "number",
+        "pending": "number",
+        "paused": "number",
+        "ended": "number",
+        "total": "number"
+      }
+    },
+    {
+      "method": "POST",
+      "url": "https://o4509909574090752.ingest.de.sentry.io/api/4509909577302096/envelope/",
+      "status": 200,
+      "shape": {
+        "id": "string"
+      }
+    },
+    {
+      "method": "POST",
+      "url": "https://api-iam.intercom.io/messenger/web/events",
+      "status": 200,
+      "shape": [
+        {}
+      ]
+    },
+    {
+      "method": "POST",
+      "url": "https://api-iam.intercom.io/messenger/web/ping",
+      "status": 200,
+      "shape": {
+        "app": {
+          "name": "string",
+          "audio_enabled": "boolean",
+          "show_powered_by": "boolean",
+          "team_intro": "string",
+          "team_greeting": "string",
+          "messenger_background": "string",
+          "expected_response_delay_translation_key": "string",
+          "launcher_expected_response_delay_translation_key": "string",
+          "sms_notifications_enabled": "boolean",
+          "email_follow_ups_enabled": "boolean",
+          "inbound_conversations_disabled": "boolean",
+          "office_hours_response": "string",
+          "help_center_site_url": "string",
+          "messenger_logo_url": "string",
+          "user_conversation_gifs_enabled": "boolean",
+          "user_conversation_emojis_enabled": "boolean",
+          "user_conversation_voice_notes_enabled": "boolean",
+          "developer_workspace": "boolean",
+          "upfront_email_collection_setting": "string",
+          "temporary_expectations_message": "null",
+          "localized_expected_response_delay_short_text": "string",
+          "localized_expected_response_delay_long_text": "string",
+          "help_center_id": "null",
+          "article_auto_reaction_enabled": "boolean",
+          "conversation_history_ttl_days": "number",
+          "ticket_terminology": "string",
+          "use_cache_for": []
+        },
+        "user": {
+          "id": "string",
+          "role": "string",
+          "locale": "string",
+          "has_conversations": "boolean",
+          "active_company_id": "string",
+          "country_code": "string",
+          "last_contacted_at": "string",
+          "new_session": "boolean",
+          "help_center_require_search": "boolean",
+          "requires_cookie_consent": "boolean",
+          "prevent_multiple_inbound_conversation": "boolean",
+          "user_assignments": {}
+        },
+        "client_matches": [],
+        "launcher_settings": {
+          "alignment": "string",
+          "color": "string",
+          "color_dark": "string",
+          "has_required_features": "boolean",
+          "horizontal_padding": "number",
+          "instant_boot_enabled": "boolean",
+          "launcher_logo_url": "null",
+          "launcher_logo_dark_url": "null",
+          "messenger_layout": "string",
+          "messenger_mode_switcher_enabled": "boolean",
+          "secondary_color": "string",
+          "secondary_color_dark": "string",
+          "show_launcher": "boolean",
+          "theme_mode": "string",
+          "updated_at": "number",
+          "vertical_padding": "number"
+        },
+        "modules": {
+          "messages": {
+            "google_analytics_tracking_id": "null"
+          },
+          "rtm": {
+            "endpoints": [
+              "…"
+            ],
+            "options": {
+              "PING_TIMEOUT": "…",
+              "PONG_TIMEOUT": "…"
+            }
+          },
+          "metrics": {
+            "enabled": "boolean"
+          },
+          "error_reporting": {
+            "disabled": "boolean"
+          },
+          "customization": {
+            "brand_name": "string",
+            "messenger_logo_url": "string",
+            "messenger_wallpaper": "string",
+            "action": {
+              "background_color": "…",
+              "foreground_color": "…",
+              "foreground_color_low_contrast": "…",
+              "background_color_dark": "…",
+              "foreground_color_dark": "…",
+              "foreground_color_low_contrast_dark": "…"
+            },
+            "action_contrast_white": "null",
+            "action_contrast_dark": {
+              "background_color": "…",
+              "foreground_color": "…"
+            },
+            "header": {
+              "background_color": "…",
+              "foreground_color": "…",
+              "background_color_dark": "…",
+              "foreground_color_dark": "…"
+            },
+            "theme_mode": "string",
+            "launcher_logo_dark_url": "null",
+            "messenger_logo_dark_url": "null",
+            "custom_font": "null"
+          },
+          "home": {
+            "header": {
+              "background": "…",
+              "content": "…",
+              "header_expanded": "…",
+              "identity": "…"
+            },
+            "open_config": "null"
+          },
+          "features": {
+            "checklists": "boolean",
+            "checklists_reminders": "boolean",
+            "inbound_messages": "boolean",
+            "inbound_lead_messaging": "boolean",
+            "inbound_lead_messaging_docs_site": "boolean",
+            "launcher_discovery_mode": "boolean",
+            "marketo_enrichment_installed": "boolean",
+            "hubspot_installed": "boolean",
+            "google_analytics": "boolean",
+            "single_page_app_rate_limiting": "boolean",
+            "cross_site_cookies": "boolean",
+            "cookie_secure_flag": "boolean",
+            "ticket_creation": "boolean",
+            "google_analytics_4_integration": "boolean",
+            "view_in_help_center_button": "boolean",
+            "customer_privacy_policy": "boolean",
+            "eprivacy_cookie_compliance_required": "boolean",
+            "persist_client_id_for_conversation_parts": "boolean",
+            "composer_is_not_hiding": "boolean",
+            "unified_reply_expectations": "boolean",
+            "disable_fin_image_reading": "boolean",
+            "delay_tour_render": "boolean",
+            "disable_tickets_after_conversation_end": "boolean",
+            "new_mobile_notifications_enabled": "boolean",
+            "nexus_ably": "boolean",
+            "disable_ticket_email_notification": "boolean",
+            "url_based_client_matching": "boolean",
+            "mercury_ui_changes": "boolean",
+            "enable_custom_emojis": "boolean",
+            "asana_limit_uploads_to_5mb": "boolean",
+            "user_images_aspect_ratio": "boolean",
+            "new_privacy_policy_layout": "boolean",
+            "fin_launcher_discovery_mode": "boolean",
+            "ai_titles": "boolean",
+            "client_side_actions": "boolean",
+            "messenger_optimistic_fin_thinking": "boolean",
+            "fin_ecommerce_sync_cart": "boolean",
+            "fin_ecommerce_cart_card": "boolean",
+            "generic_ecommerce_connector_setup": "boolean",
+            "team_workflows_new_conversation_inbound_matching": "boolean"
+          },
+          "plugins": []
+        },
+        "active_tour": {
+          "id": "string",
+          "title": "string",
+          "url": "string",
+          "author": {
+            "type": "string",
+            "avatar": {
+              "initials": "…",
+              "color": "…",
+              "image_urls": "…",
+              "image_dark_urls": "…",
+              "image_url": "…",
+              "image_dark_url": "…",
+              "shape": "…",
+              "label": "…"
+            },
+            "is_admin": "boolean",
+            "is_self": "boolean",
+            "name": "string",
+            "first_name": "string",
+            "is_bot": "boolean",
+            "id": "string",
+            "initial": "string"
+          },
+          "steps": [
+            {
+              "id": "…",
+              "blocks": "…",
+              "selector": "…",
+              "selectors": "…",
+              "progression_behavior": "…",
+              "placement": "…",
+              "pointer_size": "…",
+              "button_text": "…",
+              "url": "…",
+              "order": "…",
+              "url_button_value": "…"
+            }
+          ],
+          "active_step_id": "number",
+          "end_tour_animation": "string",
+          "restartable": "boolean",
+          "restart_button_text": "null",
+          "snoozeable": "boolean",
+          "snooze_button_text": "null",
+          "progress_id": "number",
+          "progress_start_url": "string",
+          "button_color": "null",
+          "background_color": "null",
+          "custom_header_text": "null",
+          "custom_font": "null"
+        },
+        "anonymous_session": "string",
+        "identity_verification_ready": "boolean",
+        "origin_cookie_domain": "string",
+        "cdas_breaching_limit": [],
+        "checklists": [],
+        "open_config": {
+          "form": "string",
+          "open_to": "string",
+          "spaces": [
+            {
+              "type": "…",
+              "label": "…",
+              "navigation_label": "…",
+              "badge": "…"
+            }
+          ],
+          "user_has_tickets": "boolean",
+          "user_has_received_checklists": "boolean",
+          "user_has_live_newsfeed": "boolean",
+          "unified_style": "boolean"
+        },
+        "session_expiry": "number",
+        "jwt_expired": "boolean",
+        "messenger_security_enabled": "boolean"
+      }
+    },
+    {
+      "method": "POST",
+      "url": "https://api-iam.intercom.io/messenger/web/rulesets/70511465/match",
+      "status": 200,
+      "shape": {
+        "tour": {
+          "id": "string",
+          "title": "string",
+          "url": "string",
+          "author": {
+            "type": "string",
+            "avatar": {
+              "initials": "…",
+              "color": "…",
+              "image_urls": "…",
+              "image_dark_urls": "…",
+              "image_url": "…",
+              "image_dark_url": "…",
+              "shape": "…",
+              "label": "…"
+            },
+            "is_admin": "boolean",
+            "is_self": "boolean",
+            "name": "string",
+            "first_name": "string",
+            "is_bot": "boolean",
+            "id": "string",
+            "initial": "string"
+          },
+          "steps": [
+            {
+              "id": "…",
+              "blocks": "…",
+              "selector": "…",
+              "selectors": "…",
+              "progression_behavior": "…",
+              "placement": "…",
+              "pointer_size": "…",
+              "button_text": "…",
+              "url": "…",
+              "order": "…",
+              "url_button_value": "…"
+            }
+          ],
+          "active_step_id": "number",
+          "end_tour_animation": "string",
+          "restartable": "boolean",
+          "restart_button_text": "null",
+          "snoozeable": "boolean",
+          "snooze_button_text": "null",
+          "progress_id": "number",
+          "progress_start_url": "string",
+          "button_color": "null",
+          "background_color": "null",
+          "custom_header_text": "null",
+          "custom_font": "null"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "url": "https://api-iam.intercom.io/messenger/web/events",
+      "status": 200,
+      "shape": [
+        {}
+      ]
+    },
+    {
+      "method": "POST",
+      "url": "https://api-iam.intercom.io/messenger/web/events",
+      "status": 200,
+      "shape": [
+        {}
+      ]
+    }
+  ]
+}
