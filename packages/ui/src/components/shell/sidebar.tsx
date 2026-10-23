@@ -1,56 +1,153 @@
 "use client";
 
-import type { NavItem } from "@traiv/ui/components/shell/app-shell";
+import type { NavGroup } from "@traiv/ui/components/shell/app-shell";
+import { RAIL_TILE, RailProvider, RailTip } from "@traiv/ui/components/shell/rail";
 import { cn } from "@traiv/ui/lib/cn";
+import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 
 /**
- * Navigation from `lg` up.
+ * Navigation from `lg` up: a dark rail, flush to the window.
  *
- * Floats with a margin rather than meeting the window edges, so the page reads as a
- * surface sitting on the canvas rather than a frame around it.
+ * It sits on the shell's own dark ground rather than floating as its own card, so the
+ * only edge on screen is the one around the content. Two surfaces with two borders is
+ * the version that reads as chrome.
+ *
+ * Collapsed, it narrows to icons rather than sliding away. Hiding it entirely buys
+ * 15.5rem of table nobody asked for and costs every destination in the app — the coach
+ * has to reopen the rail to go anywhere. Narrowed, the whole product is still one click
+ * away and the names come back on hover.
+ *
+ * Everything here is on `contrast-fg` with an opacity — never `fg`, which follows the
+ * theme and would turn this rail into unreadable grey-on-black in dark mode. The rail
+ * is dark in both themes by design; that is what `bg-contrast` means.
  */
 export function Sidebar({
   nav,
   brand,
+  footer,
   account,
+  collapsed = false,
 }: {
-  nav: readonly NavItem[];
+  nav: readonly NavGroup[];
   brand: ReactNode;
+  footer?: ReactNode;
   account: ReactNode;
+  collapsed?: boolean;
 }) {
-  const pathname = usePathname();
-
   return (
-    <aside className="fixed inset-y-4 left-4 z-30 hidden w-60 flex-col rounded-panel border border-line bg-surface p-3 shadow-sm lg:flex">
-      {brand}
+    <aside
+      className={cn(
+        "fixed inset-y-0 left-0 z-30 hidden flex-col gap-5 overflow-hidden px-3 py-4 text-contrast-fg lg:flex",
+        // Width, not transform. A rail that slides out leaves nothing behind; one that
+        // narrows keeps its place in the layout, and the panel's padding animates with
+        // it so the content moves once rather than twice.
+        "transition-[width] duration-300 ease-out-soft motion-reduce:transition-none",
+        collapsed ? "w-16" : "w-[15.5rem]",
+      )}
+    >
+      <RailProvider collapsed={collapsed}>
+        {brand}
 
-      <nav className="flex flex-col gap-0.5">
-        {nav.map(({ href, label, icon: Icon }) => {
-          const active = pathname.startsWith(href);
-          return (
-            <Link
-              key={href}
-              href={href}
-              aria-current={active ? "page" : undefined}
-              className={cn(
-                "flex items-center gap-2.5 rounded-control px-2.5 py-2 text-body-sm transition-colors",
-                "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-focus",
-                active
-                  ? "bg-active font-medium text-fg"
-                  : "text-fg-muted hover:bg-hover hover:text-fg",
-              )}
-            >
-              <Icon className="size-4 shrink-0" />
-              {label}
-            </Link>
-          );
-        })}
-      </nav>
+        <div
+          className={cn(
+            "flex flex-1 flex-col overflow-y-auto overflow-x-hidden",
+            // Collapsed there are no headings to separate the groups, so the space
+            // between them has to do that job on its own — but less of it, because
+            // there is no text to space out any more.
+            collapsed ? "gap-4" : "gap-5",
+          )}
+        >
+          {nav.map((group, i) => (
+            <Group key={group.label ?? `group-${i}`} group={group} collapsed={collapsed} />
+          ))}
+        </div>
 
-      <div className="mt-auto border-t border-line pt-3">{account}</div>
+        {footer ? (
+          // Centred only when there is nothing to left-align to. Expanded, a footer link
+          // shrink-wrapping to its own text puts "Settings" in the middle of the rail
+          // while every nav item above it starts at the same left edge.
+          <div className={cn("flex flex-col gap-0.5", collapsed && "items-center")}>{footer}</div>
+        ) : null}
+        <div className="border-t border-contrast-fg/10 pt-3">{account}</div>
+      </RailProvider>
     </aside>
   );
+}
+
+function Group({ group, collapsed }: { group: NavGroup; collapsed: boolean }) {
+  const [open, setOpen] = useState(true);
+
+  // A group with no name is a plain run of links — there is nothing to collapse and no
+  // heading to put a control on. Collapsed, every group is that, because a heading with
+  // no room for its text is a heading that says nothing.
+  if (!group.label || collapsed) {
+    return (
+      <nav className={cn("flex flex-col gap-0.5", collapsed && "items-center")}>
+        {group.items.map((item) => (
+          <Item key={item.href} {...item} collapsed={collapsed} />
+        ))}
+      </nav>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex cursor-pointer items-center justify-between gap-2 whitespace-nowrap rounded-control px-2.5 py-1 text-caption font-medium text-contrast-fg/45 transition-colors hover:text-contrast-fg/70"
+      >
+        {group.label}
+        <ChevronDown
+          className={cn("size-3.5 transition-transform duration-200", !open && "-rotate-90")}
+        />
+      </button>
+
+      {open ? (
+        <nav className="flex flex-col gap-0.5">
+          {group.items.map((item) => (
+            <Item key={item.href} {...item} collapsed={collapsed} />
+          ))}
+        </nav>
+      ) : null}
+    </div>
+  );
+}
+
+function Item({
+  href,
+  label,
+  icon: Icon,
+  collapsed,
+}: NavGroup["items"][number] & { collapsed: boolean }) {
+  const pathname = usePathname();
+  // `startsWith` so a detail page keeps its parent lit — /clients/abc is still Clients.
+  const active = pathname === href || pathname.startsWith(`${href}/`);
+
+  const link = (
+    <Link
+      href={href}
+      aria-current={active ? "page" : undefined}
+      className={cn(
+        // `whitespace-nowrap` with the rail clipping: on the way open the label is at
+        // full length before the rail is, and without this it wraps to two lines and
+        // the row jumps height for the length of the animation.
+        "flex items-center whitespace-nowrap rounded-control text-body-sm transition-colors",
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-contrast-fg/40",
+        collapsed ? RAIL_TILE : "gap-2.5 px-2.5 py-2",
+        active
+          ? "bg-contrast-fg/12 font-medium text-contrast-fg"
+          : "text-contrast-fg/60 hover:bg-contrast-fg/8 hover:text-contrast-fg",
+      )}
+    >
+      <Icon className="size-4 shrink-0" />
+      {collapsed ? <span className="sr-only">{label}</span> : label}
+    </Link>
+  );
+
+  return collapsed ? <RailTip label={label}>{link}</RailTip> : link;
 }

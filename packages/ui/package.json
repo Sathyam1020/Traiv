@@ -13,13 +13,14 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@traiv/phone": "workspace:*",
     "class-variance-authority": "catalog:",
     "cn": "catalog:",
     "lucide-react": "catalog:",
+    "motion": "catalog:",
     "radix-ui": "catalog:",
-    "sonner": "catalog:",
-    "@traiv/phone": "workspace:*",
-    "motion": "catalog:"
+    "react-day-picker": "catalog:",
+    "sonner": "catalog:"
   },
   "devDependencies": {
     "@types/react": "catalog:",
@@ -30,7 +31,7 @@
     "typescript": "catalog:"
   },
   "peerDependencies": {
-    "react": "catalog:",
-    "next": "catalog:"
+    "next": "catalog:",
+    "react": "catalog:"
   }
 }
