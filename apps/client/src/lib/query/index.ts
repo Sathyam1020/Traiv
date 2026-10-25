@@ -11,6 +11,13 @@ export {
   useVerifyCode,
 } from "./use-auth";
 export {
+  useCheckIn,
+  useCheckIns,
+  useSubmitCheckIn,
+  useToday,
+  useUploadsConfigured,
+} from "./use-coaching";
+export {
   useAttach,
   useClientMe,
   useCoaches,

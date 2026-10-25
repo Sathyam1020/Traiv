@@ -83,6 +83,18 @@ const schema = z.object({
   GOOGLE_CLIENT_SECRET: z.string().optional(),
   GOOGLE_REDIRECT_URI: z.string().url().default("http://localhost:4000/auth/google/callback"),
 
+  /**
+   * Cloudinary, for progress photos and profile pictures.
+   *
+   * The browser uploads straight to Cloudinary; this API only signs the request, so the
+   * secret never leaves the server and the image bytes never pass through it. Unset means
+   * the signing route answers 503 and the photo steps of a check-in say so — every other
+   * step still works, which is what keeps the feature testable without an account.
+   */
+  CLOUDINARY_CLOUD_NAME: z.string().optional(),
+  CLOUDINARY_API_KEY: z.string().optional(),
+  CLOUDINARY_API_SECRET: z.string().optional(),
+
   // Blank in development — ConsoleMailer prints to stdout instead.
   AWS_REGION: z.string().default("ap-south-1"),
   AWS_ACCESS_KEY_ID: z.string().optional(),

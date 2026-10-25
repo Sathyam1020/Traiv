@@ -17,5 +17,9 @@ export const queryKeys = {
     coaches: ["client", "coaches"] as const,
     me: (studioId: string) => ["client", "me", studioId] as const,
     intake: (studioId: string) => ["client", "intake", studioId] as const,
+    today: (studioId: string) => ["client", "today", studioId] as const,
+    checkIns: (studioId: string) => ["client", "check-ins", studioId] as const,
+    checkIn: (studioId: string, id: string) => ["client", "check-in", studioId, id] as const,
+    uploads: (studioId: string) => ["client", "uploads", studioId] as const,
   },
 } as const;

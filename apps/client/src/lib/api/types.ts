@@ -108,3 +108,112 @@ export type IntakeState = {
 export type IntakePatch = Partial<Omit<Intake, "lastStep" | "completedAt">> & {
   weightKg?: number;
 };
+
+/* -------------------------------------------------------------------------- */
+/* Check-ins and the home screen                                               */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Derived on the server from today against `dueOn` and `closesOn` — never stored, except
+ * `completed`. The client renders it and does not recompute it, so the card a client sees
+ * and the grid their coach sees cannot disagree.
+ */
+export type CheckInState = "completed" | "missed" | "overdue" | "upcoming";
+
+/** What a check-in asks for. `type` decides which step component renders it. */
+export type Metric = {
+  id: string;
+  code: string;
+  name: string;
+  type: "number" | "text" | "image" | "rating";
+  unit: string | null;
+  unitCategory: string | null;
+  position: number;
+  shared: boolean;
+};
+
+export type CheckInAnswer = {
+  metricId: string;
+  code: string;
+  name: string;
+  type: Metric["type"];
+  unit: string | null;
+  numberValue: number | null;
+  textValue: string | null;
+  ratingValue: number | null;
+  imageUrl: string | null;
+};
+
+export type CheckInSummary = {
+  id: string;
+  dueOn: string;
+  closesOn: string;
+  completedAt: string | null;
+  state: CheckInState;
+};
+
+/** `GET /c/:studioId/check-ins` — history, newest first, with the tally off the same rows. */
+export type CheckInList = {
+  checkIns: CheckInSummary[];
+  completed: number;
+  missed: number;
+  /** Null until something has settled. A new client has not failed at anything. */
+  completionRate: number | null;
+};
+
+/** `GET /c/:studioId/check-ins/:id` — the questions and whatever has been answered. */
+export type CheckInDetail = {
+  checkIn: CheckInSummary & { clientId: string; answers: CheckInAnswer[] };
+  metrics: Metric[];
+};
+
+/** One answer on the way up. Exactly one value field, as the database also enforces. */
+export type AnswerInput = {
+  metricId: string;
+  numberValue?: number | null;
+  textValue?: string | null;
+  ratingValue?: number | null;
+  imageUrl?: string | null;
+};
+
+/**
+ * `GET /c/:studioId/today` — the whole home screen in one request.
+ *
+ * One request because `personas.md` is a budget Android on basement-gym signal: the cost
+ * is per round trip, so six of them to paint one screen is six chances to fail slowly.
+ */
+export type Today = {
+  name: string;
+  firstName: string;
+  goal: string | null;
+  checkIn: (CheckInSummary & { state: CheckInState }) | null;
+  weight: {
+    series: { date: string; kg: number }[];
+    latest: number | null;
+    /** Against the previous weigh-in, not the start — "since last time". */
+    delta: number | null;
+  };
+  measurements: {
+    code: string;
+    name: string;
+    unit: string | null;
+    value: number;
+    takenOn: string | null;
+  }[];
+  recentSessions: { id: string; date: string; completedAt: string | null }[];
+  /**
+   * Which tabs this client should see at all.
+   *
+   * Trainerize hides a tab until the coach has put something in it, and
+   * `competitor-client-apps.md` calls that "the one idea worth stealing outright". The
+   * server decides, because the server is what knows.
+   */
+  reveal: { workouts: boolean; food: boolean; chat: boolean };
+};
+
+/** A signed, single-use ticket for one photo. The browser PUTs straight to Cloudinary. */
+export type UploadTicket = {
+  url: string;
+  publicId: string;
+  fields: Record<string, string>;
+};

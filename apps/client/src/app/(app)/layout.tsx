@@ -8,9 +8,9 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { StatusGate } from "@/components/common/status-gate";
 import { AccountButton } from "@/components/layout/account-button";
-import { navItems } from "@/components/layout/nav-items";
+import { navFor } from "@/components/layout/nav-items";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { useCoaches, useIntake, useSession } from "@/lib/query";
+import { useCoaches, useIntake, useSession, useToday } from "@/lib/query";
 
 /**
  * The frame for every signed-in client screen.
@@ -28,14 +28,23 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const coaches = useCoaches(signedIn);
   // Any one of their coaches will do to ask through — the answers belong to the person,
   // and the studio in the path is what authorises the read, not what scopes it.
-  // Any one of their coaches will do to ask through — the answers belong to the person,
-  // and the studio in the path is what authorises the read, not what scopes it.
   const running = coaches.data?.find((c) => c.status === "active");
   const studioId = (running ?? coaches.data?.[0])?.studio.id ?? null;
   // Blocked only when nothing is running. With two coaches and one paused, the app works
   // and the paused one carries its state on its own card.
   const blocked = coaches.data?.length ? !running : false;
   const intake = useIntake(studioId);
+
+  /**
+   * The nav's source of truth, fetched here because the tab bar is on every screen.
+   *
+   * Held back until onboarding is finished: a client being redirected into the intake
+   * form has no use for a request that decides which tabs to show them afterwards, and
+   * on a slow connection it would compete with the form they are waiting for. React
+   * Query dedupes it with the Today page's own call.
+   */
+  const onboarded = Boolean(intake.data?.intake?.completedAt);
+  const today = useToday(onboarded ? studioId : null);
 
   useEffect(() => {
     if (!session.isPending && !signedIn) router.replace("/");
@@ -58,7 +67,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <AppShell
-      nav={navItems}
+      nav={navFor(today.data?.reveal)}
       sidebarBrand={
         <RailBrand name={session.data?.user.name || "You"} sub="Traiv">
           <ThemeToggle tone="rail" />

@@ -10,8 +10,11 @@ import {
   requireClientAuth,
 } from "../../middleware/client-authorize.js";
 import { requireSession } from "../../middleware/session.js";
+import { getClientCheckIn, listClientCheckIns, submitClientCheckIn } from "./check-ins.js";
 import { completeIntake, FIRST_STEP, getIntake, LAST_STEP, saveStep } from "./intake.js";
 import { joinByCode, previewJoin, rotateJoinCode, setJoinEnabled } from "./join.js";
+import { getToday } from "./today.js";
+import { signUpload, uploadsConfigured } from "./uploads.js";
 
 export const join: Router = Router();
 
@@ -86,14 +89,10 @@ export const clientApp: Router = Router();
 /**
  * Who the client is to this studio, and whose studio it is.
  *
- * The only client route that exists yet, and it has to: a waiting client needs to see
- * they are queued and a frozen one needs to see they are frozen (ADR 0013), which is
- * impossible if every status but `active` is refused outright. Branding comes along
- * because it is on ADR 0014's allowed-read list and the app cannot render a studio
- * without it.
- *
- * Nothing here touches plans, workouts or check-ins — those data models do not exist,
- * and their permissions are deliberately undecided.
+ * A waiting client needs to see they are queued and a frozen one needs to see they are
+ * frozen (ADR 0013), which is impossible if every status but `active` is refused
+ * outright. Branding comes along because it is on ADR 0014's allowed-read list and the
+ * app cannot render a studio without it.
  */
 /**
  * Every studio this user is a client of.
@@ -171,6 +170,98 @@ clientApp.get("/:studioId/me", requireClient(), async (req, res) => {
       color: studio?.brandColor ?? null,
     },
   });
+});
+
+/* ---- the home screen ---- */
+
+/**
+ * One request paints the whole screen.
+ *
+ * `personas.md` is a budget Android on basement-gym signal, and the Neon handshake from
+ * India is 2-4s against a 50ms query — the cost here is per *request*, so six of them to
+ * render one screen is six chances to fail slowly. Read-only, not `{ write: true }`: a
+ * paused client should still see their own history and be told why it is paused.
+ */
+clientApp.get("/:studioId/today", requireClient(), async (req, res) => {
+  const { clientId } = requireClientAuth(req);
+  const { userId } = requireSession(req);
+  res.json({ today: await getToday(clientId, userId) });
+});
+
+/* ---- check-ins ---- */
+
+const checkInParam = z.object({ checkInId: z.string().max(64) });
+
+clientApp.get("/:studioId/check-ins", requireClient(), async (req, res) => {
+  const { clientId } = requireClientAuth(req);
+  res.json(await listClientCheckIns(clientId));
+});
+
+clientApp.get("/:studioId/check-ins/:checkInId", requireClient(), async (req, res) => {
+  const { studioId, clientId } = requireClientAuth(req);
+  const { checkInId } = checkInParam.parse(req.params);
+  res.json(await getClientCheckIn(studioId, clientId, checkInId));
+});
+
+/**
+ * One answer per metric, exactly one value field — which the `check_in_answer_one_value`
+ * constraint also enforces, so a payload that slips past this is refused by the database
+ * rather than stored as something nobody can read.
+ */
+const answerSchema = z.object({
+  metricId: z.string().max(64),
+  numberValue: z.number().finite().nullable().optional(),
+  textValue: z.string().max(4000).nullable().optional(),
+  ratingValue: z.number().int().min(1).max(5).nullable().optional(),
+  imageUrl: z.string().url().max(2000).nullable().optional(),
+});
+
+/**
+ * Submit.
+ *
+ * `submissionId` is accepted and deliberately not stored. The client mints one per draft
+ * and resends it on retry; submission is already idempotent because answers are replaced
+ * rather than appended and the row is set to `completed` either way, so a retry after a
+ * dropped response converges instead of creating a second check-in. Reading it here is
+ * what lets the field be checked in a test rather than being a comment in the client.
+ */
+clientApp.post(
+  "/:studioId/check-ins/:checkInId",
+  requireClient({ write: true }),
+  async (req, res) => {
+    const { studioId, clientId } = requireClientAuth(req);
+    const { checkInId } = checkInParam.parse(req.params);
+    const { answers } = z
+      .object({
+        answers: z.array(answerSchema).max(40),
+        submissionId: z.string().uuid().optional(),
+      })
+      .parse(req.body);
+
+    res.json({ checkIn: await submitClientCheckIn(studioId, clientId, checkInId, answers) });
+  },
+);
+
+/* ---- photo uploads ---- */
+
+/**
+ * A signed ticket for one photo, uploaded by the browser straight to Cloudinary.
+ *
+ * The folder is derived from the client id inside the signature, so a ticket cannot be
+ * pointed at anybody else's photos. 503 when Cloudinary is not configured, which the
+ * check-in form reads to hide the camera rather than offering a button that fails.
+ */
+clientApp.post("/:studioId/uploads/sign", requireClient({ write: true }), async (req, res) => {
+  const { clientId } = requireClientAuth(req);
+  const { kind } = z
+    .object({ kind: z.enum(["check-in", "avatar"]).default("check-in") })
+    .parse(req.body ?? {});
+  res.json(signUpload(clientId, kind));
+});
+
+/** Asked before the form offers a camera at all. Cheap, and answers without a secret. */
+clientApp.get("/:studioId/uploads/config", requireClient(), (_req, res) => {
+  res.json({ uploads: uploadsConfigured() });
 });
 
 /**
