@@ -2,53 +2,91 @@
 
 import { Page } from "@traiv/ui/components/shell/page";
 import { Skeleton } from "@traiv/ui/components/skeleton";
-import { Clock, Pause, Snowflake } from "lucide-react";
+import { Clock, Pause, Snowflake } from "@traiv/ui/icons";
+import { useState } from "react";
 import type { ClientStatus, Coach } from "@/lib/api";
-import { useCoaches, useSession } from "@/lib/query";
+import { useActiveStudio, useToday } from "@/lib/query";
+import { CheckInCard } from "./_components/check-in-card";
+import { LogWeightDialog } from "./_components/log-weight-dialog";
+import { MeasurementsCard } from "./_components/measurements-card";
+import { RecentActivity } from "./_components/recent-activity";
+import { WeightCard } from "./_components/weight-card";
 
 /**
  * Today — what the client is meant to do right now.
  *
- * Light at the moment, honestly so: there are no plans, workouts or logging yet, and
- * filling the space with tiles that say nothing would be the slop `ui-principles.md`
- * bans. It grows down this column as those land.
+ * Coachway's order, which is the order of how much it is asked *of* the client rather
+ * than reported *to* them: greeting, the check-in, then the numbers, then what they have
+ * already done. The one actionable thing is above the fold on a 360px phone; everything
+ * below it is feedback.
+ *
+ * There is no quick-actions FAB yet. Coachway's has three entries and ours would have
+ * one — logging a weight, which is already a word on the card it belongs to. It arrives
+ * with "start today's workout", when there is a workout to start.
  */
 export default function TodayPage() {
-  const session = useSession();
-  const signedIn = Boolean(session.data?.user);
-  const coaches = useCoaches(signedIn);
+  const { studioId, coaches, stalled, isPending } = useActiveStudio();
+  const today = useToday(studioId);
+  const [logging, setLogging] = useState(false);
 
-  if (session.isPending || coaches.isPending) return <Loading />;
-  if ((coaches.data?.length ?? 0) === 0) return <NoCoach />;
+  if (isPending) return <Loading />;
+  if (coaches.length === 0) return <NoCoach />;
 
-  const name = session.data?.user.name?.split(" ")[0];
-  const many = (coaches.data?.length ?? 0) > 1;
+  // A paused or waiting relationship with nothing else running: the layout's gate has
+  // already taken the screen, so reaching here means something is active.
+  const data = today.data;
 
   return (
     <Page className="gap-8">
       <header className="flex flex-col gap-1">
-        <h1 className="text-display font-semibold tracking-[-0.025em]">
-          {name ? `Hey ${name}` : "You're all set"}
+        <h1 className="text-display font-medium">
+          {data?.firstName ? `Hey ${data.firstName}` : "Hey"}
         </h1>
-        <p className="text-body-sm text-fg-muted">
-          {many
-            ? "Your coaches are putting your plans together. There's nothing for you to do yet."
-            : "Your coach is putting your plan together. There's nothing for you to do yet."}
-        </p>
+        {data?.goal ? <p className="text-body-sm text-fg-muted">{data.goal}</p> : null}
       </header>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="text-caption font-semibold uppercase tracking-[0.08em] text-fg-subtle">
-          {many ? "Your coaches" : "Your coach"}
-        </h2>
-        {/* A grid rather than a stack: one card reads as deliberate at any width, and the
-            second and third coach fill across instead of pushing the page down. */}
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {coaches.data?.map((coach) => (
-            <CoachCard key={coach.clientId} coach={coach} />
-          ))}
-        </div>
-      </section>
+      {today.isPending ? (
+        <Skeleton className="h-[9.5rem] w-full rounded-surface" />
+      ) : data ? (
+        <CheckInCard checkIn={data.checkIn} />
+      ) : null}
+
+      {data ? (
+        <>
+          {/* Two up from `sm`, because a weight card alone at 1280px reads as a mistake
+              and the measurements card is empty until their coach asks for one. */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <WeightCard weight={data.weight} onLog={() => setLogging(true)} />
+            <MeasurementsCard measurements={data.measurements} />
+          </div>
+
+          <RecentActivity sessions={data.recentSessions} />
+        </>
+      ) : null}
+
+      {/* Several coaches, or one that is not running: both are worth stating. A single
+          active coach needs no card — the whole screen is already theirs. */}
+      {coaches.length > 1 || stalled ? (
+        <section className="flex flex-col gap-3">
+          <h2 className="text-caption font-semibold uppercase tracking-[0.08em] text-fg-subtle">
+            {coaches.length > 1 ? "Your coaches" : "Your coach"}
+          </h2>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {coaches.map((coach) => (
+              <CoachCard key={coach.clientId} coach={coach} />
+            ))}
+          </div>
+        </section>
+      ) : null}
+
+      {studioId ? (
+        <LogWeightDialog
+          studioId={studioId}
+          open={logging}
+          onOpenChange={setLogging}
+          current={data?.weight.latest ?? null}
+        />
+      ) : null}
     </Page>
   );
 }
@@ -106,7 +144,7 @@ function CoachCard({ coach }: { coach: Coach }) {
 function NoCoach() {
   return (
     <Page className="gap-3">
-      <h1 className="text-heading font-semibold tracking-[-0.02em]">No coach yet</h1>
+      <h1 className="text-heading font-medium">No coach yet</h1>
       <p className="max-w-[46ch] text-body-sm leading-relaxed text-fg-muted">
         Traiv is something your coach sets up for you. Ask them for their link, open it on this
         phone, and you'll be connected.
@@ -122,10 +160,10 @@ function Loading() {
         <Skeleton className="h-9 w-56" />
         <Skeleton className="h-4 w-72" />
       </div>
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
-        {Array.from({ length: 2 }, (_, n) => n).map((n) => (
-          <Skeleton key={n} className="h-[5.5rem] w-full rounded-surface" />
-        ))}
+      <Skeleton className="h-[9.5rem] w-full rounded-surface" />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <Skeleton className="h-40 w-full rounded-surface" />
+        <Skeleton className="h-40 w-full rounded-surface" />
       </div>
     </Page>
   );

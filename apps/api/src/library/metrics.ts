@@ -5,9 +5,15 @@ import { db } from "../db.js";
 /**
  * The shared metric library every studio starts with.
  *
- * Eight questions, which is about as many as somebody will answer every week without
+ * Ten questions, which is about as many as somebody will answer every week without
  * resenting it. `code` is the stable key everything else refers to — `weight` in
  * particular is special-cased on submission, where it also appends to `body_metric`.
+ *
+ * `unitCategory: "length"` is what puts a metric on the client's measurements card, so
+ * the two circumferences here are the two worth asking everybody: waist is the one that
+ * actually tracks fat loss when the scale is arguing with the mirror, and hips pairs
+ * with it. Coachway offers ten sites; asking ten every week is how a form stops being
+ * filled in. A coach who wants calves adds their own.
  *
  * Idempotent on `code`, so re-running corrects a row rather than duplicating it.
  *
@@ -45,6 +51,22 @@ const SEED = [
     unit: null,
     unitCategory: null,
     position: 22,
+  },
+  {
+    code: "waist",
+    name: "Waist",
+    type: "number",
+    unit: "cm",
+    unitCategory: "length",
+    position: 25,
+  },
+  {
+    code: "hips",
+    name: "Hips",
+    type: "number",
+    unit: "cm",
+    unitCategory: "length",
+    position: 26,
   },
   { code: "energy", name: "Energy", type: "rating", unit: "1-5", unitCategory: null, position: 30 },
   {

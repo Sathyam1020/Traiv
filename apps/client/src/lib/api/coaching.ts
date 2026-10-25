@@ -19,6 +19,14 @@ import type {
 export const todayApi = {
   get: async (studioId: string) =>
     (await http.get<{ today: Today }>(`/c/${studioId}/today`)).data.today,
+
+  /**
+   * Weight is the only metric with a home outside a check-in — `body_metric` is keyed on
+   * the user and append-only. Everything else a check-in asks for needs a check-in to
+   * belong to.
+   */
+  logWeight: async (studioId: string, kg: number) =>
+    (await http.post<{ weightKg: number }>(`/c/${studioId}/weight`, { kg })).data.weightKg,
 };
 
 export const checkInApi = {

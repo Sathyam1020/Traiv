@@ -1,4 +1,4 @@
-import { schema } from "@traiv/db";
+import { newId, schema } from "@traiv/db";
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { Router } from "express";
 import { z } from "zod";
@@ -186,6 +186,34 @@ clientApp.get("/:studioId/today", requireClient(), async (req, res) => {
   const { clientId } = requireClientAuth(req);
   const { userId } = requireSession(req);
   res.json({ today: await getToday(clientId, userId) });
+});
+
+/**
+ * Log a weight, outside a check-in.
+ *
+ * `body_metric` is keyed on the user and append-only, which is exactly what this is: the
+ * series the adaptation loop reads, and the one a check-in's weight answer also appends
+ * to. `source` distinguishes them so a chart can say where a number came from.
+ *
+ * Weight is the only metric with a standalone home. Everything else a check-in asks for
+ * lives in `check_in_answer`, which needs a check-in to belong to — so measurements
+ * arrive weekly rather than whenever, and that is a schema fact rather than a choice
+ * made here.
+ */
+clientApp.post("/:studioId/weight", requireClient({ write: true }), async (req, res) => {
+  const { userId } = requireSession(req);
+  // The same range as the column's check constraint. The database is what enforces it;
+  // this is so a slipped decimal comes back as a message instead of a 500.
+  const { kg } = z.object({ kg: z.number().min(25).max(400) }).parse(req.body);
+
+  await db.insert(schema.bodyMetrics).values({
+    id: newId(),
+    userId,
+    weightKg: kg,
+    source: "client",
+  });
+
+  res.status(201).json({ weightKg: kg });
 });
 
 /* ---- check-ins ---- */

@@ -1,5 +1,6 @@
 export { queryKeys } from "./keys";
 export { QueryProvider } from "./provider";
+export { useActiveStudio } from "./use-active-studio";
 export {
   useAuthConfig,
   useDevLogin,
@@ -13,6 +14,7 @@ export {
 export {
   useCheckIn,
   useCheckIns,
+  useLogWeight,
   useSubmitCheckIn,
   useToday,
   useUploadsConfigured,

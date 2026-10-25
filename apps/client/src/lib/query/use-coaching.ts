@@ -29,6 +29,20 @@ export function useToday(studioId: string | null) {
   });
 }
 
+/**
+ * Log a weight.
+ *
+ * Invalidates Today because the chart on it reads `body_metric` — the new point *is* the
+ * feedback, so refetching is the confirmation rather than a toast saying "saved".
+ */
+export function useLogWeight(studioId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (kg: number) => todayApi.logWeight(studioId, kg),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.client.today(studioId) }),
+  });
+}
+
 export function useCheckIns(studioId: string | null) {
   return useQuery({
     queryKey: queryKeys.client.checkIns(studioId ?? ""),

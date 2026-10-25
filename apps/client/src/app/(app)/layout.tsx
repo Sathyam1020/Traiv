@@ -10,7 +10,7 @@ import { StatusGate } from "@/components/common/status-gate";
 import { AccountButton } from "@/components/layout/account-button";
 import { navFor } from "@/components/layout/nav-items";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
-import { useCoaches, useIntake, useSession, useToday } from "@/lib/query";
+import { useActiveStudio, useIntake, useSession, useToday } from "@/lib/query";
 
 /**
  * The frame for every signed-in client screen.
@@ -25,14 +25,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const session = useSession();
   const signedIn = Boolean(session.data?.user);
 
-  const coaches = useCoaches(signedIn);
-  // Any one of their coaches will do to ask through — the answers belong to the person,
-  // and the studio in the path is what authorises the read, not what scopes it.
-  const running = coaches.data?.find((c) => c.status === "active");
-  const studioId = (running ?? coaches.data?.[0])?.studio.id ?? null;
   // Blocked only when nothing is running. With two coaches and one paused, the app works
   // and the paused one carries its state on its own card.
-  const blocked = coaches.data?.length ? !running : false;
+  const { studioId, stalled } = useActiveStudio();
+  const blocked = stalled !== null;
   const intake = useIntake(studioId);
 
   /**
@@ -61,7 +57,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }, [blocked, studioId, intake.data, router]);
 
   if (blocked) {
-    const stalled = coaches.data?.[0];
     return <StatusGate status={stalled?.status} coachName={stalled?.studio.name} />;
   }
 
