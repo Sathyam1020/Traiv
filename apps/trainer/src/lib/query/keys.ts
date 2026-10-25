@@ -30,6 +30,10 @@ export const queryKeys = {
    */
   client: {
     one: (studioId: string, clientId: string) => ["client", studioId, clientId] as const,
+    overview: (studioId: string, clientId: string) =>
+      ["client", studioId, clientId, "overview"] as const,
+    checkIns: (studioId: string, clientId: string) =>
+      ["client", studioId, clientId, "check-ins"] as const,
     all: (studioId: string) => ["client", studioId] as const,
   },
   join: {

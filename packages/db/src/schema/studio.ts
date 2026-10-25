@@ -1,5 +1,15 @@
 import { sql } from "drizzle-orm";
-import { boolean, index, pgEnum, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  check,
+  index,
+  integer,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 import { users } from "./user.js";
 
 export const studioTier = pgEnum("studio_tier", ["free", "starter", "pro", "studio"]);
@@ -39,6 +49,17 @@ export const studios = pgTable(
     joinEnabled: boolean().notNull().default(true),
 
     timezone: text().notNull().default("Asia/Kolkata"),
+
+    /**
+     * The check-in cadence every new client inherits. Weekly on a Monday, because a
+     * week is the shortest period a weight trend means anything over and Monday is
+     * where most people put the start of theirs.
+     *
+     * `checkInGraceDays` is how long after the due date a submission still counts.
+     * Seven days: a client who misses Monday has until the next one.
+     */
+    checkInWeekday: integer().notNull().default(1),
+    checkInGraceDays: integer().notNull().default(7),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
       .notNull()
@@ -47,6 +68,8 @@ export const studios = pgTable(
     deletedAt: timestamp({ withTimezone: true }),
   },
   (t) => [
+    check("studio_checkin_weekday", sql`${t.checkInWeekday} between 0 and 6`),
+    check("studio_checkin_grace", sql`${t.checkInGraceDays} between 1 and 60`),
     uniqueIndex("studio_slug_key").on(t.slug).where(sql`${t.deletedAt} is null`),
     uniqueIndex("studio_join_code_key").on(t.joinCode).where(sql`${t.deletedAt} is null`),
   ],

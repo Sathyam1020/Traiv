@@ -50,6 +50,26 @@ async function addClient(name: string, over: Partial<typeof schema.clients.$infe
   return id;
 }
 
+/** The chips read `check_in` now, so the fixtures have to write them. */
+async function addCheckIn(
+  clientId: string,
+  opts: { dueDaysAgo: number; graceDays?: number; completed?: boolean },
+) {
+  const due = daysAgo(opts.dueDaysAgo).toISOString().slice(0, 10);
+  const closes = daysAgo(opts.dueDaysAgo - (opts.graceDays ?? 7))
+    .toISOString()
+    .slice(0, 10);
+
+  await db.insert(schema.checkIns).values({
+    id: newId(),
+    clientId,
+    dueOn: due,
+    closesOn: closes,
+    status: opts.completed ? "completed" : "pending",
+    completedAt: opts.completed ? daysAgo(opts.dueDaysAgo) : null,
+  });
+}
+
 async function logSession(clientId: string, completedAt: Date) {
   await db.insert(schema.sessions_).values({
     id: newId(),
@@ -84,12 +104,16 @@ beforeAll(async () => {
   // One client per signal, so a chip counting 1 means it counted the right row.
   ids.fresh = await addClient("Fresh Session");
   await logSession(ids.fresh, daysAgo(2));
+  await addCheckIn(ids.fresh, { dueDaysAgo: 3, completed: true });
 
   ids.stale = await addClient("Stale Session");
   await logSession(ids.stale, daysAgo(40));
+  // Due five weeks ago, window long shut, never submitted.
+  await addCheckIn(ids.stale, { dueDaysAgo: 35 });
 
   ids.ending = await addClient("Ending Soon", { endsAt: daysAgo(-10) });
   await logSession(ids.ending, daysAgo(1));
+  await addCheckIn(ids.ending, { dueDaysAgo: 1, completed: true });
 
   ids.paused = await addClient("On Hold", { status: "paused" });
   ids.ended = await addClient("All Done", { status: "archived" });
@@ -142,9 +166,9 @@ describe("the roster", () => {
   it("counts each chip against the right client", async () => {
     const { filters } = body(await roster());
     expect(filters.all).toBe(3);
-    // Fresh and ending both logged within the week; stale did not.
+    // Both submitted a check-in inside the week.
     expect(filters["new-checkin"]).toBe(2);
-    // Only the one whose last session is 40 days old.
+    // One check-in was due five weeks ago and its window has shut.
     expect(filters["missing-checkin"]).toBe(1);
     expect(filters["ending-soon"]).toBe(1);
     // There is no messages table yet, so this is zero rather than wrong.
@@ -159,11 +183,39 @@ describe("the roster", () => {
     expect(ending.clients.map((c) => c.name)).toEqual(["Ending Soon"]);
   });
 
-  it("treats a client who has never logged a session as missing, not as fresh", async () => {
+  /**
+   * A deliberate change of meaning.
+   *
+   * The chip used to read "nobody has logged a workout for ten days", which caught
+   * clients nobody had ever asked anything of. It now means "a check-in was due and
+   * the window closed" — so somebody with nothing scheduled is in neither chip, which
+   * is the honest answer.
+   */
+  it("leaves a client with nothing scheduled out of both check-in chips", async () => {
     const id = await addClient("Never Started");
-    const missing = body(await roster("?filter=missing-checkin"));
-    expect(missing.clients.map((c: { name: string }) => c.name)).toContain("Never Started");
-    await db.delete(schema.clients).where(eq(schema.clients.id, id));
+    try {
+      const missing = body(await roster("?filter=missing-checkin"));
+      expect(missing.clients.map((c) => c.name)).not.toContain("Never Started");
+
+      const fresh = body(await roster("?filter=new-checkin"));
+      expect(fresh.clients.map((c) => c.name)).not.toContain("Never Started");
+    } finally {
+      // In a `finally` so one bad assertion cannot leak a client into every later
+      // test's counts — which is exactly what happened when the chips changed.
+      await db.delete(schema.clients).where(eq(schema.clients.id, id));
+    }
+  });
+
+  it("does not count an overdue check-in as missed — there is still time", async () => {
+    const id = await addClient("Still Has Time");
+    try {
+      // Due yesterday, closes in six days.
+      await addCheckIn(id, { dueDaysAgo: 1, graceDays: 7 });
+      const missing = body(await roster("?filter=missing-checkin"));
+      expect(missing.clients.map((c) => c.name)).not.toContain("Still Has Time");
+    } finally {
+      await db.delete(schema.clients).where(eq(schema.clients.id, id));
+    }
   });
 
   it("carries each client's last session on the row, not only in the counts", async () => {
@@ -392,5 +444,195 @@ describe("one client", () => {
 
   it("is refused outright in a studio the coach is not a member of", async () => {
     expect((await coach.get(`/studios/${otherStudioId}/clients/${ids.fresh}`)).status).toBe(403);
+  });
+});
+
+describe("the client overview", () => {
+  type Overview = {
+    hasAccount: boolean;
+    startedAt: string;
+    weight: {
+      currentKg: number;
+      changeKg: number;
+      weighIns: number;
+      targetKg: number | null;
+    } | null;
+    energy:
+      | { source: "prescribed" | "computed"; kcal: number; basis: unknown; missing: string[] }
+      | { source: "none"; missing: string[] };
+    nutrition: { diet: string | null; healthFlags: string[] } | null;
+    training: { sessions: number; lastSessionAt: string | null; days: string[] };
+  };
+  const ov = (res: { body: Record<string, unknown> }) =>
+    (res.body as unknown as { overview: Overview }).overview;
+
+  const get = (id: string) => coach.get(`/studios/${studioId}/clients/${id}/overview`);
+
+  const LINKED_PHONE = "+918600000398";
+
+  /** A user with an intake and two weigh-ins, linked to one of the seeded clients. */
+  async function linkAccount(
+    clientId: string,
+    over: Partial<typeof schema.userIntakes.$inferInsert> = {},
+    weights: { kg: number; daysAgo: number }[] = [],
+  ) {
+    const userId = newId();
+    // Clear any row left behind by a run that failed before its cleanup. Without this
+    // one broken assertion poisons every later test in the file — and every later run,
+    // because the phone is uniquely indexed.
+    await db.delete(schema.users).where(eq(schema.users.phone, LINKED_PHONE));
+    await db.insert(schema.users).values({ id: userId, name: "Linked", phone: LINKED_PHONE });
+    await db.insert(schema.userIntakes).values({
+      id: newId(),
+      userId,
+      sex: "male",
+      birthYear: 1996,
+      heightCm: 178,
+      goal: "lose_fat",
+      dailyActivity: "moderate",
+      diet: "vegetarian",
+      targetWeightKg: 72,
+      ...over,
+    });
+    for (const w of weights) {
+      await db.insert(schema.bodyMetrics).values({
+        id: newId(),
+        userId,
+        weightKg: w.kg,
+        source: "check_in",
+        takenAt: daysAgo(w.daysAgo),
+      });
+    }
+    await db.update(schema.clients).set({ userId }).where(eq(schema.clients.id, clientId));
+    return userId;
+  }
+
+  async function unlink(clientId: string, userId: string) {
+    await db.update(schema.clients).set({ userId: null }).where(eq(schema.clients.id, clientId));
+    await db.delete(schema.nutritionTargets).where(eq(schema.nutritionTargets.userId, userId));
+    await db.delete(schema.bodyMetrics).where(eq(schema.bodyMetrics.userId, userId));
+    await db.delete(schema.userIntakes).where(eq(schema.userIntakes.userId, userId));
+    await db.delete(schema.users).where(eq(schema.users.id, userId));
+  }
+
+  it("serves the whole screen in one request", async () => {
+    const res = await get(ids.fresh);
+    expect(res.status).toBe(200);
+    const o = ov(res);
+    expect(o.startedAt).toBeTruthy();
+    expect(o.training.lastSessionAt).not.toBeNull();
+  });
+
+  /**
+   * The reason `hasAccount` is its own field. Age, sex, height and weight hang off the
+   * user, so a client the coach typed in has none of them — and the screen must be told
+   * that rather than left to guess from nulls that could mean "not answered yet".
+   */
+  it("returns no body or intake for a client who has never signed in", async () => {
+    const o = ov(await get(ids.fresh));
+    expect(o.hasAccount).toBe(false);
+    expect(o.weight).toBeNull();
+    expect(o.nutrition).toBeNull();
+    expect(o.energy.source).toBe("none");
+  });
+
+  it("computes the weight delta against the previous weigh-in", async () => {
+    const userId = await linkAccount(ids.paused, {}, [
+      { kg: 80, daysAgo: 30 },
+      { kg: 77.5, daysAgo: 10 },
+      { kg: 76, daysAgo: 0 },
+    ]);
+
+    const o = ov(await get(ids.paused));
+    expect(o.weight?.currentKg).toBe(76);
+    // Against the reading before it (77.5), not the oldest one and not itself.
+    expect(o.weight?.changeKg).toBe(-1.5);
+    expect(o.weight?.targetKg).toBe(72);
+
+    await unlink(ids.paused, userId);
+  });
+
+  it("reports no movement, and says how many readings that is from", async () => {
+    const userId = await linkAccount(ids.paused, {}, [{ kg: 76, daysAgo: 0 }]);
+    const o = ov(await get(ids.paused));
+    expect(o.weight?.currentKg).toBe(76);
+    // Zero rather than null: the card reads "+0 kg since last weigh-in", and `weighIns`
+    // is what tells the screen there is nothing to compare against yet.
+    expect(o.weight?.changeKg).toBe(0);
+    expect(o.weight?.weighIns).toBe(1);
+    await unlink(ids.paused, userId);
+  });
+
+  it("computes energy from the intake when nothing has been prescribed", async () => {
+    const userId = await linkAccount(ids.paused, {}, [{ kg: 80, daysAgo: 0 }]);
+    const o = ov(await get(ids.paused));
+
+    expect(o.energy.source).toBe("computed");
+    if (o.energy.source === "none") throw new Error("expected a computed target");
+    expect(o.energy.kcal).toBeGreaterThan(1200);
+    expect(o.energy.basis).toBeTruthy();
+
+    await unlink(ids.paused, userId);
+  });
+
+  it("names what is missing instead of returning an empty energy card", async () => {
+    // No weigh-in and no height: the equation cannot run, and the coach is the one who
+    // can go and ask for them.
+    const userId = await linkAccount(ids.paused, { heightCm: null }, []);
+    const o = ov(await get(ids.paused));
+
+    expect(o.energy.source).toBe("none");
+    expect(o.energy.missing).toContain("height");
+    expect(o.energy.missing).toContain("weight");
+
+    await unlink(ids.paused, userId);
+  });
+
+  it("prefers a prescribed target over a computed one, and carries its derivation", async () => {
+    const userId = await linkAccount(ids.paused, {}, [{ kg: 80, daysAgo: 0 }]);
+    await db.insert(schema.nutritionTargets).values({
+      id: newId(),
+      userId,
+      kcal: 1850,
+      proteinG: 150,
+      carbsG: 180,
+      fatG: 55,
+      basis: { formula: "mifflin-st-jeor@1", bmr: 1800 },
+      status: "active",
+      createdBy: "coach",
+    });
+
+    const o = ov(await get(ids.paused));
+    expect(o.energy.source).toBe("prescribed");
+    if (o.energy.source === "none") throw new Error("expected a prescribed target");
+    expect(o.energy.kcal).toBe(1850);
+    expect(o.energy.basis).toMatchObject({ formula: "mifflin-st-jeor@1" });
+
+    await unlink(ids.paused, userId);
+  });
+
+  it("counts only completed sessions, and only inside the window", async () => {
+    // ids.stale last trained well outside the 30-day window.
+    const o = ov(await get(ids.stale));
+    expect(o.training.sessions).toBe(0);
+    expect(o.training.lastSessionAt).toBeNull();
+
+    const fresh = ov(await get(ids.fresh));
+    expect(fresh.training.sessions).toBeGreaterThan(0);
+    expect(fresh.training.days.length).toBe(new Set(fresh.training.days).size);
+  });
+
+  it("will not read a client belonging to another studio", async () => {
+    const theirs = newId();
+    await db
+      .insert(schema.clients)
+      .values({ id: theirs, studioId: otherStudioId, coachId: otherMembershipId, name: "Theirs" });
+    expect((await get(theirs)).status).toBe(404);
+    await db.delete(schema.clients).where(eq(schema.clients.id, theirs));
+  });
+
+  it("is refused in a studio the coach is not a member of", async () => {
+    const res = await coach.get(`/studios/${otherStudioId}/clients/${ids.fresh}/overview`);
+    expect(res.status).toBe(403);
   });
 });

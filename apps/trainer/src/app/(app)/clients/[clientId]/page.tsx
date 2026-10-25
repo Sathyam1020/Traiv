@@ -4,21 +4,26 @@ import { Button } from "@traiv/ui/components/button";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useActiveStudioId } from "@/lib/active-studio";
-import { useClient, useTags } from "@/lib/query";
+import { useCheckIns, useClient, useClientOverview, useTags } from "@/lib/query";
 import { ClientHeader, ClientHeaderSkeleton } from "../_components/client-header";
+import { Overview, OverviewSkeleton } from "../_components/overview/overview";
 
 /**
  * One client.
  *
- * Only the header exists so far. The five tabs it carries are the shape of what comes
- * next, and the body below says which one is being built rather than filling the space
- * with cards that have no data behind them — the roster already taught us that a panel
- * with nothing in it reads as broken rather than as unfinished.
+ * The header and the overview are built. The four remaining tabs it carries are the
+ * shape of what comes next.
+ *
+ * Two requests, not one: the header and the overview are separate so the name and status
+ * paint immediately while the aggregate is still in flight. They are separate cache
+ * entries for the same reason.
  */
 export default function ClientPage() {
   const { clientId } = useParams<{ clientId: string }>();
   const studioId = useActiveStudioId();
   const client = useClient(studioId, clientId);
+  const overview = useClientOverview(studioId, clientId);
+  const checkIns = useCheckIns(studioId, clientId);
   const tags = useTags(studioId);
 
   if (client.isPending) {
@@ -46,12 +51,15 @@ export default function ClientPage() {
     <div className="flex flex-1 flex-col">
       <ClientHeader studioId={studioId} client={client.data} tags={tags.data ?? []} />
 
-      <div className="flex flex-1 items-center justify-center px-6 py-20">
-        <p className="max-w-sm text-center text-body-sm text-fg-subtle">
-          The overview is next: weight against their goal, the energy targets and how they were
-          worked out, and whether they are actually training.
+      {overview.isPending ? (
+        <OverviewSkeleton />
+      ) : overview.data ? (
+        <Overview data={overview.data} checkIns={checkIns.data} />
+      ) : (
+        <p className="px-6 py-16 text-center text-body-sm text-fg-muted">
+          We couldn&apos;t load this client&apos;s overview. Reload to try again.
         </p>
-      </div>
+      )}
     </div>
   );
 }

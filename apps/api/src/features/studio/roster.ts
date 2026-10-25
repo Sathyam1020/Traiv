@@ -1,4 +1,6 @@
 import { newId, schema } from "@traiv/db";
+import type { ActivityLevel, DietType, Goal, HealthFlag, Sex } from "@traiv/nutrition";
+import { energyTarget } from "@traiv/nutrition";
 import { and, asc, desc, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import { db } from "../../db.js";
 import { badRequest, notFound } from "../../errors.js";
@@ -15,9 +17,7 @@ import { badRequest, notFound } from "../../errors.js";
 export const ROSTER_STATUSES = ["active", "paused", "archived"] as const;
 export type RosterStatus = (typeof ROSTER_STATUSES)[number];
 
-/** How long without a logged session before the coach should be looking. */
-const STALE_DAYS = 10;
-/** How recent a session counts as something new to read. */
+/** How recently a check-in must have been submitted to count as new to read. */
 const FRESH_DAYS = 7;
 /** How close to the end date counts as "ending soon". */
 const ENDING_DAYS = 30;
@@ -52,13 +52,31 @@ const lastSession = sql<Date | null>`(
   where ts.client_id = ${CLIENT_ID} and ts.completed_at is not null
 )`;
 
+/**
+ * A check-in that was due and never submitted, and one submitted recently.
+ *
+ * These replace what used to be staleness heuristics over `training_session` — "nobody
+ * has logged a workout for ten days" was the closest thing available before check-ins
+ * existed, and it answered a different question. `CLIENT_ID` is raw for the same reason
+ * as `lastSession`: an interpolated column renders unqualified and silently binds to
+ * the wrong table inside the subquery.
+ */
+const missedCheckIn = sql<boolean>`exists (
+  select 1 from check_in c
+  where c.client_id = ${CLIENT_ID} and c.status = 'pending' and c.closes_on < current_date
+)`;
+
+const recentCheckIn = sql<boolean>`exists (
+  select 1 from check_in c
+  where c.client_id = ${CLIENT_ID} and c.status = 'completed'
+    and c.completed_at >= now() - interval '${sql.raw(String(FRESH_DAYS))} days'
+)`;
+
 const SIGNALS = {
   all: sql`true`,
   unread: sql`false`,
-  "new-checkin": sql`${lastSession} >= now() - interval '${sql.raw(String(FRESH_DAYS))} days'`,
-  "missing-checkin": sql`(
-    ${lastSession} is null or ${lastSession} < now() - interval '${sql.raw(String(STALE_DAYS))} days'
-  )`,
+  "new-checkin": recentCheckIn,
+  "missing-checkin": missedCheckIn,
   "ending-soon": sql`(
     ${schema.clients.endsAt} is not null
     and ${schema.clients.endsAt} <= now() + interval '${sql.raw(String(ENDING_DAYS))} days'
@@ -282,6 +300,269 @@ export async function getClient(studioId: string, clientId: string) {
   };
 }
 
+/* -------------------------------------------------------------------------- */
+/* The overview                                                                */
+/* -------------------------------------------------------------------------- */
+
+/** The training window the overview summarises. */
+const TRAINING_WINDOW_DAYS = 30;
+
+/**
+ * Everything the client's overview screen shows, in one request.
+ *
+ * One aggregate rather than six round trips, because the alternative is six sequential
+ * trips to a database on another continent. The five reads below do not depend on each
+ * other, so they go out together.
+ *
+ * `energy` and `nutrition` are null when the client has no account. Age, sex, height and
+ * weight hang off `users.id` — a person answers the intake once however many coaches
+ * they have (ADR 0004) — so a client the coach typed in genuinely has none of it. Four
+ * nulls cannot be told apart from four unanswered questions; `hasAccount` can.
+ */
+export async function getClientOverview(studioId: string, clientId: string) {
+  const [row] = await db
+    .select({
+      id: schema.clients.id,
+      userId: schema.clients.userId,
+      startedAt: schema.clients.createdAt,
+      endsAt: schema.clients.endsAt,
+      activatedAt: schema.clients.activatedAt,
+      goal: schema.clients.goal,
+      constraints: schema.clients.constraints,
+    })
+    .from(schema.clients)
+    .where(and(alive(studioId), eq(schema.clients.id, clientId)))
+    .limit(1);
+
+  if (!row) throw notFound("No such client.");
+  const userId = row.userId;
+
+  const forUser = <T>(q: () => Promise<T>, empty: T) => (userId ? q() : Promise.resolve(empty));
+
+  const [intakeRows, weights, targets, sessions] = await Promise.all([
+    forUser(
+      () =>
+        db
+          .select({
+            sex: schema.userIntakes.sex,
+            birthYear: schema.userIntakes.birthYear,
+            heightCm: schema.userIntakes.heightCm,
+            goal: schema.userIntakes.goal,
+            targetWeightKg: schema.userIntakes.targetWeightKg,
+            dailyActivity: schema.userIntakes.dailyActivity,
+            diet: schema.userIntakes.diet,
+            allergies: schema.userIntakes.allergies,
+            dislikes: schema.userIntakes.dislikes,
+            healthFlags: schema.userIntakes.healthFlags,
+            completedAt: schema.userIntakes.completedAt,
+          })
+          .from(schema.userIntakes)
+          .where(eq(schema.userIntakes.userId, userId as string))
+          .limit(1),
+      [],
+    ),
+
+    // Newest first. The delta needs the most recent reading and the newest one that is
+    // at least a week old, so a client who weighed in three times today still shows a
+    // week's change rather than zero.
+    forUser(
+      () =>
+        db
+          .select({ weightKg: schema.bodyMetrics.weightKg, takenAt: schema.bodyMetrics.takenAt })
+          .from(schema.bodyMetrics)
+          .where(eq(schema.bodyMetrics.userId, userId as string))
+          .orderBy(desc(schema.bodyMetrics.takenAt))
+          .limit(60),
+      [],
+    ),
+
+    forUser(
+      () =>
+        db
+          .select({
+            kcal: schema.nutritionTargets.kcal,
+            proteinG: schema.nutritionTargets.proteinG,
+            carbsG: schema.nutritionTargets.carbsG,
+            fatG: schema.nutritionTargets.fatG,
+            basis: schema.nutritionTargets.basis,
+            reviewReasons: schema.nutritionTargets.reviewReasons,
+            effectiveFrom: schema.nutritionTargets.effectiveFrom,
+          })
+          .from(schema.nutritionTargets)
+          .where(
+            and(
+              eq(schema.nutritionTargets.userId, userId as string),
+              eq(schema.nutritionTargets.status, "active"),
+            ),
+          )
+          .limit(1),
+      [],
+    ),
+
+    db
+      .select({ completedAt: schema.sessions_.completedAt })
+      .from(schema.sessions_)
+      .where(
+        and(
+          eq(schema.sessions_.clientId, clientId),
+          isNotNull(schema.sessions_.completedAt),
+          sql`${schema.sessions_.completedAt} >= now() - interval '${sql.raw(
+            String(TRAINING_WINDOW_DAYS),
+          )} days'`,
+        ),
+      )
+      .orderBy(desc(schema.sessions_.completedAt)),
+  ]);
+
+  const intake = intakeRows[0] ?? null;
+  const latest = weights[0] ?? null;
+
+  // The reading before the latest one — the card says "since last weigh-in", so that is
+  // what it compares against, not a fixed window.
+  const earlier = weights[1] ?? null;
+
+  return {
+    id: row.id,
+    hasAccount: userId !== null,
+    startedAt: row.startedAt,
+    endsAt: row.endsAt,
+    activatedAt: row.activatedAt,
+    coachingGoal: row.goal,
+    constraints: row.constraints,
+
+    weight: latest
+      ? {
+          currentKg: latest.weightKg,
+          takenAt: latest.takenAt,
+          // Null rather than zero when there is nothing to compare against: "no change"
+          // and "we have only ever weighed you once" are different facts.
+          changeKg: earlier ? round1(latest.weightKg - earlier.weightKg) : 0,
+          comparedTo: earlier?.takenAt ?? null,
+          weighIns: weights.length,
+          targetKg: intake?.targetWeightKg ?? null,
+        }
+      : null,
+
+    energy: energyFor(intake, latest?.weightKg ?? null, targets[0] ?? null),
+
+    nutrition: intake
+      ? {
+          diet: intake.diet,
+          allergies: intake.allergies,
+          dislikes: intake.dislikes,
+          healthFlags: intake.healthFlags ?? [],
+          intakeCompletedAt: intake.completedAt,
+        }
+      : null,
+
+    /**
+     * What we can prove happened, newest first.
+     *
+     * There is no audit table, so this is derived from timestamps the client row
+     * already carries rather than invented. Status changes and delivered emails are
+     * absent because nothing records them — see `unknowns` in the research.
+     */
+    activity: [
+      row.activatedAt
+        ? { kind: "activated" as const, at: row.activatedAt, title: "First app login" }
+        : null,
+      { kind: "created" as const, at: row.startedAt, title: "Client created" },
+    ].filter((e): e is { kind: "activated" | "created"; at: Date; title: string } => e !== null),
+
+    training: {
+      windowDays: TRAINING_WINDOW_DAYS,
+      sessions: sessions.length,
+      lastSessionAt: sessions[0]?.completedAt ?? null,
+      // One entry per day a session was completed, newest first, for the sparkline.
+      days: [...new Set(sessions.map((s) => (s.completedAt as Date).toISOString().slice(0, 10)))],
+    },
+  };
+}
+
+const round1 = (n: number) => Math.round(n * 10) / 10;
+
+/**
+ * The energy card: a stored target if one is active, otherwise one computed from the
+ * intake so the card works before any plan exists.
+ *
+ * `source` says which, because a coach looking at a number needs to know whether it is
+ * what the client was actually prescribed or what the calculator would suggest today.
+ */
+function energyFor(
+  intake: {
+    sex: "male" | "female" | "undisclosed" | null;
+    birthYear: number | null;
+    heightCm: number | null;
+    goal: Goal | null;
+    targetWeightKg: number | null;
+    dailyActivity: ActivityLevel | null;
+    diet: DietType | null;
+    healthFlags: string[] | null;
+  } | null,
+  weightKg: number | null,
+  stored: {
+    kcal: number;
+    proteinG: number;
+    carbsG: number;
+    fatG: number;
+    basis: unknown;
+    reviewReasons: string[] | null;
+    effectiveFrom: Date;
+  } | null,
+) {
+  if (stored) {
+    return {
+      source: "prescribed" as const,
+      kcal: stored.kcal,
+      proteinG: stored.proteinG,
+      carbsG: stored.carbsG,
+      fatG: stored.fatG,
+      basis: stored.basis,
+      review: stored.reviewReasons ?? [],
+      effectiveFrom: stored.effectiveFrom,
+      missing: [] as string[],
+    };
+  }
+
+  // Everything the Mifflin-St Jeor equation needs. Naming what is missing is more use to
+  // a coach than an empty card — they are the one who can go and ask for it.
+  const missing: string[] = [];
+  if (!intake?.sex || intake.sex === "undisclosed") missing.push("sex");
+  if (!intake?.birthYear) missing.push("age");
+  if (!intake?.heightCm) missing.push("height");
+  if (!weightKg) missing.push("weight");
+  if (!intake?.dailyActivity) missing.push("activity level");
+  if (!intake?.goal) missing.push("goal");
+  if (missing.length > 0 || !intake) return { source: "none" as const, missing };
+
+  const body = {
+    sex: intake.sex as Sex,
+    age: new Date().getFullYear() - (intake.birthYear as number),
+    heightCm: intake.heightCm as number,
+    weightKg: weightKg as number,
+  };
+  const target = energyTarget({
+    ...body,
+    goal: intake.goal as Goal,
+    activity: intake.dailyActivity as ActivityLevel,
+    diet: (intake.diet ?? "vegetarian") as DietType,
+    health: (intake.healthFlags ?? []) as HealthFlag[],
+    ...(intake.targetWeightKg ? { targetWeightKg: intake.targetWeightKg } : {}),
+  });
+
+  return {
+    source: "computed" as const,
+    kcal: target.kcal,
+    proteinG: target.protein,
+    carbsG: target.carbs,
+    fatG: target.fat,
+    basis: target.basis,
+    review: target.review,
+    effectiveFrom: null,
+    missing: [] as string[],
+  };
+}
+
 /**
  * Change a client's status or end date.
  *
@@ -292,7 +573,13 @@ export async function getClient(studioId: string, clientId: string) {
 export async function updateClient(
   studioId: string,
   clientId: string,
-  patch: { status?: RosterStatus; endsAt?: Date | null },
+  patch: {
+    status?: RosterStatus;
+    endsAt?: Date | null;
+    checkInWeekday?: number | null;
+    checkInGraceDays?: number | null;
+    checkInsEnabled?: boolean;
+  },
 ) {
   const [updated] = await db
     .update(schema.clients)

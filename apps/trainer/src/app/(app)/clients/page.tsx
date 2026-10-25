@@ -1,8 +1,8 @@
 "use client";
 
-import { Avatar } from "@traiv/ui/components/avatar";
 import { Badge } from "@traiv/ui/components/badge";
 import { Button } from "@traiv/ui/components/button";
+import { ClientAvatar } from "@traiv/ui/components/client-avatar";
 import { Input } from "@traiv/ui/components/input";
 import {
   Select,
@@ -27,8 +27,8 @@ import {
   TableHeader,
   TableRow,
 } from "@traiv/ui/components/table";
+import { Activity, Apple, ChevronLeft, ChevronRight, Search } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
-import { Activity, Apple, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -288,7 +288,7 @@ function Row({
           href={`/clients/${client.id}`}
           className="flex items-center gap-2.5 rounded-control focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-focus"
         >
-          <Avatar name={client.name} size={28} />
+          <ClientAvatar id={client.id} name={client.name} size={28} />
           <span className="font-medium">{client.name}</span>
         </Link>
       </TableCell>
@@ -329,7 +329,7 @@ function ClientCard({
       <div className="flex items-start gap-3">
         {/* The whole name block is the tap target. A 28px link on a phone is not one. */}
         <Link href={`/clients/${client.id}`} className="flex min-w-0 flex-1 items-start gap-3">
-          <Avatar name={client.name} size={34} />
+          <ClientAvatar id={client.id} name={client.name} size={34} />
           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
             <span className="truncate font-medium">{client.name}</span>
             <span className="text-caption text-fg-muted">

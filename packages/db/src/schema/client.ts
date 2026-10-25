@@ -1,5 +1,15 @@
 import { sql } from "drizzle-orm";
-import { check, index, pgEnum, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import {
+  boolean,
+  check,
+  index,
+  integer,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 import { memberships, studios } from "./studio.js";
 import { users } from "./user.js";
 
@@ -61,6 +71,16 @@ export const clients = pgTable(
      */
     endsAt: timestamp({ withTimezone: true }),
 
+    /**
+     * This client's own check-in cadence. Null inherits the studio's, which is what
+     * almost every client will do — an override exists because a competition prep and
+     * a general-fitness client do not want the same rhythm.
+     */
+    checkInWeekday: integer(),
+    checkInGraceDays: integer(),
+    /** Null means check-ins are off for this client entirely. */
+    checkInsEnabled: boolean().notNull().default(true),
+
     // The activation metric. Set on their first logged workout, never before.
     activatedAt: timestamp({ withTimezone: true }),
 
@@ -84,6 +104,14 @@ export const clients = pgTable(
     // possible if both sides are stored identically.
     check("client_phone_e164", sql`${t.phone} is null or ${t.phone} ~ '^[+][1-9][0-9]{7,14}$'`),
     check("client_email_lower", sql`${t.email} is null or ${t.email} = lower(${t.email})`),
+    check(
+      "client_checkin_weekday",
+      sql`${t.checkInWeekday} is null or ${t.checkInWeekday} between 0 and 6`,
+    ),
+    check(
+      "client_checkin_grace",
+      sql`${t.checkInGraceDays} is null or ${t.checkInGraceDays} between 1 and 60`,
+    ),
   ],
 );
 

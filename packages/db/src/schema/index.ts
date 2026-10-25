@@ -1,5 +1,6 @@
 export * from "./analytics.js";
 export * from "./auth.js";
+export * from "./check-in.js";
 export * from "./client.js";
 export * from "./endorse.js";
 export * from "./intake.js";

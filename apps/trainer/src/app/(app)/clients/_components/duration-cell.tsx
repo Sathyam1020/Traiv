@@ -3,7 +3,7 @@
 import { Button } from "@traiv/ui/components/button";
 import { Calendar } from "@traiv/ui/components/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@traiv/ui/components/popover";
-import { Infinity as InfinityIcon, X } from "lucide-react";
+import { Unlimited, X } from "@traiv/ui/icons";
 import { useState } from "react";
 import { useUpdateClient } from "@/lib/query";
 
@@ -57,7 +57,7 @@ export function DurationCell({
             {ends ? (
               <span>{shortDate(ends)}</span>
             ) : (
-              <InfinityIcon className="size-4 text-fg-subtle" />
+              <Unlimited className="size-4 text-fg-subtle" />
             )}
           </button>
         </PopoverTrigger>
@@ -87,7 +87,7 @@ export function DurationCell({
               className="w-full justify-start whitespace-nowrap"
               onClick={() => set(undefined)}
             >
-              {ends ? <X className="size-4" /> : <InfinityIcon className="size-4" />}
+              {ends ? <X className="size-4" /> : <Unlimited className="size-4" />}
               {ends ? "Clear the end date" : "Keep it open-ended"}
             </Button>
           </div>

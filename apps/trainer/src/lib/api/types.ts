@@ -102,6 +102,89 @@ export type ClientProfile = {
   lastSeenAt: string | null;
 };
 
+/** The client's overview screen, served as one aggregate. */
+export type ClientOverview = {
+  id: string;
+  hasAccount: boolean;
+  startedAt: string;
+  endsAt: string | null;
+  activatedAt: string | null;
+  coachingGoal: string | null;
+  constraints: string | null;
+  weight: {
+    currentKg: number;
+    takenAt: string;
+    /** Against the previous weigh-in. 0 when there is only one. */
+    changeKg: number;
+    comparedTo: string | null;
+    weighIns: number;
+    targetKg: number | null;
+  } | null;
+  energy: EnergyCard;
+  nutrition: {
+    diet: string | null;
+    allergies: string | null;
+    dislikes: string | null;
+    healthFlags: string[];
+    intakeCompletedAt: string | null;
+  } | null;
+  activity: { kind: "activated" | "created"; at: string; title: string }[];
+  training: {
+    windowDays: number;
+    sessions: number;
+    lastSessionAt: string | null;
+    days: string[];
+  };
+};
+
+export type EnergyBasis = {
+  formula: string;
+  bmr: number;
+  tdee: number;
+  activityFactor: number;
+  goalAdjustmentPct: number;
+  unboundedKcal: number;
+  boundBy: string;
+  proteinGPerKg: number;
+  bmi: number;
+};
+
+export type EnergyCard =
+  | {
+      /** `prescribed` is what the client was actually given; `computed` is today's suggestion. */
+      source: "prescribed" | "computed";
+      kcal: number;
+      proteinG: number;
+      carbsG: number;
+      fatG: number;
+      basis: EnergyBasis | null;
+      review: string[];
+      effectiveFrom: string | null;
+      missing: string[];
+    }
+  | { source: "none"; missing: string[] };
+
+export type CheckInState = "completed" | "missed" | "overdue" | "upcoming";
+
+export type CheckInCell = {
+  id: string;
+  /** `YYYY-MM-DD`. A check-in is due on a day, not at an instant. */
+  date: string;
+  closesOn: string;
+  state: CheckInState;
+  completedAt: string | null;
+};
+
+export type CheckInTrend = {
+  cells: number;
+  checkIns: CheckInCell[];
+  /** Null before anything has settled — different from nought, and shown differently. */
+  completionRate: number | null;
+  currentStreak: number;
+  completed: number;
+  missed: number;
+};
+
 export type RosterParams = {
   status: RosterStatus;
   filter: RosterFilter;

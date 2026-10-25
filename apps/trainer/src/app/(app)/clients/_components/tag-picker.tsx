@@ -4,8 +4,8 @@ import { Badge } from "@traiv/ui/components/badge";
 import { Button } from "@traiv/ui/components/button";
 import { Input } from "@traiv/ui/components/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@traiv/ui/components/popover";
+import { Check, Loader, Plus, Tag as TagIcon, Trash } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
-import { Check, Loader2, Plus, Tag as TagIcon, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Tag } from "@/lib/api";
 import { useDeleteTag, useSetClientTags } from "@/lib/query";
@@ -198,7 +198,7 @@ function TagRow({
         />
         <span className="min-w-0 flex-1 truncate">{tag.name}</span>
         {saving ? (
-          <Loader2 className="size-4 shrink-0 animate-spin text-fg-muted" />
+          <Loader className="size-4 shrink-0 animate-spin text-fg-muted" />
         ) : on ? (
           <Check className="size-4 shrink-0 text-fg-muted" />
         ) : null}
@@ -214,7 +214,7 @@ function TagRow({
         aria-label={`Delete the ${tag.name} tag`}
         className="flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-control text-fg-subtle/60 transition-colors hover:bg-sunken hover:text-danger focus-visible:outline-2 focus-visible:outline-line-focus pointer-coarse:size-11"
       >
-        <Trash2 className="size-3.5" />
+        <Trash className="size-3.5" />
       </button>
     </div>
   );

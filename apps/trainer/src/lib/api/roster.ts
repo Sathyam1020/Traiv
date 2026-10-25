@@ -1,5 +1,14 @@
 import { http } from "./client";
-import type { ClientProfile, Roster, RosterClient, RosterParams, RosterStatus, Tag } from "./types";
+import type {
+  CheckInTrend,
+  ClientOverview,
+  ClientProfile,
+  Roster,
+  RosterClient,
+  RosterParams,
+  RosterStatus,
+  Tag,
+} from "./types";
 
 /**
  * Everything the clients screen reads and writes.
@@ -15,6 +24,17 @@ export const rosterApi = {
   get: async (studioId: string, clientId: string) =>
     (await http.get<{ client: ClientProfile }>(`/studios/${studioId}/clients/${clientId}`)).data
       .client,
+
+  overview: async (studioId: string, clientId: string) =>
+    (
+      await http.get<{ overview: ClientOverview }>(
+        `/studios/${studioId}/clients/${clientId}/overview`,
+      )
+    ).data.overview,
+
+  checkIns: async (studioId: string, clientId: string) =>
+    (await http.get<{ trend: CheckInTrend }>(`/studios/${studioId}/clients/${clientId}/check-ins`))
+      .data.trend,
 
   update: async (
     studioId: string,

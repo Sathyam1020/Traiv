@@ -3,8 +3,8 @@
 import { MobileBar } from "@traiv/ui/components/shell/mobile-bar";
 import { Sidebar } from "@traiv/ui/components/shell/sidebar";
 import { SidebarProvider, useSidebar } from "@traiv/ui/components/shell/sidebar-context";
+import type { Icon } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
-import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 
 /**
@@ -18,7 +18,7 @@ import type { ReactNode } from "react";
 export type NavItem = {
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon: Icon;
 };
 
 /**
@@ -36,14 +36,21 @@ export type NavGroup = {
 /**
  * The frame for an app with real navigation: trainer and client.
  *
- * The ground is dark and the content sits on it as an inset light panel, rather than the
- * page being light with a light sidebar beside it. The difference is not decoration: it
+ * The ground is the darkest surface and the content sits on it as an inset lit panel —
+ * Featurebase's product frame (ADR 0022) — rather than the page and the sidebar being
+ * one continuous sheet. The difference is not decoration: it
  * puts a hard edge around the thing you are working on, so a dense table reads as a
  * document on a desk instead of running into the chrome. The rail is `bg-contrast`,
  * which is dark in both themes by design — pair it only with `text-contrast-fg`.
  *
  * Below `lg` the panel takes the whole window and navigation moves to the floating bar;
  * a 240px rail on a phone is not navigation, it is a wall.
+ *
+ * Nothing outside the panel scrolls. The root is `h-dvh overflow-hidden`, the panel
+ * fills it, and a single box inside the panel carries the scrollbar. The alternative —
+ * letting the window scroll — drags the panel's rounded corners and its header off the
+ * top of the screen, so the frame the design is built around only exists until you
+ * touch the wheel.
  *
  * The layout rendering this has to be a client component. `NavItem.icon` is a component
  * reference, and functions cannot cross the server→client boundary — a server layout
@@ -106,7 +113,11 @@ function Shell({
   const flat = nav.flatMap((group) => group.items);
 
   return (
-    <div className="min-h-dvh bg-contrast">
+    // `fixed inset-0` rather than `h-dvh`: the shell IS the viewport. Taking it out of
+    // flow leaves the document with no in-flow content at all, so the window cannot
+    // scroll even by a pixel — `h-dvh` left the page draggable on mobile, which shows
+    // up as the whole panel sliding and a strip of nothing underneath it.
+    <div className="fixed inset-0 overflow-hidden bg-contrast">
       <Sidebar
         nav={nav}
         brand={sidebarBrand}
@@ -135,14 +146,24 @@ function Shell({
           the rail rather than chasing it. */}
       <div
         className={cn(
-          "transition-[padding] duration-300 ease-out-soft motion-reduce:transition-none",
+          "h-full transition-[padding] duration-300 ease-out-soft motion-reduce:transition-none",
           "lg:py-3 lg:pr-3",
           collapsed ? "lg:pl-16" : "lg:pl-[15.5rem]",
         )}
       >
-        <main className="flex min-h-dvh flex-col bg-canvas lg:min-h-[calc(100dvh-1.5rem)] lg:rounded-panel lg:border lg:border-line/60">
+        {/* The panel is the frame, and it does not move.
+            `overflow-hidden` is what makes the rounded corners actually clip, so a
+            child's background can no longer paint square over the curve — and it is
+            only safe because the scrolling happens on the element below, not here. */}
+        <main className="flex h-full flex-col overflow-hidden bg-panel lg:rounded-panel lg:border lg:border-line lg:shadow-float">
           {header}
-          {children}
+
+          {/* The one thing that scrolls.
+              `min-h-0` is load-bearing: a flex child's default `min-height: auto`
+              refuses to shrink below its content, so without it this box grows to fit
+              the page, nothing ever overflows, and the whole panel scrolls away
+              instead — which is the bug this layout exists to fix. */}
+          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</div>
         </main>
       </div>
 

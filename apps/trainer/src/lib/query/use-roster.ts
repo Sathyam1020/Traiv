@@ -42,6 +42,26 @@ export function useClient(studioId: string | null, clientId: string) {
   });
 }
 
+/** The overview screen's single aggregate. */
+export function useClientOverview(studioId: string | null, clientId: string) {
+  return useQuery({
+    queryKey: queryKeys.client.overview(studioId ?? "", clientId),
+    queryFn: () => rosterApi.overview(studioId as string, clientId),
+    enabled: Boolean(studioId && clientId),
+    staleTime: ROSTER_FRESH,
+  });
+}
+
+/** The check-in grid. Reading it also materialises any missing schedule. */
+export function useCheckIns(studioId: string | null, clientId: string) {
+  return useQuery({
+    queryKey: queryKeys.client.checkIns(studioId ?? "", clientId),
+    queryFn: () => rosterApi.checkIns(studioId as string, clientId),
+    enabled: Boolean(studioId && clientId),
+    staleTime: ROSTER_FRESH,
+  });
+}
+
 export function useTags(studioId: string | null) {
   return useQuery({
     queryKey: queryKeys.roster.tags(studioId ?? ""),
