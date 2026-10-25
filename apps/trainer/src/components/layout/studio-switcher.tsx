@@ -6,8 +6,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@traiv/ui/components/dropdown-menu";
+import { Check, ChevronsUpDown } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
-import { Check, ChevronsUpDown } from "lucide-react";
 import { useActiveStudioId } from "@/lib/active-studio";
 import { useStudios, useSwitchStudio } from "@/lib/query";
 import { useUiStore } from "@/lib/stores";

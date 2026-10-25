@@ -1,25 +1,25 @@
 import {
   Apple,
-  BarChart3,
+  BarChart,
   CalendarCheck,
   ClipboardList,
   CreditCard,
   Dumbbell,
+  type Icon,
   Inbox,
   LayoutGrid,
-  type LucideIcon,
   MessageCircle,
   Palette,
   Smartphone,
   Users,
-} from "lucide-react";
+} from "@traiv/ui/icons";
 
 export type Feature = {
   slug: string;
   name: string;
   /** One line, for the dropdown. */
   blurb: string;
-  icon: LucideIcon;
+  icon: Icon;
   /** The page's own headline and body. */
   headline: string;
   body: string;
@@ -239,7 +239,7 @@ export const FEATURES: readonly Feature[] = [
     slug: "progress",
     name: "Progress",
     blurb: "Proof it is working",
-    icon: BarChart3,
+    icon: BarChart,
     headline: "The answer to “is this even working”",
     body: "Weight over months rather than a number that moved this morning. Photos in order. What they lifted in week one against week eight.",
     points: [

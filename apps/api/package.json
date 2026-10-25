@@ -5,14 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "start": "tsx src/server.ts",
-    "typecheck": "tsc --noEmit",
-    "test": "vitest run",
-    "seed": "tsx src/seed.ts",
-    "test:watch": "vitest",
     "retention": "tsx src/features/auth/retention.ts",
+    "seed": "tsx src/seed.ts",
     "seed:library": "tsx src/library/seed.ts",
-    "seed:posts": "tsx src/seed-posts.ts"
+    "seed:metrics": "tsx src/library/metrics.ts",
+    "seed:posts": "tsx src/seed-posts.ts",
+    "start": "tsx src/server.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@traiv/db": "workspace:*",

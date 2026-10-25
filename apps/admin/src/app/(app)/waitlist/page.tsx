@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@traiv/ui/components/table";
-import { Download } from "lucide-react";
+import { Download } from "@traiv/ui/icons";
 import { useMemo, useState } from "react";
 import { AdminState, Empty, Stat } from "@/components/common/admin-state";
 import type { WaitlistEntry } from "@/lib/api";
@@ -49,7 +49,7 @@ export default function WaitlistPage() {
     <Page className="gap-7">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="text-display font-semibold tracking-[-0.03em]">Launch list</h1>
+          <h1 className="text-display font-medium">Launch list</h1>
           <p className="text-body-sm text-fg-muted">
             People who left a way to reach them before signup opened.
           </p>

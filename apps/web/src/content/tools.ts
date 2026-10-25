@@ -2,16 +2,16 @@ import {
   BookOpen,
   Calculator,
   FileText,
+  type Icon,
   IndianRupee,
-  type LucideIcon,
   TrendingUp,
-} from "lucide-react";
+} from "@traiv/ui/icons";
 
 export type Tool = {
   href: string;
   name: string;
   blurb: string;
-  icon: LucideIcon;
+  icon: Icon;
 };
 
 /**

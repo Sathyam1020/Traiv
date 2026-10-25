@@ -26,7 +26,7 @@ export function CtaBand({
     <section className="border-t border-line bg-sunken py-16 sm:py-24">
       <Container>
         <Reveal className="flex flex-col items-start gap-6">
-          <h2 className="max-w-[32rem] font-display text-[clamp(1.625rem,3.5vw,2.5rem)] font-semibold leading-[1.1] tracking-[-0.03em] text-balance">
+          <h2 className="max-w-[32rem] font-display text-heading font-medium text-balance">
             {title}
           </h2>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">

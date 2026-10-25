@@ -33,9 +33,7 @@ export default function FeaturesPage() {
         <Section tone="sunken">
           <Container>
             <div className="max-w-[46rem]">
-              <h2 className="font-display text-[clamp(1.625rem,3.5vw,2.5rem)] font-semibold leading-[1.1] tracking-[-0.03em]">
-                Being built now
-              </h2>
+              <h2 className="font-display text-heading font-medium">Being built now</h2>
               <p className="mt-4 text-body leading-relaxed text-fg-muted">
                 On the roadmap, not in the product. They are listed because a coach deciding today
                 deserves to know what is not there yet — and because the order gets set by whoever
@@ -64,9 +62,7 @@ function Grid({ items }: { items: typeof FEATURES }) {
             className="flex h-full flex-col gap-2.5 p-7 transition-colors hover:bg-hover"
           >
             <f.icon className="size-4 text-fg-subtle" />
-            <h3 className="font-display text-[1.0625rem] font-semibold tracking-[-0.01em]">
-              {f.name}
-            </h3>
+            <h3 className="font-display text-subheading font-semibold">{f.name}</h3>
             <p className="text-body-sm leading-relaxed text-fg-muted">{f.blurb}</p>
           </Link>
         </Reveal>

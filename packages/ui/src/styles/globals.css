@@ -24,29 +24,35 @@
    `bg-grey-500`-style utilities out of them.
    --------------------------------------------------------------------------- */
 :root {
-  /* cal.com's palette: a pure neutral ramp with no warmth at all. The hierarchy is
-     carried by type and hairline borders rather than by colour, so there is deliberately
-     no brand hue here — the primary action is simply near-black. */
-  --white: #ffffff;
-  --grey-25: #f8f9fa;
-  --grey-50: #f5f5f5;
-  --grey-100: #f3f4f6;
-  --grey-200: #e5e7eb;
-  --grey-400: #898989;
-  --grey-500: #6b7280;
-  --grey-700: #374151;
-  --ink: #111111;
-  --ink-raised: #242424;
+  /* Featurebase's dark stage (ADR 0022): four near-black layers that step up by a few
+     points of blue-grey each, a hairline edge, and slate text in three strengths. */
+  --void: #050608; /* page canvas */
+  --ink-surface: #0a0b0f; /* inset regions, wells */
+  --charcoal: #0f1219; /* panels and cards — also the text on a white button */
+  --steel: #151822; /* raised controls, selected rows */
+  --slate-edge: #1f1e2a; /* the one-pixel border between dark panes */
+  --slate-edge-strong: #33374a; /* control outlines — see colors.md on why it is not slate-edge */
 
-  /* dark */
-  --dark-bg: #0b0b0b;
-  --dark-surface: #101010;
-  --dark-raised: #1a1a1a;
-  --dark-line: #262626;
-  --dark-line-strong: #333333;
-  --dark-subtle: #71717a;
-  --dark-muted: #a1a1aa;
-  --dark-text: #fafafa;
+  --cloud: #ffffff;
+  --cloud-soft: #f8f9fc; /* headings and primary text: a softened white, never pure */
+  --frost: #dee1ea;
+  --misted-slate: #b2b8cd;
+  --quiet-slate: #8f94a6;
+
+  /* The one hue. Violet is a signal — selected states, the mark, the glow around a
+     product frame — and never a fill behind text: white on it is 4.38:1. */
+  --violet: #7064f2;
+  --violet-light: #9182f8; /* violet as text on dark, 6.0:1 on charcoal */
+  --violet-deep: #5b4fd9; /* violet as text on light, 5.9:1 on white */
+
+  /* light counterpart — the same structure inverted, slate-tinted to stay in key */
+  --paper: #ffffff;
+  --paper-sunken: #f6f7fa;
+  --paper-selected: #f0f1f5;
+  --paper-line: #e4e6ee;
+  --paper-line-strong: #d3d6df;
+  --slate-600: #5d6478;
+  --slate-500: #7a8095;
 
   /* Semantic hues, and the 50-step from each one's own family so the tints stay in key */
   --red-50: #fef2f2;
@@ -59,38 +65,57 @@
 
 /* ---------------------------------------------------------------------------
    TIER 2 — SEMANTIC
+   Dark is the default theme (ADR 0022). `:root` carries the light values only so a
+   `.dark`-less tree — an email preview, a test render — is still readable; every app
+   puts `dark` on <html> at render time.
    --------------------------------------------------------------------------- */
 :root {
-  --canvas: var(--white);
-  --surface: var(--white);
-  --sunken: var(--grey-25);
-  --hover: rgb(17 17 17 / 0.04);
-  --active: rgb(17 17 17 / 0.07);
-  --selected: var(--grey-50);
+  --canvas: var(--paper);
+  /* The app shell's working frame. Its own token so every card inside it can sit one
+     step above it — a card the same colour as the panel under it is how the whole
+     screen collapses into one flat black sheet. */
+  --panel: var(--paper);
+  --surface: var(--paper);
+  --sunken: var(--paper-sunken);
+  --raised: var(--paper);
+  --hover: rgb(15 18 25 / 0.04);
+  --active: rgb(15 18 25 / 0.07);
+  --selected: var(--paper-selected);
 
-  --fg: var(--ink);
-  --fg-muted: var(--grey-500);
-  --fg-subtle: var(--grey-400);
+  --fg: var(--charcoal);
+  --fg-muted: var(--slate-600);
+  --fg-subtle: var(--slate-500);
 
-  --line: var(--grey-200);
-  --line-strong: #d4d7dc;
-  --line-focus: var(--ink);
+  --line: var(--paper-line);
+  --line-strong: var(--paper-line-strong);
+  --line-focus: var(--violet-deep);
 
-  /* There is no brand hue. The primary action is near-black and the text on it is white;
-     links and selected text are the same ink, distinguished by weight and underline
-     rather than colour. This is the whole point of the cal.com direction — see ADR 0006. */
-  --accent: var(--ink);
-  --accent-hover: var(--ink-raised);
-  --accent-subtle: var(--grey-50);
-  --fg-on-accent: var(--white);
-  --accent-text: var(--ink);
+  /* The primary action. On dark it is a white fill with charcoal text; on light it
+     inverts to a charcoal fill with white text, so it keeps its weight either way. It
+     is never violet — "no bright coloured filled buttons" is the rule this system is
+     built on. */
+  --accent: var(--charcoal);
+  --accent-hover: var(--steel);
+  --accent-subtle: var(--paper-selected);
+  --fg-on-accent: var(--cloud);
+  --accent-text: var(--charcoal);
+
+  /* The signal. What a coach's brand colour overrides in the client app — never the
+     action, never text, surface or border (design-system.md › Theming). */
+  --signal: var(--violet);
+  --signal-text: var(--violet-deep);
+  --signal-subtle: rgb(112 100 242 / 0.1);
+  /* Readable foreground for a surface *filled* with the signal. A coach's brand colour
+     is an arbitrary hex, so this is computed from its relative luminance at runtime and
+     is only ever white or near-black — which is what keeps "a coach picking a bad brand
+     colour must not be able to make the app unreadable" true once signal can be a fill. */
+  --signal-fg: var(--cloud);
 
   /* A surface that is dark in BOTH themes, with its own fixed foreground. The action
-     colour inverts between themes, so it cannot be reused for a decorative dark panel —
-     doing that is what turns the auth aside into a white slab in dark mode. Always pair
-     `bg-contrast` with `text-contrast-fg`; never with `text-fg`. */
-  --contrast: #101010;
-  --contrast-fg: #ffffff;
+     colour inverts between themes, so it cannot be reused for a decorative dark panel.
+     Always pair `bg-contrast` with `text-contrast-fg`; never with `text-fg`. */
+  --contrast: var(--charcoal);
+  --contrast-fg: var(--cloud);
 
   --danger: var(--red-500);
   --danger-subtle: var(--red-50);
@@ -98,35 +123,61 @@
   --warning-subtle: var(--amber-50);
   --success: var(--green-500);
   --success-subtle: var(--green-50);
+
+  /* Featurebase's two washes: violet light around a product frame, and a slate haze
+     rising behind contained visuals. Decoration, so they are spent rarely. */
+  --glow-violet: linear-gradient(
+    to right,
+    rgb(145 130 248 / 0.1),
+    rgb(192 132 252 / 0.1),
+    rgb(145 130 248 / 0.1)
+  );
+  --glow-lift: linear-gradient(
+    to top,
+    rgb(93 104 144 / 0.15),
+    rgb(93 104 144 / 0.1),
+    rgb(0 0 0 / 0)
+  );
 }
 
 .dark {
-  --canvas: var(--dark-bg);
-  --surface: var(--dark-surface);
-  --sunken: var(--dark-raised);
-  --hover: rgb(255 255 255 / 0.06);
-  --active: rgb(255 255 255 / 0.1);
-  --selected: var(--dark-raised);
+  /* Four steps, each a layer: the page, the frame on it, the cards in the frame, and
+     wells sunk into a card. */
+  --canvas: var(--void);
+  --panel: var(--charcoal);
+  --surface: var(--steel);
+  --sunken: var(--ink-surface);
+  --raised: var(--steel);
+  --hover: rgb(255 255 255 / 0.04);
+  --active: rgb(255 255 255 / 0.07);
+  /* A tint, not a surface: a selected row lives inside a card, which is already Steel. */
+  --selected: rgb(255 255 255 / 0.06);
 
-  --fg: var(--dark-text);
-  --fg-muted: var(--dark-muted);
-  --fg-subtle: var(--dark-subtle);
+  --fg: var(--cloud-soft);
+  --fg-muted: var(--misted-slate);
+  --fg-subtle: var(--quiet-slate);
 
-  --line: var(--dark-line);
-  --line-strong: var(--dark-line-strong);
-  --line-focus: var(--dark-text);
+  --line: var(--slate-edge);
+  --line-strong: var(--slate-edge-strong);
+  --line-focus: var(--violet-light);
 
-  /* Inverted, not re-tinted: on a near-black ground the primary action is white with
-     ink on top, which is how the same button keeps the same weight in both themes. */
-  --accent: var(--dark-text);
-  --accent-hover: var(--white);
-  --accent-subtle: var(--dark-raised);
-  --fg-on-accent: var(--ink);
-  --accent-text: var(--dark-text);
+  /* Featurebase's conversion button: white at 92% over the page, charcoal text. */
+  --accent: rgb(255 255 255 / 0.92);
+  --accent-hover: var(--cloud);
+  --accent-subtle: var(--steel);
+  --fg-on-accent: var(--charcoal);
+  --accent-text: var(--cloud-soft);
 
-  /* Unchanged on purpose: this surface does not follow the theme. */
-  --contrast: #1a1a1a;
-  --contrast-fg: #ffffff;
+  --signal: var(--violet);
+  --signal-text: var(--violet-light);
+  --signal-subtle: rgb(112 100 242 / 0.16);
+  --signal-fg: var(--cloud);
+
+  /* Still dark, now the darkest thing there is: in the dark theme the rail and the
+     ground it sits on are the Void canvas, and the working panel is the lit Charcoal
+     frame rising out of it — Featurebase's product workspace. */
+  --contrast: var(--void);
+  --contrast-fg: var(--cloud);
 
   --danger-subtle: rgb(239 68 68 / 0.16);
   --warning-subtle: rgb(245 158 11 / 0.16);
@@ -140,8 +191,10 @@
    --------------------------------------------------------------------------- */
 @theme inline {
   --color-canvas: var(--canvas);
+  --color-panel: var(--panel);
   --color-surface: var(--surface);
   --color-sunken: var(--sunken);
+  --color-raised: var(--raised);
   --color-hover: var(--hover);
   --color-active: var(--active);
   --color-selected: var(--selected);
@@ -162,6 +215,11 @@
   --color-brand: var(--accent);
   --color-brand-hover: var(--accent-hover);
   --color-brand-subtle: var(--accent-subtle);
+
+  --color-signal: var(--signal);
+  --color-signal-text: var(--signal-text);
+  --color-signal-subtle: var(--signal-subtle);
+  --color-signal-fg: var(--signal-fg);
 
   --color-danger: var(--danger);
   --color-danger-subtle: var(--danger-subtle);
@@ -187,38 +245,53 @@
   --font-display: var(--font-display-family, var(--font-inter)), -apple-system,
     BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
 
-  /* Eight sizes. Nothing above 24px in product UI. */
-  --text-caption: 0.75rem;
-  --text-caption--line-height: 1.4;
-  --text-body-sm: 0.875rem;
-  --text-body-sm--line-height: 1.5;
-  --text-label: 0.875rem;
-  --text-label--line-height: 1.4;
-  --text-body: 1rem;
+  /* Featurebase's scale (ADR 0022). Headings are weight 500, never 600 — the quiet
+     weight is what keeps a 48px title composed rather than shouting. */
+  --text-caption: 0.8125rem; /* 13 */
+  --text-caption--line-height: 1.5;
+  --text-body-sm: 0.875rem; /* 14 */
+  --text-body-sm--line-height: 1.43;
+  --text-label: 0.875rem; /* 14 — nav, buttons, form labels */
+  --text-label--line-height: 1.43;
+  --text-body: 1rem; /* 16 */
   --text-body--line-height: 1.5;
-  --text-subheading: 1rem;
-  --text-subheading--line-height: 1.4;
-  --text-heading: 1.25rem;
-  --text-heading--line-height: 1.3;
-  --text-heading--letter-spacing: -0.02em;
-  --text-display: 1.5rem;
-  --text-display--line-height: 1.25;
-  --text-display--letter-spacing: -0.03em;
+  --text-subheading: 1.125rem; /* 18 — feature and card titles, weight 600 */
+  --text-subheading--line-height: 1.56;
+  --text-lead: 1.4375rem; /* 23 — lead paragraphs, large numbers */
+  --text-lead--line-height: 1.5;
 
-  /* Marketing surfaces only — landing, auth, the public site. Product UI stops at
-     --text-display (24px). See .ai/design/typography.md */
-  --text-hero: 2.75rem;
-  --text-hero--line-height: 1.08;
-  --text-hero--letter-spacing: -0.04em;
-  --text-hero-sm: 2rem;
-  --text-hero-sm--line-height: 1.12;
-  --text-hero-sm--letter-spacing: -0.04em;
+  /* The two display sizes are fluid so a 360px phone gets a title that fits on one
+     line: 36 → 28 and 48 → 32 below roughly 600px of viewport. */
+  --text-heading: clamp(1.75rem, 1.2rem + 1.6vw, 2.25rem); /* 36 — section heading */
+  --text-heading--line-height: 1.11;
+  --text-heading--letter-spacing: -0.02em; /* -0.72px at 36 */
+  --text-display: clamp(2rem, 1.2rem + 2.4vw, 3rem); /* 48 — the page title */
+  --text-display--line-height: 1.2;
+  --text-display--letter-spacing: -0.02em; /* -0.96px at 48 */
 
-  /* cal.com's ladder: 8 for controls, 12 for content cards, 16 for the largest
-     surfaces. Radius still marks a separate object, so it is spent by role. */
-  --radius-control: 8px;
-  --radius-surface: 12px;
-  --radius-panel: 16px; /* full-height inset panels and hero surfaces only */
+  /* Marketing aliases. The public site set these first; they now resolve to the same
+     two sizes as the product so there is one scale, not two. */
+  --text-hero: var(--text-display);
+  --text-hero--line-height: 1.2;
+  --text-hero--letter-spacing: -0.02em;
+  --text-hero-sm: var(--text-heading);
+  --text-hero-sm--line-height: 1.11;
+  --text-hero-sm--letter-spacing: -0.02em;
+
+  /* Featurebase's ladder: 12 for buttons, inputs and links, 16 for every card and
+     panel. Nothing in product UI is more rounded than 16 except a pill. */
+  --radius-control: 12px;
+  --radius-surface: 16px;
+  --radius-panel: 16px;
+
+  /* Shadow means floating. These are Featurebase's black stacks — on a near-black page
+     a shadow barely reads, so the border in the `float` stack does most of the work. */
+  --shadow-inset: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-float:
+    0 0 0 1px rgb(0 0 0 / 0.4), 0 20px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.3);
+  --shadow-raised: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  /* The restrained violet light around a product frame. Only the frame gets it. */
+  --shadow-glow: 0 0 0 1px rgb(112 100 242 / 0.14), 0 24px 80px -24px rgb(112 100 242 / 0.35);
 
   /* Apple-style: entrances decelerate, exits accelerate */
   --ease-standard: cubic-bezier(0.25, 0.1, 0.25, 1);
@@ -240,7 +313,8 @@
 
   --color-card: var(--surface);
   --color-card-foreground: var(--fg);
-  --color-popover: var(--surface);
+  /* A popover floats, so it sits one layer up from the panel it opens over. */
+  --color-popover: var(--raised);
   --color-popover-foreground: var(--fg);
 
   --color-primary: var(--accent);
@@ -288,6 +362,13 @@
     color-scheme: dark;
   }
 
+  /* Inter at 500 is the voice of every heading; 600 is reserved for compact titles. */
+  h1,
+  h2,
+  h3 {
+    font-weight: 500;
+  }
+
   body {
     background-color: var(--color-canvas);
     color: var(--color-fg);
@@ -301,6 +382,10 @@
   table,
   [data-numeric] {
     font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background-color: var(--color-signal-subtle);
   }
 
   :focus-visible {
@@ -318,4 +403,13 @@
       scroll-behavior: auto !important;
     }
   }
+}
+
+/* The two Featurebase washes as utilities. Backgrounds, not colours, so they cannot be
+   made with `bg-*` from the colour tier. */
+@utility bg-glow-violet {
+  background-image: var(--glow-violet);
+}
+@utility bg-glow-lift {
+  background-image: var(--glow-lift);
 }

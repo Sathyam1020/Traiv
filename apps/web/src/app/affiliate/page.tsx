@@ -76,7 +76,7 @@ export default function AffiliatePage() {
                 <dt className="text-caption font-semibold uppercase tracking-[0.07em] text-fg-subtle">
                   {s.k}
                 </dt>
-                <dd className="font-display text-[2rem] font-semibold tabular-nums leading-none tracking-[-0.03em]">
+                <dd className="font-display text-heading font-medium tabular-nums leading-none">
                   {s.v}
                 </dd>
                 <p className="text-body-sm leading-relaxed text-fg-muted">{s.note}</p>

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@traiv/ui/components/button";
-import { CircleSlash, Hourglass, PauseCircle } from "lucide-react";
+import { CircleSlash, Hourglass, PauseCircle } from "@traiv/ui/icons";
 import type { ReactNode } from "react";
 import type { ClientStatus } from "@/lib/api";
 
@@ -101,7 +101,7 @@ export function StatusGate({
       </span>
 
       <div className="flex flex-col gap-2">
-        <h1 className="text-heading font-semibold tracking-[-0.02em]">{title}</h1>
+        <h1 className="text-heading font-medium">{title}</h1>
         {coachName ? <p className="text-body-sm text-fg-subtle">with {coachName}</p> : null}
       </div>
 

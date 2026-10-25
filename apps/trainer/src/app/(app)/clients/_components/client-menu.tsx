@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@traiv/ui/components/dropdown-menu";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal } from "@traiv/ui/icons";
 import { useUpdateClient } from "@/lib/query";
 
 /**

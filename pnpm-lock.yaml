@@ -9,6 +9,12 @@ catalogs:
     '@biomejs/biome':
       specifier: ^2.5.13
       version: 2.5.13
+    '@hugeicons/core-free-icons':
+      specifier: ^4.3.5
+      version: 4.3.5
+    '@hugeicons/react':
+      specifier: ^1.1.10
+      version: 1.1.10
     '@tailwindcss/postcss':
       specifier: ^4.3.3
       version: 4.3.3
@@ -54,9 +60,6 @@ catalogs:
     libphonenumber-js:
       specifier: ^1.13.14
       version: 1.13.14
-    lucide-react:
-      specifier: ^1.44.0
-      version: 1.44.0
     motion:
       specifier: ^13.2.0
       version: 13.2.0
@@ -146,9 +149,6 @@ importers:
       axios:
         specifier: 'catalog:'
         version: 1.20.0
-      lucide-react:
-        specifier: 'catalog:'
-        version: 1.44.0(react@19.3.0)
       motion:
         specifier: 'catalog:'
         version: 13.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -241,9 +241,6 @@ importers:
       axios:
         specifier: 'catalog:'
         version: 1.20.0
-      lucide-react:
-        specifier: 'catalog:'
-        version: 1.44.0(react@19.3.0)
       motion:
         specifier: 'catalog:'
         version: 13.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -296,9 +293,6 @@ importers:
       axios:
         specifier: 'catalog:'
         version: 1.20.0
-      lucide-react:
-        specifier: 'catalog:'
-        version: 1.44.0(react@19.3.0)
       motion:
         specifier: 'catalog:'
         version: 13.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -351,9 +345,6 @@ importers:
       axios:
         specifier: 'catalog:'
         version: 1.20.0
-      lucide-react:
-        specifier: 'catalog:'
-        version: 1.44.0(react@19.3.0)
       motion:
         specifier: 'catalog:'
         version: 13.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -406,9 +397,6 @@ importers:
       '@traiv/ui':
         specifier: workspace:*
         version: link:../../packages/ui
-      lucide-react:
-        specifier: 'catalog:'
-        version: 1.44.0(react@19.3.0)
       motion:
         specifier: 'catalog:'
         version: 13.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -502,6 +490,12 @@ importers:
 
   packages/ui:
     dependencies:
+      '@hugeicons/core-free-icons':
+        specifier: 'catalog:'
+        version: 4.3.5
+      '@hugeicons/react':
+        specifier: 'catalog:'
+        version: 1.1.10(react@19.3.0)
       '@traiv/phone':
         specifier: workspace:*
         version: link:../phone
@@ -511,9 +505,6 @@ importers:
       cn:
         specifier: 'catalog:'
         version: 0.2.6
-      lucide-react:
-        specifier: 'catalog:'
-        version: 1.44.0(react@19.3.0)
       motion:
         specifier: 'catalog:'
         version: 13.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -1087,6 +1078,14 @@ packages:
 
   '@floating-ui/utils@0.2.12':
     resolution: {integrity: sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww==}
+
+  '@hugeicons/core-free-icons@4.3.5':
+    resolution: {integrity: sha512-Sv+NjHRPnQk+yZsGCMcGznCHdTfJR9PMMOEKcJYAQU4gy90dmlc9PwdtvYOImBZIjiheMsTLL5eMn2DmHxUiUg==}
+
+  '@hugeicons/react@1.1.10':
+    resolution: {integrity: sha512-9tAsd92yMVVGP+E+d8cM+wc0VnXuYZHNbWQi7TOe8k2neawmhiaFmVFbzyruejhOMa197/LbgvSED32ayUo3ZA==}
+    peerDependencies:
+      react: '>=16.0.0'
 
   '@img/colour@1.1.0':
     resolution: {integrity: sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ==}
@@ -3079,11 +3078,6 @@ packages:
   longest-streak@3.1.0:
     resolution: {integrity: sha512-9Ri+o0JYgehTaVBBDoMqIl8GXtbWg711O3srftcHhZ0dqnETqLaoIK0x17fUw9rFSlK/0NlsKe0Ahhyl5pXE2g==}
 
-  lucide-react@1.44.0:
-    resolution: {integrity: sha512-2egNApH4hX4j/qdCgRublh88+9u3mEhz9iSlW5ckm4kaQEqZbXbMr0l5u5JZLy8nmWRx2dbHGQkEDYz6C9aCgw==}
-    peerDependencies:
-      react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
-
   magic-string@0.30.21:
     resolution: {integrity: sha512-vd2F4YUyEXKGcLHoq+TEyCjxueSeHnFxyyjNp80yg0XV4vUhnDer/lvvlqM/arB5bXQN5K2/3oinyCRyx8T2CQ==}
 
@@ -4151,6 +4145,12 @@ snapshots:
       react-dom: 19.3.0(react@19.3.0)
 
   '@floating-ui/utils@0.2.12': {}
+
+  '@hugeicons/core-free-icons@4.3.5': {}
+
+  '@hugeicons/react@1.1.10(react@19.3.0)':
+    dependencies:
+      react: 19.3.0
 
   '@img/colour@1.1.0':
     optional: true
@@ -5912,10 +5912,6 @@ snapshots:
       lightningcss-win32-x64-msvc: 1.33.0
 
   longest-streak@3.1.0: {}
-
-  lucide-react@1.44.0(react@19.3.0):
-    dependencies:
-      react: 19.3.0
 
   magic-string@0.30.21:
     dependencies:

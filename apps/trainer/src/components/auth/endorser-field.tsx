@@ -2,7 +2,7 @@
 
 import { Input } from "@traiv/ui/components/input";
 import { Label } from "@traiv/ui/components/label";
-import { Check, CircleAlert, Plus } from "lucide-react";
+import { Check, CircleAlert, Plus } from "@traiv/ui/icons";
 import { useEffect, useState } from "react";
 import { useEndorserName } from "@/lib/query";
 

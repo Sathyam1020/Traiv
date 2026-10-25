@@ -45,9 +45,7 @@ export default function CalorieCalculatorPage() {
             </p>
           </div>
 
-          <h2 className="mt-12 font-display text-[1.375rem] font-semibold tracking-[-0.02em]">
-            What it will not do
-          </h2>
+          <h2 className="mt-12 font-display text-lead font-medium">What it will not do</h2>
           <div className="mt-4 flex flex-col gap-4 text-body-sm leading-relaxed text-fg-muted">
             <p>
               It will not set a deficit for somebody pregnant, and it will not take anybody below

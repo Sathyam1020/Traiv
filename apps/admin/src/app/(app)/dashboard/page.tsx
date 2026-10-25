@@ -28,7 +28,7 @@ export default function DashboardPage() {
     <Page className="gap-7">
       {forbidden ? (
         <section className="flex flex-col gap-2 rounded-surface border border-line bg-surface p-5">
-          <h1 className="text-heading font-semibold tracking-[-0.02em]">Not an admin account</h1>
+          <h1 className="text-heading font-medium">Not an admin account</h1>
           <p className="text-body-sm text-fg-muted">
             You're signed in as {session.data?.user.name || "someone else"}. Admin access is a
             single phone number set in the server's environment, and nothing in the app can grant
@@ -82,9 +82,7 @@ function Stat({
       {pending ? (
         <Skeleton className="h-8 w-16" />
       ) : (
-        <span className="text-hero-sm font-semibold tabular-nums tracking-[-0.03em]">
-          {value ?? 0}
-        </span>
+        <span className="text-hero-sm font-medium tabular-nums">{value ?? 0}</span>
       )}
     </div>
   );

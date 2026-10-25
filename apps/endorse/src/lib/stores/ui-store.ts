@@ -11,16 +11,22 @@ export type UiStore = UiState & UiActions;
 
 const THEME_KEY = "traiv.theme";
 
-/** Read once on the client. On the server there is no preference to read. */
+/**
+ * Read once on the client. On the server there is no preference to read.
+ *
+ * Dark unless the person has chosen light (ADR 0022). The OS setting is deliberately not
+ * consulted: dark is the product's own appearance, and light is the alternative a person
+ * picks — on a phone in direct sun, say — rather than the one they are handed.
+ */
 function storedTheme(): Theme {
-  if (typeof window === "undefined") return "light";
+  if (typeof window === "undefined") return "dark";
   try {
     const saved = window.localStorage.getItem(THEME_KEY);
     if (saved === "light" || saved === "dark") return saved;
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    return "dark";
   } catch {
     // Private windows and blocked site data both throw here.
-    return "light";
+    return "dark";
   }
 }
 
@@ -39,7 +45,7 @@ function persist(theme: Theme) {
  * A global store on the server is shared across concurrent requests, so one user's state
  * can leak into another's response. The provider creates one instance per render tree.
  */
-export const createUiStore = (init: UiState = { theme: "light" }) =>
+export const createUiStore = (init: UiState = { theme: "dark" }) =>
   createStore<UiStore>()((set, get) => ({
     ...init,
     setTheme: (theme) => {

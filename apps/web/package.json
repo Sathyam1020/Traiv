@@ -13,7 +13,6 @@
     "@traiv/nutrition": "workspace:*",
     "@traiv/phone": "workspace:*",
     "@traiv/ui": "workspace:*",
-    "lucide-react": "catalog:",
     "motion": "catalog:",
     "next": "catalog:",
     "react": "catalog:",

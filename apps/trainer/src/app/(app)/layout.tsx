@@ -4,7 +4,7 @@ import { Logo } from "@traiv/ui/components/logo";
 import { AppShell } from "@traiv/ui/components/shell/app-shell";
 import { MobileHeader } from "@traiv/ui/components/shell/mobile-header";
 import { RailBrand, RailLink } from "@traiv/ui/components/shell/rail";
-import { Settings } from "lucide-react";
+import { Settings } from "@traiv/ui/icons";
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { AccountButton } from "@/components/layout/account-button";
 import { navItems } from "@/components/layout/nav-items";

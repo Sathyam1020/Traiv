@@ -1,50 +1,71 @@
 "use client";
 
-import { Ruler } from "@traiv/ui/icons";
+import { ChevronRight, Ruler } from "@traiv/ui/icons";
+import Link from "next/link";
 import type { Today } from "@/lib/api";
 import { relativeDay } from "@/lib/dates";
 
 /**
- * The latest of each body measurement.
+ * Body composition, as Coachway's `CircumferenceChart` lays it out: a single row —
+ * tinted icon tile, label above value, chevron — rather than a card full of numbers.
  *
- * One value per site, newest wins — the server reads it with a `DISTINCT ON` over the
- * check-in history, so this is "where you are", not a series. The series belongs on the
- * measurement's own screen; a home screen that charts eight sites charts nothing.
- *
- * Empty for most clients, and that is correct rather than broken: measurements arrive
- * through check-ins, so this fills in the first week their coach asks for one.
+ * It is a row and not a grid because on Today it answers one question ("has anything
+ * moved") and defers the rest. Coachway's opens a bottom sheet with the full set; ours
+ * goes to the check-in that recorded them, which is the same information and a screen
+ * that already exists.
  */
-export function MeasurementsCard({ measurements }: { measurements: Today["measurements"] }) {
+export function MeasurementsCard({
+  measurements,
+  href,
+}: {
+  measurements: Today["measurements"];
+  /** Where the detail lives — null when nothing has been recorded to look at. */
+  href: string | null;
+}) {
   if (measurements.length === 0) return null;
 
-  // Every site in one check-in shares a date, so stating it once per card beats once per
-  // row — and when they do differ, the newest is the one worth naming.
+  const [lead, ...rest] = measurements;
+  if (!lead) return null;
+
   const latest = measurements.reduce<string | null>(
     (newest, m) => (m.takenOn && (!newest || m.takenOn > newest) ? m.takenOn : newest),
     null,
   );
 
-  return (
-    <section className="flex flex-col gap-4 rounded-surface border border-line bg-surface p-4 sm:p-5">
-      <header className="flex items-baseline justify-between gap-3">
-        <span className="flex items-center gap-2 text-caption font-medium uppercase tracking-[0.08em] text-fg-subtle">
-          <Ruler aria-hidden="true" className="size-3.5" />
-          Measurements
-        </span>
-        {latest ? <span className="text-caption text-fg-subtle">{relativeDay(latest)}</span> : null}
-      </header>
+  const body = (
+    <>
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-control bg-signal-subtle">
+        <Ruler aria-hidden="true" className="size-4 text-signal-text" />
+      </span>
 
-      <dl className="grid grid-cols-2 gap-x-4 gap-y-3 sm:grid-cols-3">
-        {measurements.map((m) => (
-          <div key={m.code} className="flex flex-col gap-0.5">
-            <dt className="truncate text-caption text-fg-muted">{m.name}</dt>
-            <dd className="flex items-baseline gap-1">
-              <span className="text-subheading font-medium tabular-nums">{m.value}</span>
-              {m.unit ? <span className="text-caption text-fg-subtle">{m.unit}</span> : null}
-            </dd>
-          </div>
-        ))}
-      </dl>
-    </section>
+      <span className="flex min-w-0 flex-1 flex-col">
+        <span className="text-body-sm font-medium text-fg-muted">Body composition</span>
+        <span className="flex items-baseline gap-1.5">
+          <span className="text-body font-medium tabular-nums">
+            {lead.name} {lead.value}
+            {lead.unit ? <span className="text-fg-subtle"> {lead.unit}</span> : null}
+          </span>
+          {rest.length > 0 ? (
+            <span className="text-caption text-fg-subtle">+{rest.length} more</span>
+          ) : null}
+        </span>
+      </span>
+
+      <span className="flex shrink-0 items-center gap-2">
+        {latest ? <span className="text-caption text-fg-subtle">{relativeDay(latest)}</span> : null}
+        {href ? <ChevronRight aria-hidden="true" className="size-4 text-fg-subtle" /> : null}
+      </span>
+    </>
+  );
+
+  const className =
+    "flex w-full items-center gap-3 rounded-surface border border-line bg-surface px-3.5 py-3 text-left";
+
+  return href ? (
+    <Link href={href} className={`${className} transition-colors hover:bg-hover`}>
+      {body}
+    </Link>
+  ) : (
+    <div className={className}>{body}</div>
   );
 }

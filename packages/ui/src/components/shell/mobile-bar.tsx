@@ -38,7 +38,7 @@ export function MobileBar({ nav }: { nav: readonly NavItem[] }) {
       // Lifts clear of the iPhone home indicator; resolves to a plain 16px elsewhere.
       className="fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 flex justify-center px-4 lg:hidden"
     >
-      <div className="flex items-center gap-1 rounded-full border border-line bg-surface/60 p-1 shadow-lg backdrop-blur-2xl backdrop-saturate-150">
+      <div className="flex items-center gap-1 rounded-full border border-line bg-raised/70 p-1 shadow-float backdrop-blur-2xl backdrop-saturate-150">
         {nav.map(({ href, label, icon: Icon }) => {
           const active = pathname.startsWith(href);
           return (
@@ -48,7 +48,7 @@ export function MobileBar({ nav }: { nav: readonly NavItem[] }) {
               aria-label={label}
               aria-current={active ? "page" : undefined}
               className={`relative flex h-11 cursor-pointer items-center justify-center rounded-full px-8 transition-colors duration-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-focus ${
-                active ? "text-brand-text" : "text-fg-muted"
+                active ? "text-signal-text" : "text-fg-muted"
               }`}
             >
               {active && (

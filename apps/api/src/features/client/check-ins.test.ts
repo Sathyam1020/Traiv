@@ -273,19 +273,38 @@ describe("Today", () => {
     expect(reveal).toEqual({ workouts: false, food: false, chat: false });
   });
 
-  it("reveals the workouts tab once an active plan exists", async () => {
+  it("reveals the workouts tab once a template is assigned", async () => {
     const { person, studio, mine } = await scenario();
 
-    await db.insert(schema.workoutPlans).values({
+    const templateId = newId();
+    await db.insert(schema.workoutTemplates).values({
+      id: templateId,
+      studioId: studio.id,
+      name: "Lower body",
+      status: "active",
+      source: "coach",
+    });
+    // Creating the template is not enough — it has to reach *this* client. That is the
+    // whole point of the assignment table and the thing a per-client plan could not say.
+    await db.insert(schema.templateAssignments).values({ templateId, clientId: mine });
+
+    const res = await person.agent.get(today(studio.id));
+    expect((res.body as TodayBody).today.reveal.workouts).toBe(true);
+  });
+
+  it("does not reveal workouts for a template that exists but is not assigned", async () => {
+    const { person, studio } = await scenario();
+
+    await db.insert(schema.workoutTemplates).values({
       id: newId(),
-      clientId: mine,
-      startDate: new Date().toISOString().slice(0, 10),
+      studioId: studio.id,
+      name: "Somebody else's workout",
       status: "active",
       source: "coach",
     });
 
     const res = await person.agent.get(today(studio.id));
-    expect((res.body as TodayBody).today.reveal.workouts).toBe(true);
+    expect((res.body as TodayBody).today.reveal.workouts).toBe(false);
   });
 
   it("greets by first name only", async () => {

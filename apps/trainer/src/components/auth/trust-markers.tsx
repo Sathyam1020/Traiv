@@ -1,4 +1,4 @@
-import { Lock, MessageCircle, ShieldCheck } from "lucide-react";
+import { Lock, MessageCircle, ShieldCheck } from "@traiv/ui/icons";
 
 const markers = [
   { icon: Lock, label: "Secure & private" },

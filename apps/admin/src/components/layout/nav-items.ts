@@ -1,5 +1,5 @@
 import type { NavGroup } from "@traiv/ui/components/shell/app-shell";
-import { BarChart3, FileText, LayoutGrid, Users } from "lucide-react";
+import { BarChart, FileText, LayoutGrid, Users } from "@traiv/ui/icons";
 
 /**
  * The admin app's four screens.
@@ -11,7 +11,7 @@ export const navItems: readonly NavGroup[] = [
   {
     items: [
       { href: "/dashboard", label: "Platform", icon: LayoutGrid },
-      { href: "/analytics", label: "Analytics", icon: BarChart3 },
+      { href: "/analytics", label: "Analytics", icon: BarChart },
       { href: "/waitlist", label: "Launch list", icon: Users },
       { href: "/posts", label: "Blog", icon: FileText },
     ],

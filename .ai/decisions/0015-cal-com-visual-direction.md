@@ -1,6 +1,10 @@
 # 0015 — cal.com as the visual direction
 2026-10-06 · Status: accepted · **Supersedes the palette in ADR 0006**
 
+> **Palette, radius and type scale superseded by ADR 0022 (Featurebase).** The reasoning
+> below about the `contrast` surface and not shipping another product's brand font
+> still stands.
+
 ## Context
 
 ADR 0006 set the direction as Notion's structure with youform.com's palette — warm paper

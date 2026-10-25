@@ -60,9 +60,7 @@ export default function PartnershipPage() {
                 key={p.who}
                 className="grid gap-5 border-t border-line py-10 lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)_minmax(0,18rem)] lg:gap-12"
               >
-                <h2 className="font-display text-[1.375rem] font-semibold leading-snug tracking-[-0.02em]">
-                  {p.who}
-                </h2>
+                <h2 className="font-display text-lead font-medium leading-snug">{p.who}</h2>
                 <p className="text-body leading-relaxed text-fg-muted">{p.what}</p>
                 <ul className="flex flex-col gap-2 border-line lg:border-l lg:pl-8">
                   {p.offer.map((o) => (

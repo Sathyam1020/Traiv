@@ -1,8 +1,8 @@
 "use client";
 
 import { useSidebar } from "@traiv/ui/components/shell/sidebar-context";
+import { Loader, PanelLeft } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
-import { Loader2, PanelLeft } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
@@ -32,7 +32,7 @@ export function PageHeader({
   return (
     <header className="flex flex-wrap items-center gap-x-5 gap-y-2 border-line border-b px-4 pt-4 sm:px-6">
       <SidebarToggle />
-      {title ? <h1 className="text-display font-semibold tracking-[-0.03em]">{title}</h1> : null}
+      {title ? <h1 className="text-heading font-medium">{title}</h1> : null}
 
       {tabs?.length ? (
         <nav className="-mb-px flex flex-1 gap-5 overflow-x-auto">
@@ -82,15 +82,15 @@ function Tab({ href, label, count }: { href: string; label: string; count?: numb
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 pb-3 text-body-sm transition-colors",
-        active ? "border-fg font-medium text-fg" : "border-transparent text-fg-muted hover:text-fg",
+        "flex shrink-0 items-center gap-2 whitespace-nowrap border-b-2 pb-3 text-label font-medium transition-colors",
+        active ? "border-signal text-fg" : "border-transparent text-fg-muted hover:text-fg",
       )}
     >
       {count !== undefined ? (
         <span
           className={cn(
             "flex size-5 items-center justify-center rounded-full text-caption font-medium tabular-nums",
-            active ? "bg-brand text-brand-fg" : "bg-sunken text-fg-muted",
+            active ? "bg-signal-subtle text-signal-text" : "bg-sunken text-fg-muted",
           )}
         >
           {count}
@@ -145,7 +145,7 @@ export function FilterChips({
           )}
         >
           {chip.active && pending ? (
-            <Loader2 className="size-3.5 min-w-5 animate-spin text-fg-muted" />
+            <Loader className="size-3.5 min-w-5 animate-spin text-fg-muted" />
           ) : (
             <span
               className={cn(
@@ -190,7 +190,7 @@ export function TableCard({ children, pending }: { children: ReactNode; pending?
     <div className="flex min-h-0 flex-1 flex-col px-4 pb-4 sm:px-6">
       <div
         aria-busy={pending || undefined}
-        className="flex min-h-[22rem] flex-1 flex-col overflow-hidden rounded-surface border border-line"
+        className="flex min-h-[22rem] flex-1 flex-col overflow-hidden rounded-surface border border-line bg-surface shadow-inset"
       >
         {/* Always rendered, so the rows never shift down by two pixels when it appears. */}
         <div

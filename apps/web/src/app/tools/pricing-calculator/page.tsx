@@ -47,7 +47,7 @@ export default function RateCalculatorPage() {
                 key={item.t}
                 className="grid gap-2 border-t border-line py-7 sm:grid-cols-[2.5rem_minmax(0,1fr)] sm:gap-6"
               >
-                <span className="font-display text-[1.125rem] font-semibold tabular-nums text-fg-subtle">
+                <span className="font-display text-subheading font-semibold tabular-nums text-fg-subtle">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <div className="flex flex-col gap-1.5">

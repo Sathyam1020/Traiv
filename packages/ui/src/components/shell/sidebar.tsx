@@ -2,8 +2,8 @@
 
 import type { NavGroup } from "@traiv/ui/components/shell/app-shell";
 import { RAIL_TILE, RailProvider, RailTip } from "@traiv/ui/components/shell/rail";
+import { ChevronDown } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
-import { ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { type ReactNode, useState } from "react";
@@ -136,15 +136,17 @@ function Item({
         // `whitespace-nowrap` with the rail clipping: on the way open the label is at
         // full length before the rail is, and without this it wraps to two lines and
         // the row jumps height for the length of the animation.
-        "flex items-center whitespace-nowrap rounded-control text-body-sm transition-colors",
+        "flex items-center whitespace-nowrap rounded-control text-label font-medium transition-colors",
         "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-contrast-fg/40",
         collapsed ? RAIL_TILE : "gap-2.5 px-2.5 py-2",
         active
-          ? "bg-contrast-fg/12 font-medium text-contrast-fg"
+          ? "bg-contrast-fg/8 text-contrast-fg"
           : "text-contrast-fg/60 hover:bg-contrast-fg/8 hover:text-contrast-fg",
       )}
     >
-      <Icon className="size-4 shrink-0" />
+      {/* The selected icon is the signal colour — the one place violet appears in the
+          rail, which is what makes "you are here" readable at a glance. */}
+      <Icon className={cn("size-4 shrink-0", active && "text-signal")} />
       {collapsed ? <span className="sr-only">{label}</span> : label}
     </Link>
   );

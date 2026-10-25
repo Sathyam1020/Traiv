@@ -71,7 +71,7 @@ export function OtpInput({
             onChange(pasted);
             refs.current[Math.min(pasted.length, 5)]?.focus();
           }}
-          className={`h-12 w-full min-w-0 rounded-control border bg-surface text-center text-heading font-medium tabular-nums transition-colors
+          className={`h-12 w-full min-w-0 rounded-control border bg-surface text-center text-lead font-medium tabular-nums transition-colors
             focus-visible:outline-2 focus-visible:outline-offset-[-1px] focus-visible:outline-line-focus
             disabled:opacity-50
             ${invalid ? "border-danger" : "border-line-strong"}`}

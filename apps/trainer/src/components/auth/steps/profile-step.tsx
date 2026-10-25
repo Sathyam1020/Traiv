@@ -25,7 +25,7 @@ export function ProfileStep({ flow }: { flow: AuthFlow }) {
   return (
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-1.5">
-        <h1 className="text-heading font-semibold tracking-[-0.02em]">Where should receipts go?</h1>
+        <h1 className="text-heading font-medium">Where should receipts go?</h1>
         <p className="text-body-sm text-fg-muted">
           For invoices and account recovery. Nothing else.
         </p>

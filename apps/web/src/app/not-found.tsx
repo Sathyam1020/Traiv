@@ -11,9 +11,7 @@ import { FOOTER } from "@/content/site";
 export default function NotFound() {
   return (
     <Container className="flex min-h-[60vh] flex-col justify-center py-20">
-      <h1 className="font-display text-[clamp(2rem,5vw,3rem)] font-semibold leading-[1.06] tracking-[-0.035em]">
-        That page is not here
-      </h1>
+      <h1 className="font-display text-display font-medium">That page is not here</h1>
       <p className="mt-4 max-w-[34rem] text-body leading-relaxed text-fg-muted">
         Either we moved it or the link was wrong. Everything the site has is below.
       </p>

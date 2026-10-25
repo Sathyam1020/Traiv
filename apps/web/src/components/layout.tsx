@@ -64,7 +64,7 @@ export function PageHero({
     <section className="border-b border-line">
       <Container width={width} className="pt-10 pb-14 sm:pt-16 sm:pb-20">
         <Reveal>
-          <h1 className="max-w-[40rem] font-display text-[clamp(2rem,4.5vw,3.25rem)] font-semibold leading-[1.06] tracking-[-0.035em] text-balance">
+          <h1 className="max-w-[40rem] font-display text-display font-medium text-balance">
             {title}
           </h1>
         </Reveal>
@@ -96,9 +96,7 @@ export function SectionHeading({
 }) {
   return (
     <Reveal className="max-w-[46rem]">
-      <h2 className="font-display text-[clamp(1.625rem,3.5vw,2.5rem)] font-semibold leading-[1.1] tracking-[-0.03em] text-balance">
-        {title}
-      </h2>
+      <h2 className="font-display text-heading font-medium text-balance">{title}</h2>
       {lede ? <p className="mt-4 text-body leading-relaxed text-fg-muted">{lede}</p> : null}
       {children}
     </Reveal>

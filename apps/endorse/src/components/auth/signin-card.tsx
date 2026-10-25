@@ -7,7 +7,7 @@ import { Input } from "@traiv/ui/components/input";
 import { Label } from "@traiv/ui/components/label";
 import { Logo } from "@traiv/ui/components/logo";
 import { PhoneField } from "@traiv/ui/components/phone-field";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check } from "@traiv/ui/icons";
 import Link from "next/link";
 import { useState } from "react";
 import { DevBypass } from "@/components/auth/dev-bypass";
@@ -42,7 +42,7 @@ export function SignInCard({ mode, onDone }: { mode: AuthMode; onDone: () => voi
       <div className="flex flex-col items-center gap-3 text-center">
         <Logo size={44} />
         <div className="flex flex-col gap-1">
-          <span className="text-hero-sm font-semibold tracking-[-0.035em]">Traiv Endorsers</span>
+          <span className="text-hero-sm font-medium">Traiv Endorsers</span>
           <span className="text-body-sm text-fg-muted">
             Refer coaches. Track what you bring in.
           </span>
@@ -53,7 +53,7 @@ export function SignInCard({ mode, onDone }: { mode: AuthMode; onDone: () => voi
         {flow.step === "phone" ? (
           <div className="flex flex-col gap-5">
             <header className="flex flex-col gap-1.5 text-center">
-              <h1 className="text-heading font-semibold tracking-[-0.02em]">
+              <h1 className="text-heading font-medium">
                 {isSignup ? "Create your account" : "Welcome back"}
               </h1>
               <p className="text-body-sm text-fg-muted">
@@ -139,7 +139,7 @@ export function SignInCard({ mode, onDone }: { mode: AuthMode; onDone: () => voi
               >
                 <ArrowLeft className="size-3.5" /> Change number
               </button>
-              <h1 className="text-heading font-semibold tracking-[-0.02em]">Enter the code</h1>
+              <h1 className="text-heading font-medium">Enter the code</h1>
               <p className="text-body-sm text-fg-muted">
                 Sent to <span className="tabular-nums text-fg">+91 {flow.phone}</span>
               </p>

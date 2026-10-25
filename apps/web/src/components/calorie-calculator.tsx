@@ -204,7 +204,7 @@ export function CalorieCalculator() {
             <p className="text-caption font-semibold uppercase tracking-[0.07em] text-fg-subtle">
               Daily target
             </p>
-            <p className="mt-2 font-display text-[clamp(2.5rem,7vw,3.5rem)] font-semibold tabular-nums leading-none tracking-[-0.04em]">
+            <p className="mt-2 font-display text-display font-medium tabular-nums leading-none">
               {target.kcal.toLocaleString("en-IN")}
               <span className="ml-2 align-middle text-[1rem] font-medium text-fg-subtle">kcal</span>
             </p>
@@ -217,7 +217,7 @@ export function CalorieCalculator() {
               ].map((m) => (
                 <div key={m.k} className="flex flex-col gap-1 bg-surface p-4">
                   <dt className="text-caption text-fg-subtle">{m.k}</dt>
-                  <dd className="font-display text-[1.375rem] font-semibold tabular-nums leading-none tracking-[-0.02em]">
+                  <dd className="font-display text-lead font-medium tabular-nums leading-none">
                     {m.v}
                     <span className="ml-0.5 text-caption font-medium text-fg-subtle">g</span>
                   </dd>

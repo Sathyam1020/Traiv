@@ -3,8 +3,8 @@
 import { Button } from "@traiv/ui/components/button";
 import { Skeleton } from "@traiv/ui/components/skeleton";
 import { Switch } from "@traiv/ui/components/switch";
+import { Check, Copy, RefreshCw } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
-import { Check, Copy, RefreshCw } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useState } from "react";
 import { useJoinCode, useRotateJoinCode, useSetJoinEnabled } from "@/lib/query";
@@ -127,7 +127,7 @@ export function JoinCard({ bare = false }: { bare?: boolean }) {
             <span className="text-caption font-semibold uppercase tracking-[0.07em] text-fg-subtle">
               Your code
             </span>
-            <span className="font-mono text-heading font-semibold tracking-[0.14em]">
+            <span className="font-mono text-heading font-medium tracking-[0.14em]">
               {data.joinCode}
             </span>
           </div>

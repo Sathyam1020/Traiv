@@ -55,3 +55,5 @@ overwrite.
 | 0019 | Client onboarding and the calorie calculator | accepted · `@traiv/nutrition` owns the number |
 | 0020 | One app shell, and the client's tabs | accepted · `lg` is the only nav breakpoint |
 | 0021 | Our own analytics, launch list and CMS | accepted · cookieless, no third party |
+| 0022 | Featurebase as the visual direction | accepted · supersedes 0015's palette, radius, type |
+| 0023 | Workouts are templates you assign | accepted · supersedes the workout half of 0004 |

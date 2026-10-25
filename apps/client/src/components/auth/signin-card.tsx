@@ -5,7 +5,7 @@ import { Button } from "@traiv/ui/components/button";
 import { GoogleButton } from "@traiv/ui/components/google-button";
 import { Logo } from "@traiv/ui/components/logo";
 import { PhoneField } from "@traiv/ui/components/phone-field";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check } from "@traiv/ui/icons";
 import { useState } from "react";
 import { DevBypass } from "@/components/auth/dev-bypass";
 import { useSignInFlow } from "@/components/auth/use-signin-flow";
@@ -31,7 +31,7 @@ export function SignInCard({ onDone }: { onDone: () => void }) {
     <div className="flex w-full max-w-[25rem] flex-col gap-5">
       <div className="flex flex-col items-center gap-3">
         <Logo size={40} />
-        <span className="text-hero-sm font-semibold tracking-[-0.035em]">Traiv</span>
+        <span className="text-hero-sm font-medium">Traiv</span>
       </div>
 
       <div className="rounded-surface border border-line bg-surface p-6 shadow-sm sm:p-7">

@@ -3,7 +3,7 @@
 import { Button } from "@traiv/ui/components/button";
 import { Page } from "@traiv/ui/components/shell/page";
 import { Skeleton } from "@traiv/ui/components/skeleton";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy } from "@traiv/ui/icons";
 import { useState } from "react";
 import { useEndorser, useJoinProgramme, useReferrals, useSession } from "@/lib/query";
 
@@ -78,7 +78,7 @@ export default function DashboardPage() {
       ) : (
         <Panel>
           <div className="flex flex-col gap-1">
-            <h1 className="text-heading font-semibold tracking-[-0.02em]">Become an endorser</h1>
+            <h1 className="text-heading font-medium">Become an endorser</h1>
             <p className="text-body-sm text-fg-muted">
               You get a code. Any coach who signs up with it is counted as yours.
             </p>
@@ -119,7 +119,7 @@ function CodeCard({ code, referrals }: { code: string; referrals: number }) {
           Your code
         </span>
         <div className="flex items-center gap-3">
-          <span className="font-mono text-display font-semibold tracking-[0.12em]">{code}</span>
+          <span className="font-mono text-display font-medium tracking-[0.12em]">{code}</span>
           <Button variant="outline" size="sm" className="gap-1.5" onClick={() => void copy()}>
             {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
             {copied ? "Copied" : "Copy"}
@@ -128,7 +128,7 @@ function CodeCard({ code, referrals }: { code: string; referrals: number }) {
       </div>
 
       <div className="border-t border-line pt-4">
-        <span className="text-display font-semibold tabular-nums">{referrals}</span>{" "}
+        <span className="text-display font-medium tabular-nums">{referrals}</span>{" "}
         <span className="text-body-sm text-fg-muted">
           {referrals === 1 ? "coach signed up with it" : "coaches signed up with it"}
         </span>

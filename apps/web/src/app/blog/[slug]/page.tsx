@@ -76,9 +76,7 @@ export default async function PostPage({ params }: Params) {
       {others.length > 0 ? (
         <Section tone="sunken">
           <Container width="prose">
-            <h2 className="font-display text-[1.375rem] font-semibold tracking-[-0.02em]">
-              Read next
-            </h2>
+            <h2 className="font-display text-lead font-medium">Read next</h2>
             <ul className="mt-6 flex flex-col">
               {others.map((o) => (
                 <li key={o.slug} className="border-t border-line">

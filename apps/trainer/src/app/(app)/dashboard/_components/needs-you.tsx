@@ -1,7 +1,7 @@
 "use client";
 
 import { Avatar } from "@traiv/ui/components/avatar";
-import { MessageSquareText } from "lucide-react";
+import { MessageSquareText } from "@traiv/ui/icons";
 import { motion } from "motion/react";
 import { WeekStrip } from "@/components/common/week-strip";
 import type { AtRiskClient } from "../_lib/roster";

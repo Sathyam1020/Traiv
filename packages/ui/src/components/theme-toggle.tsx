@@ -1,6 +1,6 @@
 "use client";
 
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun } from "@traiv/ui/icons";
 
 /**
  * Takes the value rather than reading a store, because each app owns its own — the theme

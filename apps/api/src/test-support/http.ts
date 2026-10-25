@@ -110,6 +110,13 @@ export class Agent {
   patch(path: string, body?: unknown) {
     return this.request("PATCH", path, body);
   }
+  put(path: string, body?: unknown) {
+    return this.request("PUT", path, body);
+  }
+  /** A body on DELETE: unusual, but `cors.test.ts` asserts the verb and routes use it. */
+  delete(path: string, body?: unknown) {
+    return this.request("DELETE", path, body);
+  }
 }
 
 /**

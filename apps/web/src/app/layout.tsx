@@ -53,13 +53,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-IN" className={`${inter.variable} ${bricolage.variable}`}>
+    <html lang="en-IN" className={`${inter.variable} ${bricolage.variable} dark`}>
       <body className="bg-canvas">
         <Nav />
         {/* The capsule header floats over the page, so content starts below it. */}
         <main className="pt-20 sm:pt-24">{children}</main>
         <Footer />
-        <Toaster theme="light" />
+        <Toaster theme="dark" />
         <StructuredData />
         {/* Our own, cookieless. See src/lib/analytics.ts for why there is no banner. */}
         <Analytics />

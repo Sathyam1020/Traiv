@@ -38,26 +38,31 @@ export default function TodayPage() {
 
   return (
     <Page className="gap-8">
+      {/* Coachway's greeting carries the exclamation; it is the one place in the app
+          that is pleased to see you, and the rest of the screen is deliberately flat. */}
       <header className="flex flex-col gap-1">
         <h1 className="text-display font-medium">
-          {data?.firstName ? `Hey ${data.firstName}` : "Hey"}
+          {data?.firstName ? `Hey ${data.firstName}!` : "Hey!"}
         </h1>
-        {data?.goal ? <p className="text-body-sm text-fg-muted">{data.goal}</p> : null}
       </header>
 
       {today.isPending ? (
-        <Skeleton className="h-[9.5rem] w-full rounded-surface" />
+        <Skeleton className="h-[11rem] w-full rounded-surface" />
       ) : data ? (
         <CheckInCard checkIn={data.checkIn} />
       ) : null}
 
       {data ? (
         <>
-          {/* Two up from `sm`, because a weight card alone at 1280px reads as a mistake
-              and the measurements card is empty until their coach asks for one. */}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          {/* Coachway's ProgressCards: a `gap-3` stack, not a grid. The weight card is a
+              block and the body-composition card is a row — stacking keeps that
+              difference legible instead of forcing a row into half a grid cell. */}
+          <div className="flex flex-col gap-3">
             <WeightCard weight={data.weight} onLog={() => setLogging(true)} />
-            <MeasurementsCard measurements={data.measurements} />
+            <MeasurementsCard
+              measurements={data.measurements}
+              href={data.measurements[0] ? `/check-in/${data.measurements[0].checkInId}` : null}
+            />
           </div>
 
           <RecentActivity sessions={data.recentSessions} />
@@ -160,10 +165,10 @@ function Loading() {
         <Skeleton className="h-9 w-56" />
         <Skeleton className="h-4 w-72" />
       </div>
-      <Skeleton className="h-[9.5rem] w-full rounded-surface" />
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Skeleton className="h-40 w-full rounded-surface" />
-        <Skeleton className="h-40 w-full rounded-surface" />
+      <Skeleton className="h-[11rem] w-full rounded-surface" />
+      <div className="flex flex-col gap-3">
+        <Skeleton className="h-48 w-full rounded-surface" />
+        <Skeleton className="h-16 w-full rounded-surface" />
       </div>
     </Page>
   );

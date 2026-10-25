@@ -61,7 +61,9 @@ so the next agent can find them instead of rebuilding them.
 
 | Component | Location | Purpose |
 |---|---|---|
-| `Button` | `apps/trainer/src/components/ui/button.tsx` | shadcn primitive. Variants: default, outline, ghost, secondary, destructive, link. |
+| `Button` | `packages/ui/src/components/button.tsx` | shadcn primitive. Variants: default (the white action), outline, ghost, secondary, destructive, link. |
+| `Badge` | `packages/ui/src/components/badge.tsx` | default is Featurebase's low-contrast pill; `signal` is the one violet badge, for a selected or live state. |
+| icons | `packages/ui/src/icons.tsx` | every icon in the product. Import from `@traiv/ui/icons`, never from the icon library. |
 
 ## The shadcn token bridge
 
@@ -70,7 +72,7 @@ shadcn components reference their own variable names (`--color-primary`, `--colo
 onto our semantic tier in an `@theme inline` block in `globals.css`.
 
 The consequence: a shadcn component is on our tokens the moment it is added, with no
-restyling pass. `bg-primary` compiles directly to `var(--accent)` → `var(--blue-500)`.
+restyling pass. `bg-primary` compiles directly to `var(--accent)` — white at 92% in the dark theme.
 
 **Two names to be careful with** — shadcn's `--accent` means *hover fill*, not our brand
 accent; their `--primary` is the brand colour. The bridge maps them accordingly.
@@ -81,5 +83,16 @@ one alias, never adding a raw value.
 ## Current shadcn dependencies
 
 `cn` (shadcn's own class-merge package — do **not** hand-write a `cn` util, that's the
-duplication this section exists to prevent), `radix-ui`, `class-variance-authority`,
-`lucide-react`.
+duplication this section exists to prevent), `radix-ui`, `class-variance-authority`.
+
+## Icons
+
+Hugeicons Stroke Rounded (ADR 0022), through `@traiv/ui/icons` only. Each icon is a
+component named for what a screen uses it for (`Check`, `ChevronDown`, `Loader`), sized
+with a `size-*` class. Need one that is not there: find it in `@hugeicons/core-free-icons`,
+import it from its own subpath (`@hugeicons/core-free-icons/Tick02Icon`, never the package
+root — that re-exports twelve thousand files), and add a named export. A prop typed "an
+icon" is `Icon` from the same module.
+
+The selected state of an icon is `text-signal`. Nothing else colours an icon except
+semantic state (danger, warning, success).

@@ -24,7 +24,7 @@ export default function AboutPage() {
         <Container width="prose">
           <div className="flex flex-col gap-12">
             <section className="flex flex-col gap-4">
-              <h2 className="font-display text-[1.5rem] font-semibold leading-snug tracking-[-0.02em]">
+              <h2 className="font-display text-lead font-medium leading-snug">
                 Why this instead of the ten things that exist
               </h2>
               <p className="text-body leading-[1.75] text-fg-muted">
@@ -46,7 +46,7 @@ export default function AboutPage() {
             </section>
 
             <section className="flex flex-col gap-4">
-              <h2 className="font-display text-[1.5rem] font-semibold leading-snug tracking-[-0.02em]">
+              <h2 className="font-display text-lead font-medium leading-snug">
                 The thing we are actually judged on
               </h2>
               <p className="text-body leading-[1.75] text-fg-muted">
@@ -67,7 +67,7 @@ export default function AboutPage() {
             </section>
 
             <section className="flex flex-col gap-4">
-              <h2 className="font-display text-[1.5rem] font-semibold leading-snug tracking-[-0.02em]">
+              <h2 className="font-display text-lead font-medium leading-snug">
                 Where it actually is
               </h2>
               <p className="text-body leading-[1.75] text-fg-muted">

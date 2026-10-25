@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { StatusGate } from "@/components/common/status-gate";
 import { AccountButton } from "@/components/layout/account-button";
+import { BrandTheme } from "@/components/layout/brand-theme";
 import { navFor } from "@/components/layout/nav-items";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { useActiveStudio, useIntake, useSession, useToday } from "@/lib/query";
@@ -27,7 +28,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   // Blocked only when nothing is running. With two coaches and one paused, the app works
   // and the paused one carries its state on its own card.
-  const { studioId, stalled } = useActiveStudio();
+  const { studioId, stalled, coaches } = useActiveStudio();
+  // The coach whose studio the app is currently showing — their colour is the one that
+  // applies. With two coaches, the running one wins, same as everything else here.
+  const brand = coaches.find((c) => c.studio.id === studioId)?.studio.color;
   const blocked = stalled !== null;
   const intake = useIntake(studioId);
 
@@ -61,27 +65,30 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <AppShell
-      nav={navFor(today.data?.reveal)}
-      sidebarBrand={
-        <RailBrand name={session.data?.user.name || "You"} sub="Traiv">
-          <ThemeToggle tone="rail" />
-        </RailBrand>
-      }
-      sidebarAccount={<AccountButton tone="rail" />}
-      header={
-        <MobileHeader
-          left={<Logo size={26} className="shrink-0" />}
-          right={
-            <>
-              <ThemeToggle />
-              <AccountButton compact />
-            </>
-          }
-        />
-      }
-    >
-      {children}
-    </AppShell>
+    <>
+      <BrandTheme color={brand} />
+      <AppShell
+        nav={navFor(today.data?.reveal)}
+        sidebarBrand={
+          <RailBrand name={session.data?.user.name || "You"} sub="Traiv">
+            <ThemeToggle tone="rail" />
+          </RailBrand>
+        }
+        sidebarAccount={<AccountButton tone="rail" />}
+        header={
+          <MobileHeader
+            left={<Logo size={26} className="shrink-0" />}
+            right={
+              <>
+                <ThemeToggle />
+                <AccountButton compact />
+              </>
+            }
+          />
+        }
+      >
+        {children}
+      </AppShell>
+    </>
   );
 }

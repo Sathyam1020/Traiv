@@ -6,7 +6,7 @@ import { Input } from "@traiv/ui/components/input";
 import { Label } from "@traiv/ui/components/label";
 import { Logo } from "@traiv/ui/components/logo";
 import { PhoneField } from "@traiv/ui/components/phone-field";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check } from "@traiv/ui/icons";
 import { useState } from "react";
 import { OtpInput } from "@/components/common/otp-input";
 import { useJoinFlow } from "@/components/join/use-join-flow";
@@ -59,7 +59,7 @@ export function JoinCard({
           <span className="text-caption uppercase tracking-[0.08em] text-fg-subtle">
             You've been invited by
           </span>
-          <span className="text-heading font-semibold tracking-[-0.02em]">{studioName}</span>
+          <span className="text-heading font-medium">{studioName}</span>
         </div>
       </div>
 

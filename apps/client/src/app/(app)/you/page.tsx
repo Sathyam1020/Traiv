@@ -3,7 +3,7 @@
 import { Button } from "@traiv/ui/components/button";
 import { Page } from "@traiv/ui/components/shell/page";
 import { Skeleton } from "@traiv/ui/components/skeleton";
-import { Pencil } from "lucide-react";
+import { Pencil } from "@traiv/ui/icons";
 import Link from "next/link";
 import { useCoaches, useIntake, useSession } from "@/lib/query";
 
@@ -94,7 +94,7 @@ export default function YouPage() {
   return (
     <Page className="gap-8">
       <header className="flex flex-col gap-1">
-        <h1 className="text-display font-semibold tracking-[-0.025em]">{user?.name || "You"}</h1>
+        <h1 className="text-display font-medium">{user?.name || "You"}</h1>
         <p className="text-body-sm tabular-nums text-fg-muted">{user?.phone}</p>
       </header>
 

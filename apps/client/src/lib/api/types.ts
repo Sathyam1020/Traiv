@@ -192,6 +192,9 @@ export type Today = {
     latest: number | null;
     /** Against the previous weigh-in, not the start — "since last time". */
     delta: number | null;
+    /** The first ever weigh-in and the goal from onboarding — the ends of the bar. */
+    start: number | null;
+    goal: number | null;
   };
   measurements: {
     code: string;
@@ -199,6 +202,8 @@ export type Today = {
     unit: string | null;
     value: number;
     takenOn: string | null;
+    /** The check-in that recorded it — where the row links to. */
+    checkInId: string;
   }[];
   recentSessions: { id: string; date: string; completedAt: string | null }[];
   /**

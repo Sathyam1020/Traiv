@@ -51,9 +51,7 @@ export default async function LegalPage({ params }: Params) {
           <article className="mt-12 flex flex-col gap-11">
             {d.sections.map((s) => (
               <section key={s.heading} className="flex flex-col gap-3.5">
-                <h2 className="font-display text-[1.375rem] font-semibold leading-snug tracking-[-0.02em]">
-                  {s.heading}
-                </h2>
+                <h2 className="font-display text-lead font-medium leading-snug">{s.heading}</h2>
                 {s.paras.map((p) => (
                   <p key={p.slice(0, 40)} className="text-body-sm leading-[1.8] text-fg-muted">
                     {p}

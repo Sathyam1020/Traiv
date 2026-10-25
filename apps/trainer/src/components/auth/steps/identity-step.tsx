@@ -5,7 +5,7 @@ import { GoogleButton } from "@traiv/ui/components/google-button";
 import { Input } from "@traiv/ui/components/input";
 import { Label } from "@traiv/ui/components/label";
 import { PhoneField } from "@traiv/ui/components/phone-field";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@traiv/ui/icons";
 import { EndorserField, useEndorserCode } from "@/components/auth/endorser-field";
 import { TrustMarkers } from "@/components/auth/trust-markers";
 import type { AuthFlow, AuthMode } from "@/components/auth/use-auth-flow";
@@ -24,7 +24,7 @@ export function IdentityStep({ mode, flow }: { mode: AuthMode; flow: AuthFlow })
   return (
     <div className="flex flex-col gap-5">
       <header className="flex flex-col gap-1.5 text-center">
-        <h1 className="text-heading font-semibold tracking-[-0.02em]">
+        <h1 className="text-heading font-medium">
           {isSignup ? "Create your account" : "Welcome back"}
         </h1>
         <p className="text-body-sm text-fg-muted">

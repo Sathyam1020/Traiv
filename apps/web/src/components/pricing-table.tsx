@@ -1,7 +1,7 @@
 "use client";
 
 import { Tabs, TabsList, TabsTrigger } from "@traiv/ui/components/tabs";
-import { Check } from "lucide-react";
+import { Check } from "@traiv/ui/icons";
 import { useState } from "react";
 import { NotifyMe } from "@/components/notify-me";
 import { rupees, TIERS } from "@/content/site";
@@ -73,7 +73,7 @@ export function PricingTable() {
 
               <div className="flex min-h-[3.5rem] flex-col gap-1">
                 <div className="flex items-baseline gap-1.5">
-                  <span className="font-display text-[2rem] font-semibold tabular-nums leading-none tracking-[-0.03em]">
+                  <span className="font-display text-heading font-medium tabular-nums leading-none">
                     {tier.monthly === 0
                       ? "Free"
                       : annual

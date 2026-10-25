@@ -68,7 +68,8 @@ Adding a catalog entry means the process above was completed first.
 | cn | 0.2.6 | trainer | shadcn class merge |
 | radix-ui | 1.6.7 | trainer | shadcn primitives |
 | class-variance-authority | 0.7.1 | trainer | shadcn variants |
-| lucide-react | 1.44.0 | trainer | icons |
+| @hugeicons/react | 1.1.10 | ui | icon renderer — replaced lucide-react (ADR 0022) |
+| @hugeicons/core-free-icons | 4.3.5 | ui | Stroke Rounded icon data, MIT |
 | vitest | 5.0.0 | api | scenario tests |
 | libphonenumber-js | 1.13.14 | phone | phone validation, every country |
 | tw-animate-css | 1.4.0 | ui | the `animate-in` utilities every shadcn component already uses |
@@ -181,6 +182,18 @@ Kept as evidence that step 3 is not optional:
   we had both, which is two places to disagree. To reproduce CI behaviour before
   pushing: clone to a temp directory and `CI=1 pnpm install --frozen-lockfile`. A warm
   tree will not tell you.
+
+- **Hugeicons** — justified because the founder asked for Featurebase's icon style and
+  Featurebase draws from Hugeicons; it replaces lucide-react rather than sitting beside it.
+  The free package is **Stroke Rounded only**. Featurebase's look (a 40% fill under the
+  stroke) is the Duotone Rounded style, which is Pro and needs a licence and a private
+  registry. `@hugeicons/react` is only a renderer: `<HugeiconsIcon icon={...} />` takes icon
+  *data* arrays from a separate package, so there is no `<Tick02Icon />` component to
+  import. Its default `strokeWidth` is 1.5 against lucide's 2, which is what makes the set
+  read lighter. The data package's root re-exports ~12,000 icons; every icon has its own
+  subpath export (`@hugeicons/core-free-icons/Tick02Icon`), and `packages/ui/src/icons.tsx`
+  imports only those, so a cold dev server never reads the whole set. Only `packages/ui`
+  depends on it — apps import from `@traiv/ui/icons`.
 
 **Version traps — current docs are mandatory for all four:**
 - **TypeScript 7** is the native-Go compiler rewrite

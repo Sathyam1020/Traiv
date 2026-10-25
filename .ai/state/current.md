@@ -1,6 +1,6 @@
 # Current state
 
-**Updated:** 2026-09-11
+**Updated:** 2026-10-24
 **Phase:** monorepo root scaffolded · next is the database package, then auth
 
 ## How we work
@@ -24,13 +24,27 @@ traiv/
     admin/     Next 16 · platform counts, :3003                       ✅ running
   packages/
     db/        12 tables, 14 migrations · 0012-13 not yet on Neon    ⚠️  pending
-    ui/        tokens, 25 components, the shell every app uses        ✅ shared
+    ui/        tokens, 25 components, icons, the shell every app uses ✅ shared
     phone/     the one phone rule, 245 countries (ADR 0018)           ✅ shared
     nutrition/ BMR → TDEE → kcal → macros, no AI (ADR 0019)          ✅ shared
 ```
 
 **Verified:** `pnpm -r typecheck` 9/9 · `turbo build` 4/4 · `biome check` clean ·
 **207 tests** in ~3s against a local Postgres (`TEST_DATABASE_URL`).
+
+### Visual direction — Featurebase (ADR 0022)
+
+Every app is dark by default (`class="dark"` on `<html>`, the store falls back to dark;
+light is a toggle away). Void canvas, charcoal panels, slate hairlines, a white primary
+action, violet only for selected states and the product-frame glow. Headings are Inter
+500 at 48/36 everywhere (fluid on phones); the marketing site keeps Bricolage for
+headlines and is dark-only. Icons are Hugeicons Stroke Rounded through
+`@traiv/ui/icons`; lucide is gone. Verified by screenshot on the marketing home, trainer
+sign-in, trainer Today and Clients (dark and light), and the client sign-in; the web
+responsive audit is clean at 360px.
+
+Not yet done: coach brand colour is read by the API but not applied to `--signal` in the
+client app; phone input and dev sign-in toggle are 40px tall on touch (pre-existing).
 
 ### Auth — code complete (ADR 0005, 0010, 0012)
 

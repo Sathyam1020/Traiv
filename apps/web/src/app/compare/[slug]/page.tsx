@@ -87,15 +87,11 @@ export default async function ComparisonPage({ params }: Params) {
         <Container>
           <div className="grid gap-10 lg:grid-cols-2 lg:gap-16">
             <div className="flex flex-col gap-3">
-              <h2 className="font-display text-[1.375rem] font-semibold tracking-[-0.02em]">
-                What {c.name} is good at
-              </h2>
+              <h2 className="font-display text-lead font-medium">What {c.name} is good at</h2>
               <p className="text-body-sm leading-relaxed text-fg-muted">{c.fair}</p>
             </div>
             <div className="flex flex-col gap-3">
-              <h2 className="font-display text-[1.375rem] font-semibold tracking-[-0.02em]">
-                When you should not switch
-              </h2>
+              <h2 className="font-display text-lead font-medium">When you should not switch</h2>
               <p className="text-body-sm leading-relaxed text-fg-muted">{c.stay}</p>
             </div>
           </div>

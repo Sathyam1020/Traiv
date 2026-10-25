@@ -29,7 +29,7 @@ export function AdminState({
   if (error && isApiError(error) && error.status === 403) {
     return (
       <section className="flex flex-col gap-2 rounded-surface border border-line bg-surface p-5">
-        <h2 className="text-heading font-semibold tracking-[-0.02em]">Not an admin account</h2>
+        <h2 className="text-heading font-medium">Not an admin account</h2>
         <p className="max-w-[60ch] text-body-sm text-fg-muted">
           Admin access is a single phone number set in the server's environment, and nothing in the
           app can grant it.
@@ -72,7 +72,7 @@ export function Stat({
       <span className="text-caption font-semibold uppercase tracking-[0.07em] text-fg-subtle">
         {label}
       </span>
-      <span className="text-hero-sm font-semibold tabular-nums tracking-[-0.03em]">{value}</span>
+      <span className="text-hero-sm font-medium tabular-nums">{value}</span>
       {note ? <span className="text-caption text-fg-subtle">{note}</span> : null}
     </div>
   );

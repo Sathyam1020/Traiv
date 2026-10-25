@@ -3,7 +3,7 @@
 import { Button } from "@traiv/ui/components/button";
 import { Logo } from "@traiv/ui/components/logo";
 import { Skeleton } from "@traiv/ui/components/skeleton";
-import { CircleCheck } from "lucide-react";
+import { CircleCheck } from "@traiv/ui/icons";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { IntakeFlow } from "@/components/intake/intake-flow";
@@ -118,7 +118,7 @@ function Shell({ title, body }: { title: string; body: string }) {
     <main className="flex min-h-dvh flex-col items-center justify-center gap-5 px-6 text-center">
       <Logo size={40} />
       <div className="flex max-w-[32ch] flex-col gap-2">
-        <h1 className="text-heading font-semibold tracking-[-0.02em]">{title}</h1>
+        <h1 className="text-heading font-medium">{title}</h1>
         <p className="text-body-sm text-fg-muted">{body}</p>
       </div>
     </main>
@@ -132,7 +132,7 @@ function Done({ studioName }: { studioName: string }) {
     <main className="flex min-h-dvh flex-col items-center justify-center gap-5 px-6 text-center">
       <CircleCheck className="size-11 text-success" />
       <div className="flex max-w-[32ch] flex-col gap-2">
-        <h1 className="text-heading font-semibold tracking-[-0.02em]">You're in</h1>
+        <h1 className="text-heading font-medium">You're in</h1>
         <p className="text-body-sm text-fg-muted">
           {studioName} is now your coach. They'll set up your plan — nothing else is needed from you
           right now.

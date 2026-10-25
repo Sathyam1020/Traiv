@@ -1,5 +1,5 @@
 import type { NavGroup } from "@traiv/ui/components/shell/app-shell";
-import { Home, Users } from "lucide-react";
+import { Home, Users } from "@traiv/ui/icons";
 
 /**
  * The coach's rail, grouped by subject.

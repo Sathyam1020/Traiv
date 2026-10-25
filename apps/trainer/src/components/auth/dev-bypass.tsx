@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, TriangleAlert } from "lucide-react";
+import { ChevronDown, TriangleAlert } from "@traiv/ui/icons";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useDevLogin, useDevUsers } from "@/lib/query";

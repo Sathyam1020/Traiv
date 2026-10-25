@@ -1,7 +1,7 @@
 "use client";
 
 import { toast } from "@traiv/ui/components/sonner";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy } from "@traiv/ui/icons";
 import { useState } from "react";
 
 /**

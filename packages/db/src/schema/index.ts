@@ -11,3 +11,4 @@ export * from "./plan.js";
 export * from "./studio.js";
 export * from "./tag.js";
 export * from "./user.js";
+export * from "./workout.js";

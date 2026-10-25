@@ -2,13 +2,15 @@
 
 ## Reference points (confirmed)
 
-**Notion** is the structural base — restraint, typography-led, near-zero borders,
-generous line-height, colour only when it means something.
-**Apple** is the motion and depth reference — physical, purposeful, never decorative.
+**Featurebase** is the visual direction (ADR 0022) — a near-black stage, flat charcoal
+layers divided by hairlines, quiet Inter at weight 500, a white action, and violet spent
+only as a signal. Dark is the default theme; light is kept.
+**Apple's Human Interface Guidelines** are the craft and accessibility check, and the
+motion reference — physical, purposeful, never decorative.
 
-What makes something feel like Notion is *not* the font. It's what's absent: no card
-around everything, no gradient, no shadow unless something is genuinely floating, no
-colour that isn't carrying meaning.
+What makes it feel like Featurebase is what's absent: no colour behind a button, no card
+around everything, no shadow unless something is genuinely floating, and violet nowhere
+it does not mean "selected" or "this is the product".
 
 ## Token architecture — three tiers, non-negotiable
 
@@ -51,9 +53,9 @@ Tokens are an API: named deliberately, versioned, reviewed. Unused tokens get de
 Every semantic token is defined for light and dark. Components read semantic tokens only,
 so theming requires no component changes.
 
-Coach-level branding (logo, display name, accent colour) applies to the **client app**
-only, and only overrides `color.accent.*`. It never touches text, surface or border
-tokens — a coach picking a bad brand colour must not be able to make the app unreadable.
+Coach-level branding (logo, display name, brand colour) applies to the **client app**
+only, and only overrides the `signal` group (`--signal`, `--signal-text`,
+`--signal-subtle`). It never touches the action, text, surface or border tokens — a coach picking a bad brand colour must not be able to make the app unreadable.
 
 ## Governance
 

@@ -1,7 +1,9 @@
-import { Activity, Apple, CalendarDays, Dumbbell, Inbox, LayoutGrid, Users } from "lucide-react";
+import { Activity, Apple, CalendarDays, Dumbbell, Inbox, LayoutGrid, Users } from "@traiv/ui/icons";
 
 /**
- * The product, tilted, with the pieces that matter floating off it.
+ * The product workspace, rising out of the hero, with the pieces that matter floating
+ * off it. Featurebase's frame (ADR 0022): a charcoal panel, a hairline edge, and a
+ * restrained violet light around it — the one place on the page that light appears.
  *
  * It is a mock rather than a screenshot on purpose: the real screens are mid-build, and a
  * screenshot of a half-finished roster sells nothing. Every number on it is plausible and
@@ -9,8 +11,8 @@ import { Activity, Apple, CalendarDays, Dumbbell, Inbox, LayoutGrid, Users } fro
  * "Rodger Struck" is on the page this takes its shape from.
  *
  * Built from divs rather than an image so it stays sharp on every display, reads at 360px
- * by dropping the tilt, and costs no download. The perspective is one transform on the
- * frame; the cards in front sit outside it so they stay flat and legible.
+ * by dropping the rail, and costs no download. The cards in front sit outside the frame
+ * so they stay flat and legible.
  */
 export function HeroDashboard() {
   return (
@@ -19,8 +21,14 @@ export function HeroDashboard() {
       className="relative select-none"
       // Decorative. Everything in here is said in the copy beside it.
     >
-      <div className="relative [perspective:1800px]">
-        <div className="origin-left overflow-hidden rounded-panel border border-line bg-surface shadow-[0_24px_70px_-20px_rgb(0_0_0/0.28)] lg:[transform:rotateY(-14deg)_rotateX(5deg)_rotate(1deg)]">
+      {/* The violet atmosphere: a wash behind the frame's upper edge, blurred so it reads
+          as light falling on the page rather than as a shape. */}
+      <div
+        aria-hidden="true"
+        className="absolute -inset-x-6 -top-10 h-40 rounded-full bg-glow-violet blur-3xl"
+      />
+      <div className="relative">
+        <div className="overflow-hidden rounded-panel border border-line bg-surface shadow-glow">
           <div className="flex min-h-[26rem]">
             {/* The rail. Dark, the way every console of this kind is. */}
             <div className="hidden w-48 shrink-0 flex-col justify-between bg-contrast p-3 sm:flex">
@@ -82,7 +90,7 @@ export function HeroDashboard() {
                     key={t}
                     className={`shrink-0 ${
                       i === 0
-                        ? "border-b-2 border-fg pb-2 font-medium text-fg"
+                        ? "border-b-2 border-signal pb-2 font-medium text-fg"
                         : "pb-2 text-fg-subtle"
                     }`}
                   >
@@ -128,12 +136,12 @@ export function HeroDashboard() {
       </div>
 
       {/* In front of the frame, flat, so they stay readable at the tilt. */}
-      <div className="absolute -top-5 -left-4 hidden w-[12.5rem] rounded-surface border border-line bg-surface p-4 shadow-[0_16px_40px_-12px_rgb(0_0_0/0.25)] xl:block">
+      <div className="absolute -top-6 right-12 hidden w-[12.5rem] rounded-surface border border-line bg-surface p-4 shadow-float xl:block">
         <div className="flex items-center gap-1.5">
           <Apple className="size-3.5 text-fg-subtle" />
           <span className="text-[11px] font-medium">Today's target</span>
         </div>
-        <p className="mt-2 font-display text-[1.75rem] font-semibold tabular-nums leading-none tracking-[-0.03em]">
+        <p className="mt-2 font-display text-heading font-medium tabular-nums leading-none">
           1,740
           <span className="ml-1 text-[11px] font-medium text-fg-subtle">kcal</span>
         </p>
@@ -149,14 +157,14 @@ export function HeroDashboard() {
                 <span className="text-[10px] font-medium tabular-nums">{m.v}</span>
               </div>
               <span className="h-1 w-full overflow-hidden rounded-full bg-sunken">
-                <span className="block h-full rounded-full bg-fg" style={{ width: m.w }} />
+                <span className="block h-full rounded-full bg-signal" style={{ width: m.w }} />
               </span>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="absolute -right-3 bottom-10 hidden w-[11.5rem] rounded-surface border border-line bg-surface p-4 shadow-[0_16px_40px_-12px_rgb(0_0_0/0.25)] lg:block">
+      <div className="absolute -right-3 bottom-10 hidden w-[11.5rem] rounded-surface border border-line bg-surface p-4 shadow-float lg:block">
         <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-fg-subtle">
           Needs you
         </span>
@@ -203,11 +211,11 @@ function RailItem({
 }) {
   return (
     <span
-      className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-[11px] ${
-        active ? "bg-contrast-fg/12 font-medium text-contrast-fg" : "text-contrast-fg/55"
+      className={`flex items-center gap-2 rounded-control px-2 py-1.5 text-[11px] ${
+        active ? "bg-contrast-fg/8 font-medium text-contrast-fg" : "text-contrast-fg/55"
       }`}
     >
-      <Icon className="size-3.5 shrink-0" />
+      <Icon className={`size-3.5 shrink-0 ${active ? "text-signal" : ""}`} />
       {name}
     </span>
   );
@@ -229,7 +237,7 @@ function Stat({
   return (
     <div className="flex flex-col gap-1 rounded-surface border border-line p-3">
       <span className="text-[10px] text-fg-subtle">{label}</span>
-      <span className="font-display text-[1.125rem] font-semibold tabular-nums leading-none tracking-[-0.02em]">
+      <span className="font-display text-subheading font-semibold tabular-nums leading-none">
         {value}
         <span className="ml-0.5 text-[10px] font-medium text-fg-subtle">{of}</span>
       </span>

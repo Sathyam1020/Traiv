@@ -7,7 +7,7 @@ import { Page } from "@traiv/ui/components/shell/page";
 import { Skeleton } from "@traiv/ui/components/skeleton";
 import { toast } from "@traiv/ui/components/sonner";
 import { Textarea } from "@traiv/ui/components/textarea";
-import { ArrowLeft, Trash2 } from "lucide-react";
+import { ArrowLeft, Trash } from "@traiv/ui/icons";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useId, useState } from "react";
@@ -138,7 +138,7 @@ export default function PostEditorPage() {
         <div className="flex items-center gap-2">
           {id ? (
             <Button variant="ghost" size="sm" onClick={destroy} disabled={busy}>
-              <Trash2 className="size-4" />
+              <Trash className="size-4" />
               Delete
             </Button>
           ) : null}

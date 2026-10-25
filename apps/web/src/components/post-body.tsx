@@ -20,14 +20,10 @@ export function PostBody({ markdown }: { markdown: string }) {
         remarkPlugins={[remarkGfm]}
         components={{
           h2: ({ children }) => (
-            <h2 className="mt-7 font-display text-[1.5rem] font-semibold leading-snug tracking-[-0.02em]">
-              {children}
-            </h2>
+            <h2 className="mt-7 font-display text-lead font-medium leading-snug">{children}</h2>
           ),
           h3: ({ children }) => (
-            <h3 className="mt-5 font-display text-[1.1875rem] font-semibold tracking-[-0.02em]">
-              {children}
-            </h3>
+            <h3 className="mt-5 font-display text-subheading font-semibold">{children}</h3>
           ),
           p: ({ children }) => <p className="text-body leading-[1.75] text-fg-muted">{children}</p>,
           a: ({ href, children }) => (

@@ -32,7 +32,7 @@ export function RateCalculator() {
         <Field label="What you want to earn a month">
           {(id) => (
             <div className="flex flex-col gap-3 pt-1">
-              <p className="font-display text-[2rem] font-semibold tabular-nums leading-none tracking-[-0.03em]">
+              <p className="font-display text-heading font-medium tabular-nums leading-none">
                 {rupees(income)}
               </p>
               <Slider
@@ -53,7 +53,7 @@ export function RateCalculator() {
         >
           {(id) => (
             <div className="flex flex-col gap-3 pt-1">
-              <p className="font-display text-[2rem] font-semibold tabular-nums leading-none tracking-[-0.03em]">
+              <p className="font-display text-heading font-medium tabular-nums leading-none">
                 {hoursPerWeek}
               </p>
               <Slider id={id} value={hoursPerWeek} onChange={setHoursPerWeek} min={5} max={60} />
@@ -67,7 +67,7 @@ export function RateCalculator() {
         >
           {(id) => (
             <div className="flex flex-col gap-3 pt-1">
-              <p className="font-display text-[2rem] font-semibold tabular-nums leading-none tracking-[-0.03em]">
+              <p className="font-display text-heading font-medium tabular-nums leading-none">
                 {hoursPerClient}
               </p>
               <Slider
@@ -88,7 +88,7 @@ export function RateCalculator() {
           <p className="text-caption font-semibold uppercase tracking-[0.07em] text-fg-subtle">
             Charge at least
           </p>
-          <p className="mt-2 font-display text-[clamp(2.25rem,6vw,3.25rem)] font-semibold tabular-nums leading-none tracking-[-0.04em]">
+          <p className="mt-2 font-display text-display font-medium tabular-nums leading-none">
             {rupees(rate)}
             <span className="ml-2 align-middle text-[1rem] font-medium text-fg-subtle">
               per client, per month
@@ -113,7 +113,7 @@ export function RateCalculator() {
           ].map((s) => (
             <div key={s.k} className="flex flex-col gap-1 bg-surface p-5">
               <dt className="text-caption text-fg-subtle">{s.k}</dt>
-              <dd className="font-display text-[1.375rem] font-semibold tabular-nums leading-none tracking-[-0.02em]">
+              <dd className="font-display text-lead font-medium tabular-nums leading-none">
                 {s.v}
               </dd>
               <p className="text-caption text-fg-subtle">{s.note}</p>

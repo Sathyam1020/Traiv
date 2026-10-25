@@ -1,5 +1,5 @@
 import { Avatar } from "@traiv/ui/components/avatar";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight } from "@traiv/ui/icons";
 import { WeekStrip } from "@/components/common/week-strip";
 import type { RosterEntry } from "../_lib/roster";
 import { press, Section } from "./section";

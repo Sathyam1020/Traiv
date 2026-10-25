@@ -20,7 +20,7 @@ import { createCn } from "cn/config";
  * black rectangle with black text on it. Nothing errored, nothing warned: one class was
  * silently dropped and the button inherited `color` from the page.
  *
- * Naming the nine custom sizes here fixes it everywhere at once. `--text-*` in
+ * Naming the ten custom sizes here fixes it everywhere at once. `--text-*` in
  * `globals.css` is the source of truth; **add a size there and add it here**, or the
  * next component to use it loses its colour the same way.
  */
@@ -38,6 +38,7 @@ export const cn: (...inputs: ClassValue[]) => string = createCn({
             "label",
             "body",
             "subheading",
+            "lead",
             "heading",
             "display",
             "hero-sm",
@@ -50,6 +51,9 @@ export const cn: (...inputs: ClassValue[]) => string = createCn({
       // component had already set — both survived and the stylesheet decided, which is
       // why some menu items were pill-shaped on hover and others were not.
       rounded: [{ rounded: ["control", "surface", "panel"] }],
+      // `--shadow-*`. Same failure again: an unknown `shadow-float` is filed as a shadow
+      // *colour*, so it could not replace a shadcn component's `shadow-md`.
+      shadow: [{ shadow: ["inset", "float", "raised", "glow"] }],
       // `--font-display`
       "font-family": [{ font: ["display"] }],
       // `--ease-*`

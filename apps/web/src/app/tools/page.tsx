@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@traiv/ui/icons";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CtaBand } from "@/components/cta-band";
@@ -31,7 +31,7 @@ export default function ToolsPage() {
                   className="flex h-full flex-col gap-2.5 p-7 transition-colors hover:bg-hover"
                 >
                   <t.icon className="size-4 text-fg-subtle" />
-                  <h2 className="flex items-center gap-2 font-display text-[1.125rem] font-semibold tracking-[-0.02em]">
+                  <h2 className="flex items-center gap-2 font-display text-subheading font-semibold">
                     {t.name}
                     <ArrowRight className="size-4 text-fg-subtle" />
                   </h2>

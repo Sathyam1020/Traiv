@@ -13,8 +13,8 @@ import {
 import { Input } from "@traiv/ui/components/input";
 import { Label } from "@traiv/ui/components/label";
 import { PhoneField } from "@traiv/ui/components/phone-field";
+import { ArrowRight, Check, Loader } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/utils";
-import { ArrowRight, Check, Loader2 } from "lucide-react";
 import { useId, useState } from "react";
 import { track } from "@/lib/analytics";
 import { ApiError, joinWaitlist, type WaitlistInput } from "@/lib/api";
@@ -32,11 +32,14 @@ import { ApiError, joinWaitlist, type WaitlistInput } from "@/lib/api";
 
 type Variant = "primary" | "outline" | "pill" | "quiet";
 
+// Featurebase's conversion controls: compact (8px by 16px), never taller than the type
+// needs, and the filled one is always the white action rather than a colour.
 const VARIANTS: Record<Variant, string> = {
-  primary: "h-12 rounded-control px-6 text-body-sm",
-  outline: "h-12 rounded-control border border-line-strong bg-surface px-6 text-body-sm",
-  // Inside the header bar, where the control sits in an existing surface.
-  pill: "h-auto rounded-control px-4 py-2 text-body-sm pointer-coarse:h-11 pointer-coarse:py-0",
+  primary: "h-10 rounded-control px-4 text-label pointer-coarse:h-11",
+  outline:
+    "h-10 rounded-control border border-line-strong bg-transparent px-4 text-label pointer-coarse:h-11",
+  // Inside the header bar — the one control there that is weight 600.
+  pill: "h-auto rounded-control px-4 py-2 text-label font-semibold pointer-coarse:h-11 pointer-coarse:py-0",
   quiet:
     "h-auto rounded-control bg-transparent px-3.5 py-2 text-body-sm font-normal text-fg-muted hover:bg-hover hover:text-fg pointer-coarse:h-11 pointer-coarse:py-0",
 };
@@ -161,7 +164,7 @@ function NotifyDialog({
               <Check className="size-5 text-success" />
             </span>
             <DialogHeader className="gap-1 text-left">
-              <DialogTitle className="font-display text-[1.25rem] tracking-[-0.02em]">
+              <DialogTitle className="font-display text-lead font-medium">
                 You are on the list
               </DialogTitle>
               <DialogDescription className="text-body-sm leading-relaxed">
@@ -182,7 +185,7 @@ function NotifyDialog({
         ) : (
           <form onSubmit={submit} className="flex flex-col gap-5">
             <DialogHeader className="gap-1 text-left">
-              <DialogTitle className="font-display text-[1.25rem] tracking-[-0.02em]">
+              <DialogTitle className="font-display text-lead font-medium">
                 Traiv is not open yet
               </DialogTitle>
               <DialogDescription className="text-body-sm leading-relaxed">
@@ -259,7 +262,7 @@ function NotifyDialog({
                 disabled={!hasContact || busy}
                 className="h-11 w-full cursor-pointer"
               >
-                {busy ? <Loader2 className="size-4 animate-spin" /> : null}
+                {busy ? <Loader className="size-4 animate-spin" /> : null}
                 {busy ? "Adding you" : "Add me to the list"}
               </Button>
               <p className="text-caption text-fg-subtle">

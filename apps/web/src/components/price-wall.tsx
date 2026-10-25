@@ -54,7 +54,7 @@ export function PriceWall() {
           <p className="text-caption font-semibold uppercase tracking-[0.1em] text-fg-subtle">
             What growing costs you
           </p>
-          <h2 className="font-display text-[clamp(1.75rem,4vw,2.75rem)] font-semibold leading-[1.1] tracking-[-0.03em]">
+          <h2 className="font-display text-heading font-medium">
             Every other platform charges you more for doing well
           </h2>
           <p className="text-body leading-relaxed text-fg-muted">
@@ -157,7 +157,7 @@ export function PriceWall() {
               <p className="text-caption font-semibold uppercase tracking-[0.07em] text-fg-subtle">
                 Difference
               </p>
-              <p className="mt-1 font-display text-[1.75rem] font-semibold tabular-nums tracking-[-0.02em]">
+              <p className="mt-1 font-display text-heading font-medium tabular-nums">
                 {saved > 0 ? inr(saved) : inr(0)}
               </p>
               <p className="mt-1 text-caption text-fg-muted">a month, at {clients} clients</p>
@@ -194,7 +194,7 @@ function Row({
         <span className="text-caption text-fg-subtle">{note}</span>
       </div>
       <span
-        className={`shrink-0 font-display text-[1.25rem] font-semibold tabular-nums ${
+        className={`shrink-0 font-display text-subheading font-semibold tabular-nums ${
           muted ? "text-fg-muted" : "text-fg"
         }`}
       >

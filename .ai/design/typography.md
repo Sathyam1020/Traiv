@@ -26,39 +26,37 @@ using Source Serif 4 / Newsreader from Google Fonts. **TBD — not needed yet.**
 
 ## Scale
 
-Restrained on purpose. cal.com and Notion both use very few sizes and it is why they
-read as calm. Huge
-headings are a listed slop pattern — the largest thing on a product screen is 24px.
+Featurebase's (ADR 0022). Headings are **weight 500** — the quiet weight is what keeps a
+48px title composed rather than shouting.
 
 ```
-type.display    24px / 1.25 / 600 / -0.02em    page title, used once per screen
-type.heading    20px / 1.3  / 600 / -0.015em   section heading
-type.subheading 16px / 1.4  / 600 / -0.01em    card or group title
-type.body       16px / 1.5  / 400              default. Notion's body size.
-type.body-sm    14px / 1.5  / 400              dense surfaces, table cells
-type.label      14px / 1.4  / 500              form labels, buttons
-type.caption    12px / 1.4  / 400              metadata, helper text
-type.mono       13px / 1.5  / 400              numbers in tables, ids
+type.caption     13px / 1.5  / 400–500           metadata, helper text. The floor.
+type.body-sm     14px / 1.43 / 400               dense surfaces, table cells
+type.label       14px / 1.43 / 500               nav, buttons, form labels
+type.body        16px / 1.5  / 400               default
+type.subheading  18px / 1.56 / 600               feature and card titles
+type.lead        23px / 1.5  / 400–500           lead paragraphs, large numbers, OTP digits
+type.heading     36px / 1.11 / 500 / -0.02em     section heading, a flow's h1   (28 on a phone)
+type.display     48px / 1.2  / 500 / -0.02em     the page title, once per screen (32 on a phone)
 ```
 
-That's eight. Do not add a ninth without an ADR.
+`heading` and `display` are fluid (`clamp`) so a 360px phone gets a title that fits.
+`hero` and `hero-sm` survive as aliases of `display` and `heading` for the marketing site —
+one scale, not two.
 
-## Marketing scale — public surfaces only
+**The 24px product cap from ADR 0006 is gone** — the founder chose Featurebase's scale
+everywhere (ADR 0022). What still holds: one `display` per screen, and numbers use `lead`,
+not a heading size.
 
-```
-type.hero       44px / 1.08 / 600 / -0.03em    landing and auth headlines
-type.hero-sm    32px / 1.12 / 600 / -0.025em   the same, below lg
-```
-
-**Product UI stops at `type.display` (24px).** These two exist because a landing page and a
-signed-out auth screen are selling, not operating — they get one large headline each. A
-signed-in screen never does. Using `text-hero` inside the app is a review failure.
+**Marketing headlines** use `font-display`, which resolves to Bricolage Grotesque on
+`apps/web` only and to Inter everywhere else.
 
 ## Rules
 
 1. **Weight does the work, not size.** Hierarchy comes from 400 → 500 → 600 and from
    `text.primary` → `text.secondary`. Reach for weight and colour before size.
-2. **600 is the heaviest weight in the product.** No 700, no 800.
+2. **Headings are 500. 600 is for compact titles** (`subheading`, a name in a row) and the
+   header button. No 700, no 800.
 3. **Line-height 1.5 on body text.** This is a large part of the Notion feel.
 4. **Uppercase only for small labels**, with `0.06em` tracking, at `caption` size,
    in `text.secondary`. Never for headings.
@@ -69,14 +67,12 @@ signed-in screen never does. Using `text-hero` inside the app is a review failur
 
 ## Tracking
 
-Display sizes carry negative tracking. This is what reads as Cal Sans without shipping it:
+Set on the token in `globals.css`, never per component — a `tracking-[-0.03em]` beside a
+`text-heading` is a review failure.
 
 ```
-text-heading   -0.02em
-text-display   -0.03em
-text-hero      -0.04em
-text-hero-sm   -0.04em
+text-heading   -0.02em   (-0.72px at 36)
+text-display   -0.02em   (-0.96px at 48)
 ```
 
-Body and below take no tracking adjustment. It is set on the type token in `globals.css`,
-never per component.
+Body and below take no tracking adjustment.

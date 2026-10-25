@@ -1,4 +1,4 @@
-import { Check, Quote } from "lucide-react";
+import { Check, Quote } from "@traiv/ui/icons";
 import Link from "next/link";
 import { FaqList } from "@/components/faq-list";
 import { HeroDashboard } from "@/components/hero-dashboard";
@@ -36,52 +36,52 @@ export default function HomePage() {
   );
 }
 
+/**
+ * Featurebase's opening screen (ADR 0022): a centred stack — headline, a two-line lead,
+ * the paired controls — and the product rising out of the lower edge beneath it, lit
+ * by a slate haze from below. The product is the evidence; the copy only has to point
+ * at it, so the stack is narrow and the frame is as wide as the page allows.
+ */
 function Hero() {
   return (
-    <section className="overflow-hidden border-b border-line">
-      <div className="mx-auto w-full max-w-[76rem] px-5 pt-10 pb-16 sm:px-8 sm:pt-14 sm:pb-24">
-        <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.05fr)] lg:gap-8">
-          <div className="min-w-0 max-w-[34rem]">
-            <Reveal>
-              <h1 className="font-display text-[clamp(2.25rem,5.5vw,3.75rem)] font-semibold leading-[1.04] tracking-[-0.04em] text-balance">
-                Coach fifty people like you coach ten
-              </h1>
-            </Reveal>
+    <section className="relative overflow-hidden">
+      <div aria-hidden="true" className="absolute inset-x-0 bottom-0 h-2/3 bg-glow-lift" />
 
-            <Reveal delay={80}>
-              <p className="mt-6 text-[1.0625rem] leading-relaxed text-fg-muted sm:text-[1.125rem]">
-                Plans, check-ins and payments in one place, under your own name. Unlimited clients
-                for {rupees(999)} a month — the price does not move when you grow.
-              </p>
-            </Reveal>
+      <div className="relative mx-auto flex w-full max-w-[76rem] flex-col items-center px-4 pt-12 sm:px-8 sm:pt-20">
+        <div className="flex max-w-[44rem] flex-col items-center text-center">
+          <Reveal>
+            <h1 className="font-display text-display font-medium text-balance">
+              Coach fifty people like you coach ten
+            </h1>
+          </Reveal>
 
-            <Reveal delay={160} className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <NotifyMe source="hero" />
-              <Link
-                href="/pricing"
-                className="inline-flex h-12 items-center justify-center rounded-control border border-line-strong bg-surface px-6 text-body-sm font-medium transition-colors hover:bg-hover"
-              >
-                See pricing
-              </Link>
-            </Reveal>
+          <Reveal delay={80}>
+            <p className="mt-5 text-body text-fg-muted text-balance sm:text-lead">
+              Plans, check-ins and payments in one place, under your own name. Unlimited clients for{" "}
+              {rupees(999)} a month — the price does not move when you grow.
+            </p>
+          </Reveal>
 
-            <Reveal delay={240}>
-              <p className="mt-5 text-caption text-fg-subtle">
-                Free for one client, forever. No card, and one click to leave.
-              </p>
-            </Reveal>
-          </div>
+          <Reveal delay={160} className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <NotifyMe source="hero" />
+            <Link
+              href="/pricing"
+              className="inline-flex h-10 items-center justify-center rounded-control border border-line-strong px-4 text-label font-medium transition-colors hover:bg-hover pointer-coarse:h-11"
+            >
+              See pricing
+            </Link>
+          </Reveal>
 
-          <Reveal
-            direction="right"
-            delay={120}
-            // The mock bleeds off the right edge — but not on the narrowest phones, where
-            // the few pixels it gains cost it its own right-hand edge.
-            className="relative min-w-0 mr-0 min-[400px]:-mr-5 sm:-mr-8 lg:mr-0"
-          >
-            <HeroDashboard />
+          <Reveal delay={240}>
+            <p className="mt-4 text-caption text-fg-subtle">
+              Free for one client, forever. No card, and one click to leave.
+            </p>
           </Reveal>
         </div>
+
+        <Reveal direction="up" delay={120} className="mt-14 w-full min-w-0 sm:mt-20">
+          <HeroDashboard />
+        </Reveal>
       </div>
     </section>
   );
@@ -113,7 +113,7 @@ function Sunday() {
       <div className="mx-auto w-full max-w-[72rem] px-5 sm:px-8">
         <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] lg:gap-20">
           <div className="flex flex-col gap-4">
-            <h2 className="font-display text-[clamp(1.75rem,4vw,2.75rem)] font-semibold leading-[1.1] tracking-[-0.03em]">
+            <h2 className="font-display text-heading font-medium">
               You already know how Sunday goes
             </h2>
             <p className="text-body leading-relaxed text-fg-muted">
@@ -148,7 +148,7 @@ function Promises() {
     <section className="py-20 sm:py-28">
       <div className="mx-auto w-full max-w-[72rem] px-5 sm:px-8">
         <div className="max-w-[46rem]">
-          <h2 className="font-display text-[clamp(1.75rem,4vw,2.75rem)] font-semibold leading-[1.1] tracking-[-0.03em]">
+          <h2 className="font-display text-heading font-medium">
             Six things we have decided never to do
           </h2>
           <p className="mt-4 text-body leading-relaxed text-fg-muted">
@@ -160,7 +160,7 @@ function Promises() {
         <ul className="mt-12 grid gap-x-12 gap-y-10 sm:grid-cols-2">
           {PROMISES.map((p, i) => (
             <Reveal as="li" key={p.title} delay={(i % 2) * 60} className="flex gap-4">
-              <Check className="mt-1 size-4 shrink-0 text-fg" />
+              <Check className="mt-1 size-4 shrink-0 text-signal" />
               <div className="flex min-w-0 flex-col gap-1.5">
                 <h3 className="text-body font-semibold">{p.title}</h3>
                 <p className="text-body-sm leading-relaxed text-fg-muted">{p.body}</p>
@@ -241,16 +241,14 @@ function Included() {
   return (
     <section className="border-y border-line bg-sunken py-20 sm:py-28">
       <div className="mx-auto w-full max-w-[72rem] px-5 sm:px-8">
-        <h2 className="max-w-[46rem] font-display text-[clamp(1.75rem,4vw,2.75rem)] font-semibold leading-[1.1] tracking-[-0.03em]">
+        <h2 className="max-w-[46rem] font-display text-heading font-medium">
           What you get, in the order you will use it
         </h2>
 
         <div className="mt-12 grid gap-px overflow-hidden rounded-surface border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
           {INCLUDED.map((f, i) => (
             <Reveal key={f.title} delay={i * 50} className="flex flex-col gap-2 bg-surface p-7">
-              <h3 className="font-display text-[1.0625rem] font-semibold tracking-[-0.01em]">
-                {f.title}
-              </h3>
+              <h3 className="font-display text-subheading font-semibold">{f.title}</h3>
               <p className="text-body-sm leading-relaxed text-fg-muted">{f.body}</p>
             </Reveal>
           ))}
@@ -264,7 +262,7 @@ function Testimonials() {
   return (
     <section className="py-20 sm:py-28">
       <div className="mx-auto w-full max-w-[72rem] px-5 sm:px-8">
-        <h2 className="max-w-[40rem] font-display text-[clamp(1.75rem,4vw,2.75rem)] font-semibold leading-[1.1] tracking-[-0.03em]">
+        <h2 className="max-w-[40rem] font-display text-heading font-medium">
           Coaches who stopped losing their Sundays
         </h2>
 
@@ -303,7 +301,7 @@ function Pricing() {
     <section className="border-y border-line bg-sunken py-20 sm:py-28">
       <div className="mx-auto w-full max-w-[72rem] px-5 sm:px-8">
         <div className="max-w-[46rem]">
-          <h2 className="font-display text-[clamp(1.75rem,4vw,2.75rem)] font-semibold leading-[1.1] tracking-[-0.03em]">
+          <h2 className="font-display text-heading font-medium">
             Three prices, and none of them count your clients
           </h2>
           <p className="mt-4 text-body leading-relaxed text-fg-muted">
@@ -318,15 +316,15 @@ function Pricing() {
               as="article"
               key={tier.name}
               delay={i * 80}
-              className={`flex flex-col gap-5 rounded-surface border bg-surface p-6 transition-shadow duration-300 hover:shadow-[0_18px_50px_-24px_rgb(0_0_0/0.3)] ${
-                tier.hero ? "border-fg" : "border-line"
+              className={`flex flex-col gap-5 rounded-surface border bg-surface p-6 transition-shadow duration-300 ${
+                tier.hero ? "border-signal/40 shadow-glow" : "border-line hover:shadow-raised"
               }`}
             >
               <div className="flex flex-col gap-1">
                 <div className="flex items-center gap-2">
                   <h3 className="text-body font-semibold">{tier.name}</h3>
                   {tier.hero ? (
-                    <span className="rounded-full bg-brand px-2 py-0.5 text-caption font-medium text-brand-fg">
+                    <span className="rounded-full bg-signal-subtle px-2.5 py-0.5 text-caption font-medium text-signal-text">
                       Most coaches
                     </span>
                   ) : null}
@@ -335,7 +333,7 @@ function Pricing() {
               </div>
 
               <div className="flex items-baseline gap-1.5">
-                <span className="font-display text-[2rem] font-semibold tabular-nums tracking-[-0.03em]">
+                <span className="font-display text-heading font-medium tabular-nums">
                   {tier.monthly === 0 ? "Free" : rupees(tier.monthly)}
                 </span>
                 {tier.monthly > 0 ? (
@@ -373,9 +371,7 @@ function Faq() {
   return (
     <section className="py-20 sm:py-28">
       <div className="mx-auto w-full max-w-[72rem] px-5 sm:px-8">
-        <h2 className="font-display text-[clamp(1.75rem,4vw,2.75rem)] font-semibold leading-[1.1] tracking-[-0.03em]">
-          Questions coaches actually ask
-        </h2>
+        <h2 className="font-display text-heading font-medium">Questions coaches actually ask</h2>
         <div className="mt-10">
           <FaqList items={GENERAL_FAQ} />
         </div>
@@ -394,7 +390,7 @@ function Close() {
   return (
     <section className="border-t border-line bg-sunken py-20 sm:py-28">
       <div className="mx-auto flex w-full max-w-[72rem] flex-col items-start gap-6 px-5 sm:px-8">
-        <h2 className="max-w-[32rem] font-display text-[clamp(1.75rem,4vw,2.75rem)] font-semibold leading-[1.1] tracking-[-0.03em]">
+        <h2 className="max-w-[32rem] font-display text-heading font-medium">
           Take your next Sunday back
         </h2>
         <NotifyMe source="home-close" />

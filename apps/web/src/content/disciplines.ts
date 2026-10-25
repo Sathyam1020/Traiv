@@ -1,8 +1,8 @@
-import { Apple, Dumbbell, HeartPulse, type LucideIcon, Salad, Sparkles } from "lucide-react";
+import { Apple, Dumbbell, HeartPulse, type Icon, Salad, Sparkles } from "@traiv/ui/icons";
 
 export type Discipline = {
   name: string;
-  icon: LucideIcon;
+  icon: Icon;
   /** What their week actually looks like. */
   problem: string;
   /** The part of Traiv that matters most to them, named. */

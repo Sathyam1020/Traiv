@@ -9,7 +9,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@traiv/ui/components/dialog";
-import { Plus } from "lucide-react";
+import { Plus } from "@traiv/ui/icons";
 import { useState } from "react";
 import { JoinCard } from "@/app/(app)/settings/_components/join-card";
 

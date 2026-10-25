@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "@traiv/ui/components/dropdown-menu";
 import { Label } from "@traiv/ui/components/label";
-import { ChevronsUpDown, Search } from "lucide-react";
+import { ChevronsUpDown, Search } from "@traiv/ui/icons";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 /**

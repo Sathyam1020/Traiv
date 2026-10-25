@@ -7,8 +7,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@traiv/ui/components/tooltip";
+import type { Icon } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
-import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import { createContext, type ReactNode, useContext } from "react";
 
@@ -108,7 +108,7 @@ export function RailBrand({
     <div className="flex items-center gap-2.5 px-2.5 py-1">
       <Avatar name={name} size={30} />
       <span className="flex min-w-0 flex-1 flex-col leading-tight">
-        <span className="truncate text-body-sm font-semibold text-contrast-fg">{name}</span>
+        <span className="truncate text-label font-semibold text-contrast-fg">{name}</span>
         {sub ? <span className="flex min-w-0 text-caption text-contrast-fg/50">{sub}</span> : null}
       </span>
       {children}
@@ -117,22 +117,14 @@ export function RailBrand({
 }
 
 /** A link in the rail's footer — help, settings. Same shape as a nav item, no group. */
-export function RailLink({
-  href,
-  label,
-  icon: Icon,
-}: {
-  href: string;
-  label: string;
-  icon: LucideIcon;
-}) {
+export function RailLink({ href, label, icon: Icon }: { href: string; label: string; icon: Icon }) {
   const collapsed = useRailCollapsed();
 
   const link = (
     <Link
       href={href}
       className={cn(
-        "flex items-center whitespace-nowrap rounded-control text-body-sm text-contrast-fg/60 transition-colors hover:bg-contrast-fg/8 hover:text-contrast-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-contrast-fg/40",
+        "flex items-center whitespace-nowrap rounded-control text-label font-medium text-contrast-fg/60 transition-colors hover:bg-contrast-fg/8 hover:text-contrast-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-contrast-fg/40",
         collapsed ? RAIL_TILE : "gap-2.5 px-2.5 py-2",
       )}
     >

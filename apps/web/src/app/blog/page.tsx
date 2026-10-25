@@ -49,7 +49,7 @@ export default async function BlogPage() {
                     className="group grid gap-3 py-8 sm:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] sm:gap-10"
                   >
                     <div className="flex flex-col gap-2">
-                      <h2 className="font-display text-[1.375rem] font-semibold leading-snug tracking-[-0.02em] group-hover:underline group-hover:decoration-line-strong group-hover:underline-offset-4">
+                      <h2 className="font-display text-lead font-medium leading-snug group-hover:underline group-hover:decoration-line-strong group-hover:underline-offset-4">
                         {post.title}
                       </h2>
                       <p className="text-caption text-fg-subtle">

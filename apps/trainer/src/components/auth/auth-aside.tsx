@@ -1,6 +1,6 @@
 "use client";
 
-import { Star } from "lucide-react";
+import { Star } from "@traiv/ui/icons";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
 
@@ -56,7 +56,7 @@ export function AuthAside() {
         <div className="flex flex-wrap gap-x-12 gap-y-5">
           {stats.map((s) => (
             <div key={s.label} className="flex flex-col gap-0.5">
-              <span className="flex items-center gap-1.5 text-heading font-semibold text-contrast-fg tabular-nums tracking-[-0.02em]">
+              <span className="flex items-center gap-1.5 text-heading font-medium text-contrast-fg tabular-nums">
                 {s.star ? <Star className="size-5 fill-contrast-fg text-contrast-fg" /> : null}
                 {s.value}
               </span>

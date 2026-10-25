@@ -17,7 +17,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@traiv/ui/components/sheet";
-import { ArrowRight, Menu } from "lucide-react";
+import { ArrowRight, Menu } from "@traiv/ui/icons";
 import Link from "next/link";
 import { useState } from "react";
 import { NotifyMe } from "@/components/notify-me";
@@ -56,9 +56,9 @@ import { TOOLS } from "@/content/tools";
 
 /** One shape for every item in the capsule, so hover looks the same wherever you are. */
 const ITEM =
-  "rounded-control px-3.5 py-2 text-body-sm font-normal text-fg-muted transition-colors hover:bg-hover hover:text-fg focus:bg-hover focus:text-fg";
+  "rounded-control px-3.5 py-2 text-label font-medium text-fg-muted transition-colors hover:bg-hover hover:text-fg focus:bg-hover focus:text-fg";
 
-const PANEL = "rounded-panel border border-line bg-surface p-2 shadow-lg";
+const PANEL = "rounded-panel border border-line bg-raised p-2 shadow-float";
 
 /** One row in a panel. Tight, because five of these stacked should read as a list. */
 const ROW = "flex-row items-start gap-3 rounded-control px-3 py-2.5";
@@ -75,14 +75,12 @@ export function Nav() {
           className="flex shrink-0 items-center gap-2.5 py-2 transition-opacity hover:opacity-80"
         >
           <Logo size={28} />
-          <span className="font-display text-[1.0625rem] font-semibold tracking-[-0.02em]">
-            Traiv
-          </span>
+          <span className="font-display text-subheading font-semibold">Traiv</span>
         </Link>
 
         <NavigationMenu
           viewport={false}
-          className="hidden rounded-surface bg-surface/90 p-1.5 shadow-[0_6px_24px_-12px_rgb(0_0_0/0.25)] ring-1 ring-line backdrop-blur-xl lg:flex"
+          className="hidden rounded-surface bg-canvas/70 p-1.5 ring-1 ring-line backdrop-blur-xl lg:flex"
         >
           <NavigationMenuList className="gap-0.5">
             <NavigationMenuItem>
@@ -95,7 +93,7 @@ export function Nav() {
                     <li key={f.slug}>
                       <NavigationMenuLink asChild className={ROW}>
                         <Link href={`/features/${f.slug}`}>
-                          <f.icon className="mt-0.5 size-4 shrink-0 text-fg-subtle" />
+                          <f.icon className="mt-0.5 size-4 shrink-0 text-signal-text" />
                           <span className="flex min-w-0 flex-col gap-0.5">
                             <span className="text-body-sm font-medium leading-snug">{f.name}</span>
                             <span className="text-caption leading-snug text-fg-muted">
@@ -129,7 +127,7 @@ export function Nav() {
                     <li key={t.href}>
                       <NavigationMenuLink asChild className={ROW}>
                         <Link href={t.href}>
-                          <t.icon className="mt-0.5 size-4 shrink-0 text-fg-subtle" />
+                          <t.icon className="mt-0.5 size-4 shrink-0 text-signal-text" />
                           <span className="flex min-w-0 flex-col gap-0.5">
                             <span className="text-body-sm font-medium leading-snug">{t.name}</span>
                             <span className="text-caption leading-snug text-fg-muted">
@@ -169,7 +167,7 @@ export function Nav() {
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
             <SheetTrigger
               aria-label="Open menu"
-              className="flex size-11 cursor-pointer items-center justify-center rounded-control bg-surface/90 text-fg shadow-sm ring-1 ring-line backdrop-blur-xl"
+              className="flex size-11 cursor-pointer items-center justify-center rounded-control bg-canvas/70 text-fg ring-1 ring-line backdrop-blur-xl"
             >
               <Menu className="size-5" />
             </SheetTrigger>

@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@traiv/ui/icons";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -51,10 +51,10 @@ export default async function FeaturePage({ params }: Params) {
                 key={p.title}
                 className="grid gap-2 border-t border-line py-8 sm:grid-cols-[3rem_minmax(0,22rem)_minmax(0,1fr)] sm:gap-8"
               >
-                <span className="font-display text-[1.125rem] font-semibold tabular-nums text-fg-subtle">
+                <span className="font-display text-subheading font-semibold tabular-nums text-fg-subtle">
                   {String(n + 1).padStart(2, "0")}
                 </span>
-                <h2 className="font-display text-[1.25rem] font-semibold leading-snug tracking-[-0.02em]">
+                <h2 className="font-display text-subheading font-semibold leading-snug">
                   {p.title}
                 </h2>
                 <p className="text-body-sm leading-relaxed text-fg-muted">{p.body}</p>
@@ -66,9 +66,7 @@ export default async function FeaturePage({ params }: Params) {
 
       <Section tone="sunken">
         <Container>
-          <h2 className="font-display text-[1.375rem] font-semibold tracking-[-0.02em]">
-            Next to this
-          </h2>
+          <h2 className="font-display text-lead font-medium">Next to this</h2>
           <ul className="mt-6 grid gap-px overflow-hidden rounded-surface border border-line bg-line sm:grid-cols-3">
             {rest.map((other) => (
               <li key={other.slug} className="bg-surface">

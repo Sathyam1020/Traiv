@@ -46,10 +46,10 @@ export default function DemoPage() {
                 key={item.t}
                 className="grid gap-2 border-t border-line py-8 sm:grid-cols-[3rem_minmax(0,22rem)_minmax(0,1fr)] sm:gap-8"
               >
-                <span className="font-display text-[1.125rem] font-semibold tabular-nums text-fg-subtle">
+                <span className="font-display text-subheading font-semibold tabular-nums text-fg-subtle">
                   {String(i + 1).padStart(2, "0")}
                 </span>
-                <h3 className="font-display text-[1.25rem] font-semibold leading-snug tracking-[-0.02em]">
+                <h3 className="font-display text-subheading font-semibold leading-snug">
                   {item.t}
                 </h3>
                 <p className="text-body-sm leading-relaxed text-fg-muted">{item.b}</p>

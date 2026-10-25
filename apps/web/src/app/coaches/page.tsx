@@ -33,9 +33,7 @@ export default function CoachesPage() {
               >
                 <div className="flex flex-col gap-2">
                   <d.icon className="size-5 text-fg-subtle" />
-                  <h3 className="font-display text-[1.375rem] font-semibold leading-snug tracking-[-0.02em]">
-                    {d.name}
-                  </h3>
+                  <h3 className="font-display text-lead font-medium leading-snug">{d.name}</h3>
                 </div>
 
                 <div className="flex flex-col gap-4">

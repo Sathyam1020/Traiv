@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@traiv/ui/components/table";
-import { Plus } from "lucide-react";
+import { Plus } from "@traiv/ui/icons";
 import Link from "next/link";
 import { AdminState, Empty } from "@/components/common/admin-state";
 import { usePosts, useSession } from "@/lib/query";
@@ -32,7 +32,7 @@ export default function PostsPage() {
     <Page className="gap-7">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex flex-col gap-1">
-          <h1 className="text-display font-semibold tracking-[-0.03em]">Blog</h1>
+          <h1 className="text-display font-medium">Blog</h1>
           <p className="text-body-sm text-fg-muted">
             Published posts appear on traiv.fit/blog within a minute. Drafts are invisible to
             everyone, including by direct link.

@@ -1,7 +1,7 @@
 "use client";
 
 import { Button } from "@traiv/ui/components/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "@traiv/ui/icons";
 
 const CHANNEL_LABEL: Record<string, string> = {
   sms: "Sent by SMS to",
@@ -23,7 +23,7 @@ export function CodeStep({ flow }: { flow: AuthFlow }) {
         >
           <ArrowLeft className="size-3.5" /> Change number
         </button>
-        <h1 className="text-heading font-semibold tracking-[-0.02em]">Enter the code</h1>
+        <h1 className="text-heading font-medium">Enter the code</h1>
         <p className="text-body-sm text-fg-muted">
           {CHANNEL_LABEL[flow.transport]}{" "}
           <span className="tabular-nums text-fg">+91 {flow.phone}</span>

@@ -28,17 +28,16 @@ Semantic aliases: `space.gutter` = 16px mobile / 24px desktop · `space.stack` =
 
 ```
 radius.none     0
-radius.control  8px     ← buttons, inputs, menu items. The default.
-radius.surface  12px    ← cards, dialogs, popovers
-radius.panel    16px    ← full-height inset panels and hero surfaces only
-radius.full     9999px  ← avatars, and the mobile tab bar. Not "pills" as decoration.
+radius.control  12px    ← buttons, inputs, links, menu items. The default.
+radius.surface  16px    ← cards, dialogs, popovers, tab lists
+radius.panel    16px    ← full-height inset panels and product frames
+radius.full     9999px  ← avatars, badges, pills, and the mobile tab bar
 ```
 
-cal.com's ladder exactly: 8 for controls, 12 for content cards, 16 for the largest
-surfaces. Nothing is more rounded than `radius.panel` except an avatar and the mobile
-tab bar.
-Radius still carries meaning — it marks a separate object — so it is spent by role, not
-stamped on everything.
+Featurebase's ladder (ADR 0022): 12 for anything you press, 16 for anything that holds
+content. Nothing in product UI is more rounded than 16 except a pill. A control nested in
+a surface with 4px of padding (a tab inside a tab list) is `control` inside `surface`, so
+the corners stay concentric.
 
 **The mobile tab bar is a capsule.** It is the one component that floats free of the
 page on every screen, and the capsule is what reads as "floating control" rather than
@@ -53,18 +52,19 @@ on it.
 
 ## Elevation
 
-Shadow means "this is floating above the page". Nothing else gets one. A card sitting
-in a list is not floating.
+Shadow means "this is floating above the page". Nothing else gets one. Featurebase's black
+stacks — on a near-black page they barely read, so the 1px ring in `float` does most of the
+work.
 
 ```
-elevation.0   none                                       ← default for everything
-elevation.1   0 1px 2px rgba(17,17,17,.05)               ← hover lift on a draggable
-elevation.2   0 4px 12px rgba(17,17,17,.08)              ← dropdown, popover
-elevation.3   0 12px 32px rgba(17,17,17,.12)             ← dialog, sheet
+shadow-inset    0 1px 3px rgba(0,0,0,.1), 0 1px 2px -1px rgba(0,0,0,.1)     ← a card at rest
+shadow-raised   0 20px 25px -5px rgba(0,0,0,.1), 0 8px 10px -6px …         ← hover lift
+shadow-float    0 0 0 1px rgba(0,0,0,.4), 0 20px 25px -5px rgba(0,0,0,.3) … ← popover, dialog, the app panel
+shadow-glow     violet ring + soft violet bloom                              ← a product frame only
 ```
 
-Dark mode uses the same geometry with a lighter border instead of a stronger shadow —
-shadows barely read on dark grounds.
+Resting controls (inputs, buttons, checkboxes) have no shadow — shadcn's `shadow-xs` was
+removed from every one of them.
 
 ## Motion — Apple as the reference
 

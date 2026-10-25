@@ -2,8 +2,8 @@
 
 import { Avatar } from "@traiv/ui/components/avatar";
 import { RailTip, useRailCollapsed } from "@traiv/ui/components/shell/rail";
+import { LogOut } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
-import { LogOut } from "lucide-react";
 import { useLogout, useSession } from "@/lib/query";
 
 /**

@@ -12,8 +12,8 @@ import {
 import { Input } from "@traiv/ui/components/input";
 import { Label } from "@traiv/ui/components/label";
 import { Textarea } from "@traiv/ui/components/textarea";
+import { Tag as TagIcon } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
-import { Tag as TagIcon } from "lucide-react";
 import { useEffect, useId, useState } from "react";
 import { isApiError, type Tag } from "@/lib/api";
 import { useCreateTag } from "@/lib/query";

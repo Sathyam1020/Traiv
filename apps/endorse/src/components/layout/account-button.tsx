@@ -1,7 +1,7 @@
 "use client";
 
 import { Avatar } from "@traiv/ui/components/avatar";
-import { LogOut } from "lucide-react";
+import { LogOut } from "@traiv/ui/icons";
 import { useRouter } from "next/navigation";
 import { useLogout, useSession } from "@/lib/query";
 

@@ -32,7 +32,7 @@ export function IncomeCalculator() {
         <Field label="Clients you coach">
           {(id) => (
             <div className="flex flex-col gap-3 pt-1">
-              <p className="font-display text-[2rem] font-semibold tabular-nums leading-none tracking-[-0.03em]">
+              <p className="font-display text-heading font-medium tabular-nums leading-none">
                 {clients}
               </p>
               <Slider id={id} value={clients} onChange={setClients} min={1} max={150} />
@@ -43,7 +43,7 @@ export function IncomeCalculator() {
         <Field label="What each one pays you a month">
           {(id) => (
             <div className="flex flex-col gap-3 pt-1">
-              <p className="font-display text-[2rem] font-semibold tabular-nums leading-none tracking-[-0.03em]">
+              <p className="font-display text-heading font-medium tabular-nums leading-none">
                 {rupees(fee)}
               </p>
               <Slider id={id} value={fee} onChange={setFee} min={500} max={25000} step={500} />
@@ -57,7 +57,7 @@ export function IncomeCalculator() {
           <p className="text-caption font-semibold uppercase tracking-[0.07em] text-fg-subtle">
             Your revenue
           </p>
-          <p className="mt-2 font-display text-[clamp(2.25rem,6vw,3.25rem)] font-semibold tabular-nums leading-none tracking-[-0.04em]">
+          <p className="mt-2 font-display text-display font-medium tabular-nums leading-none">
             {rupees(revenue)}
             <span className="ml-2 align-middle text-[1rem] font-medium text-fg-subtle">
               a month

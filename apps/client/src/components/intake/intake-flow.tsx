@@ -87,7 +87,7 @@ function Finished({
   return (
     <div className="flex flex-col gap-6">
       <header className="flex flex-col gap-2">
-        <h1 className="text-heading font-semibold tracking-[-0.02em]">You're all set</h1>
+        <h1 className="text-heading font-medium">You're all set</h1>
         <p className="text-body-sm leading-relaxed text-fg-muted">
           {coachName} is putting your plan together from what you've told us. Your workouts and diet
           turn up here when they're ready.
