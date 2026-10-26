@@ -1,6 +1,7 @@
 "use client";
 
 import type { NavItem } from "@traiv/ui/components/shell/app-shell";
+import { useNavOverride } from "@traiv/ui/components/shell/nav-override-context";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -29,6 +30,7 @@ const SPRING = { type: "spring", mass: 1, stiffness: 90, damping: 14 } as const;
  */
 export function MobileBar({ nav }: { nav: readonly NavItem[] }) {
   const pathname = usePathname();
+  const current = useNavOverride() ?? pathname;
   // Motion does not read prefers-reduced-motion on its own — the CSS reset in
   // globals.css only reaches CSS transitions, not this. spacing.md makes it mandatory.
   const reduce = useReducedMotion();
@@ -40,7 +42,7 @@ export function MobileBar({ nav }: { nav: readonly NavItem[] }) {
     >
       <div className="flex items-center gap-1 rounded-full border border-line bg-raised/70 p-1 shadow-float backdrop-blur-2xl backdrop-saturate-150">
         {nav.map(({ href, label, icon: Icon }) => {
-          const active = pathname.startsWith(href);
+          const active = current.startsWith(href);
           return (
             <Link
               key={href}

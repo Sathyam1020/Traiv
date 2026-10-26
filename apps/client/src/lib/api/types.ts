@@ -222,3 +222,121 @@ export type UploadTicket = {
   publicId: string;
   fields: Record<string, string>;
 };
+
+/* -------------------------------------------------------------------------- */
+/* Workouts — ADR 0024                                                         */
+/* -------------------------------------------------------------------------- */
+
+/** One row on `/workouts` — a published programme that's this client's own copy. */
+export type WorkoutListItem = {
+  id: string;
+  name: string;
+  description: string | null;
+  imageUrl: string | null;
+  source: "coach" | "client";
+  updatedAt: string;
+  sessions: number;
+  sessionNames: string[];
+  exercises: number;
+  muscleGroups: string[];
+};
+
+export type ProgramDetail = {
+  template: { id: string; name: string; description: string | null };
+  sessions: {
+    id: string;
+    name: string;
+    exercises: number;
+    lastCompletedAt: string | null;
+  }[];
+};
+
+export type FieldName = "weight" | "rep_range" | "reps" | "rest" | "duration" | "distance";
+
+/** A prescribed set — the plan, not what was actually done. */
+export type PrescribedSet = {
+  id: string;
+  sessionExerciseId: string;
+  position: number;
+  reps: number | null;
+  repsMax: number | null;
+  weightKg: number | null;
+  seconds: number | null;
+  distanceM: number | null;
+  calories: number | null;
+  restSeconds: number | null;
+};
+
+/** One set as actually performed, keyed on (session, exercise, set number). */
+export type SetLog = {
+  sessionExerciseId: string | null;
+  setNumber: number;
+  reps: number | null;
+  loadKg: number | null;
+  completed: boolean;
+};
+
+export type SessionExerciseDetail = {
+  id: string;
+  position: number;
+  fields: FieldName[];
+  supersetGroup: number | null;
+  note: string | null;
+  exerciseId: string;
+  name: string;
+  muscle: string;
+  equipment: string;
+  imageUrl: string | null;
+  videoUrl: string | null;
+  sets: PrescribedSet[];
+  /** What this client logged last time they did this exercise, any session. */
+  lastTime: { setNumber: number; reps: number | null; loadKg: number | null }[];
+};
+
+export type SessionDetail = {
+  session: { id: string; name: string };
+  /** The training session already in progress for this workout session, if any. */
+  live: { id: string; startedAt: string; sets: SetLog[] } | null;
+  exercises: SessionExerciseDetail[];
+};
+
+export type TrainingSession = {
+  id: string;
+  clientId: string;
+  workoutSessionId: string | null;
+  date: string;
+  startedAt: string;
+  completedAt: string | null;
+  quality: number | null;
+  intensity: number | null;
+  note: string | null;
+  totalWeightLiftedKg: number | null;
+  totalReps: number | null;
+  totalSets: number | null;
+  totalCompletedSets: number | null;
+  totalDistanceM: number | null;
+  totalSeconds: number | null;
+  totalCalories: number | null;
+};
+
+export type ExerciseDetail = {
+  exercise: {
+    id: string;
+    name: string;
+    muscle: string;
+    equipment: string;
+    imageUrl: string | null;
+    videoUrl: string | null;
+  };
+  history: {
+    date: string;
+    note: string | null;
+    sets: { setNumber: number; reps: number | null; loadKg: number | null }[];
+  }[];
+  stats: {
+    maxWeightKg: number | null;
+    maxReps: number | null;
+    totalVolumeKg: number | null;
+    series: { date: string; volumeKg: number }[];
+  };
+};

@@ -193,3 +193,160 @@ export type RosterParams = {
   page: number;
   perPage: number;
 };
+
+/* -------------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------------- */
+/* Workouts — ADR 0024: Template → Session → Exercise → Set                    */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * "The fields a set starts with when you add this exercise to a workout, in this
+ * order" — a set is weight **and** reps **and** rest at once, shown as the columns
+ * a coach picks, not a single type chosen from an enum.
+ */
+export const FIELD_NAMES = [
+  "weight",
+  "reps",
+  "rep_range",
+  "rest",
+  "duration",
+  "distance",
+  "calories",
+] as const;
+
+export type FieldName = (typeof FIELD_NAMES)[number];
+
+export const FIELD_LABELS: Record<FieldName, string> = {
+  weight: "Weight",
+  reps: "Reps",
+  rep_range: "Rep range",
+  rest: "Rest",
+  duration: "Duration",
+  distance: "Distance",
+  calories: "Calories",
+};
+
+export type Exercise = {
+  id: string;
+  name: string;
+  pattern: string;
+  muscle: string;
+  secondaryMuscles: string[] | null;
+  equipment: string;
+  imageUrl: string | null;
+  videoUrl: string | null;
+  description?: string | null;
+  stimulus: string | null;
+  level: string | null;
+  category: string | null;
+  location?: string | null;
+  injuryRisk?: string | null;
+  defaultFields: FieldName[];
+  shared: boolean;
+};
+
+export type ExerciseWrite = {
+  name: string;
+  description?: string | null;
+  muscle: string;
+  secondaryMuscles?: string[];
+  equipment: string;
+  pattern: string;
+  imageUrl?: string | null;
+  videoUrl?: string | null;
+  stimulus?: string | null;
+  level?: string | null;
+  category?: string | null;
+  location?: string | null;
+  injuryRisk?: string | null;
+  defaultFields?: FieldName[];
+};
+
+export type PrescribedSet = {
+  id?: string;
+  reps?: number | null;
+  repsMax?: number | null;
+  weightKg?: number | null;
+  seconds?: number | null;
+  distanceM?: number | null;
+  calories?: number | null;
+  restSeconds?: number | null;
+};
+
+export type SessionExercise = {
+  id?: string;
+  exerciseId: string;
+  fields?: FieldName[];
+  supersetGroup?: number | null;
+  note?: string | null;
+  sets: PrescribedSet[];
+  /** Present on reads — joined from the library. */
+  name?: string;
+  muscle?: string;
+  equipment?: string;
+  imageUrl?: string | null;
+  videoUrl?: string | null;
+};
+
+export type WorkoutSession = {
+  id?: string;
+  name: string;
+  exercises: SessionExercise[];
+};
+
+export type WorkoutDefaultValues = {
+  sets?: number;
+  reps?: number;
+  rest?: number;
+  weightKg?: number;
+  durationSeconds?: number;
+  distanceM?: number;
+};
+
+export type WorkoutTemplate = {
+  id: string;
+  studioId: string;
+  clientId: string | null;
+  name: string;
+  description: string | null;
+  imageUrl: string | null;
+  status: "draft" | "active";
+  source: "coach" | "client";
+  defaultValues: WorkoutDefaultValues | null;
+  createdAt: string;
+  updatedAt: string;
+  sessions: WorkoutSession[];
+};
+
+/** The Templates list row — Name · Sessions · Created · Status. */
+export type TemplateSummary = {
+  id: string;
+  name: string;
+  description: string | null;
+  imageUrl: string | null;
+  status: "draft" | "active";
+  createdAt: string;
+  sessions: number;
+};
+
+/** A client's own Workouts tab row — Name · Sessions · Muscle groups · Assigned · Status · Source. */
+export type ClientProgramSummary = {
+  id: string;
+  name: string;
+  status: "draft" | "active";
+  source: "coach" | "client";
+  createdAt: string;
+  sessions: number;
+  muscleGroups: string[];
+};
+
+export type TemplateInput = {
+  name: string;
+  description?: string | null;
+  imageUrl?: string | null;
+  defaultValues?: WorkoutDefaultValues | null;
+  sessions: WorkoutSession[];
+};
+
+export type SavedSection = { id: string; name: string; payload: WorkoutSession };

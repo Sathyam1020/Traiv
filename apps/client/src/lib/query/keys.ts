@@ -21,5 +21,12 @@ export const queryKeys = {
     checkIns: (studioId: string) => ["client", "check-ins", studioId] as const,
     checkIn: (studioId: string, id: string) => ["client", "check-in", studioId, id] as const,
     uploads: (studioId: string) => ["client", "uploads", studioId] as const,
+    workouts: (studioId: string) => ["client", "workouts", studioId] as const,
+    workout: (studioId: string, templateId: string) =>
+      ["client", "workout", studioId, templateId] as const,
+    workoutSession: (studioId: string, templateId: string, sessionId: string) =>
+      ["client", "workout-session", studioId, templateId, sessionId] as const,
+    exercise: (studioId: string, exerciseId: string) =>
+      ["client", "exercise", studioId, exerciseId] as const,
   },
 } as const;

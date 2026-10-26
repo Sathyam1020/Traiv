@@ -17,45 +17,28 @@ import { exercises } from "./library.js";
 import { memberships, studios } from "./studio.js";
 
 /**
- * Training, modelled as Coachway models it: a **template library with assignment**.
+ * Training, modelled on Coachway's trainer app screen for screen.
  *
- * The unit is a reusable workout a coach writes once and assigns to many clients — not a
- * calendar plan generated per client. That is read out of their client bundle rather
- * than guessed: `POST /workout/templates` to create, `PATCH /workout/templates/:id/assign`
- * to attach it to clients, `/duplicate`, `/status`. Supersedes the
- * `workout_plan → workout_day → workout_item` model from ADR 0004 — see ADR 0023.
+ * **Template → Session → Exercise → Set.** A template is a named programme; a *session*
+ * is one workout within it ("1 session" on their templates list, "No session added yet"
+ * on an empty one, session tabs across the top of the builder). Exercises cannot exist
+ * outside a session. This replaces the section/item model in the first cut of ADR 0023,
+ * which was inferred from the mobile bundle and was wrong — see ADR 0024.
  *
- * Why it matters beyond parity: a coach with forty clients writing "Upper push" forty
- * times is the thing that makes a coaching app unusable at scale, and a per-client plan
- * has no way to express "everyone on the beginner block gets this".
+ * **A client's programme is a copy, not an assignment.** Their flow is "Duplicate from
+ * template" → "Customize Template" → a row on the client's Workouts tab with
+ * `Source: By coach`. There is no join table and no shared row: each client gets their
+ * own programme that the coach can edit without touching anybody else's.
  */
 
-/** **[V]** Coachway's template status. Draft is invisible to clients. */
+/** Draft is invisible to the client. Publishing is an explicit, confirmed action. */
 export const templateStatus = pgEnum("template_status", ["draft", "active"]);
 
-/** Who wrote it. A client-authored workout is the same row with a `clientId`. */
+/** Who authored it. Shown on the client's list as "By coach". */
 export const templateSource = pgEnum("template_source", ["coach", "client"]);
 
-/**
- * **[V]** `ESetType` from their `SetTypePicker`, with their own labels:
- * Weight × Reps · Rep range · AMRAP · Time × Distance · Time × Weight · Calories.
- *
- * The type decides which target columns on `item_set` mean anything, which is why they
- * are all nullable and a check constraint enforces the shape per type. A single
- * `reps: text` column — what we had — cannot express "AMRAP at 60kg" and a timed carry
- * as different things, so neither the logger nor the analytics can read them back.
- */
-export const setType = pgEnum("set_type", [
-  "weight_reps",
-  "rep_range_weight",
-  "amrap_weight",
-  "time_distance",
-  "time_weight",
-  "calories",
-]);
-
 /* -------------------------------------------------------------------------- */
-/* Authoring                                                                   */
+/* Templates and programmes                                                    */
 /* -------------------------------------------------------------------------- */
 
 export const workoutTemplates = pgTable(
@@ -67,13 +50,11 @@ export const workoutTemplates = pgTable(
       .references(() => studios.id, { onDelete: "cascade" }),
 
     /**
-     * Set only when a client wrote this one themselves, or pulled it out of a pack into
-     * their own list. Null is the coach's library — the shared thing that gets assigned.
+     * Null is the studio's reusable template. Set means this is one client's programme —
+     * a *copy*, made by "Duplicate from template" or written for them directly.
      *
-     * One nullable column rather than two tables, because
-     * `createClientWorkoutTemplateFromCollection` proves the two are the same shape: a
-     * client adding a pack workout to their plan produces a row the session logger
-     * cannot tell apart from a coach's.
+     * The copy is the whole point: a coach editing one client's programme must not
+     * change the template it came from, or anybody else's.
      */
     clientId: text().references(() => clients.id, { onDelete: "cascade" }),
 
@@ -83,8 +64,17 @@ export const workoutTemplates = pgTable(
 
     status: templateStatus().notNull().default("draft"),
     source: templateSource().notNull().default("coach"),
-    createdBy: text().references(() => memberships.id, { onDelete: "set null" }),
 
+    /**
+     * "These values will be used as the default for new exercises in this template."
+     *
+     * `{ sets, reps, rest, weightKg, durationSeconds, distanceM }`. Held as one blob
+     * because it is a form's memory rather than data anything queries — and because the
+     * set of fields grows whenever a new field type is added.
+     */
+    defaultValues: jsonb(),
+
+    createdBy: text().references(() => memberships.id, { onDelete: "set null" }),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp({ withTimezone: true })
       .notNull()
@@ -95,24 +85,18 @@ export const workoutTemplates = pgTable(
   (t) => [
     index("workout_template_studio_idx").on(t.studioId, t.status),
     index("workout_template_client_idx").on(t.clientId),
-    // A client-authored workout must say whose it is, and a coach's library row must not
-    // claim to belong to one client. Without this the two kinds blur and the assignment
-    // query silently returns somebody else's private workout.
-    check(
-      "workout_template_source_shape",
-      sql`(${t.source} = 'client') = (${t.clientId} is not null)`,
-    ),
   ],
 );
 
 /**
- * **[V]** A workout is sections, not a flat list — their `TemplateBuilderScreen` works in
- * `sections[]`, each holding `exercises[]`, with `appendSection` and "Edit section".
+ * One workout inside a template.
  *
- * `rounds` is what makes a section a circuit rather than a heading.
+ * Their builder shows these as tabs with a gear and a `+`, and an exercise cannot be
+ * added until one exists — "Create a new session to get started, or copy from another
+ * template".
  */
-export const workoutSections = pgTable(
-  "workout_section",
+export const workoutSessions = pgTable(
+  "workout_session",
   {
     id: text().primaryKey(),
     templateId: text()
@@ -121,92 +105,92 @@ export const workoutSections = pgTable(
 
     name: text().notNull(),
     position: integer().notNull(),
-    /** Null is a plain section. 3 means "go round these three times". */
-    rounds: integer(),
   },
-  (t) => [
-    uniqueIndex("workout_section_position_key").on(t.templateId, t.position),
-    check("workout_section_rounds_sane", sql`${t.rounds} is null or ${t.rounds} between 1 and 20`),
-  ],
+  (t) => [uniqueIndex("workout_session_position_key").on(t.templateId, t.position)],
 );
 
-export const sectionItems = pgTable(
-  "section_item",
+/**
+ * An exercise in a session.
+ *
+ * `fields` is the **ordered list of columns this exercise shows** — their "Default
+ * fields … the fields a set starts with when you add this exercise to a workout, in this
+ * order", copied from the exercise when it is added and then editable per workout. It is
+ * why their builder shows `sets · weight · rep range · rest` for one exercise and could
+ * show `sets · duration · distance` for another.
+ *
+ * A list rather than a single set *type*: a set is weight **and** rep range **and** rest
+ * at once, which one enum cannot say.
+ */
+export const sessionExercises = pgTable(
+  "session_exercise",
   {
     id: text().primaryKey(),
-    sectionId: text()
+    sessionId: text()
       .notNull()
-      .references(() => workoutSections.id, { onDelete: "cascade" }),
+      .references(() => workoutSessions.id, { onDelete: "cascade" }),
     exerciseId: text()
       .notNull()
       .references(() => exercises.id, { onDelete: "restrict" }),
 
     position: integer().notNull(),
-    /**
-     * Items sharing a group within a section are a superset — done back to back, rest
-     * after the group rather than after each. Their store has a whole parallel set of
-     * actions for this (`toggleSupersetSet`, `toggleSupersetExerciseInSet`), so it is a
-     * first-class relationship and not a note on an exercise.
-     */
+    /** `["weight", "rep_range", "rest"]` — which columns, in which order. */
+    fields: text().array().notNull().default(sql`'{}'::text[]`),
+    /** Exercises sharing a group within a session are a superset. */
     supersetGroup: integer(),
     note: text(),
   },
   (t) => [
-    uniqueIndex("section_item_position_key").on(t.sectionId, t.position),
-    index("section_item_exercise_idx").on(t.exerciseId),
+    uniqueIndex("session_exercise_position_key").on(t.sessionId, t.position),
+    index("session_exercise_exercise_idx").on(t.exerciseId),
   ],
 );
 
 /**
  * One prescribed set.
  *
- * A row per set rather than `sets: int`, because Coachway lets a coach type each one
- * separately — set 1 a warm-up at 40kg, sets 2-4 working at 60. A count cannot say that,
- * and the client's logger shows one row per set regardless.
+ * A row per set, because their row expands (the chevron) from "sets 3" into the
+ * individual sets — a coach can make set 1 a warm-up at 40kg and sets 2-4 working sets
+ * at 60, which a count cannot express. The collapsed view shows the common value.
+ *
+ * Every target is nullable and which ones mean anything is decided by the exercise's
+ * `fields`.
  */
-export const itemSets = pgTable(
-  "item_set",
+export const exerciseSets = pgTable(
+  "exercise_set",
   {
     id: text().primaryKey(),
-    itemId: text()
+    sessionExerciseId: text()
       .notNull()
-      .references(() => sectionItems.id, { onDelete: "cascade" }),
+      .references(() => sessionExercises.id, { onDelete: "cascade" }),
 
     position: integer().notNull(),
-    type: setType().notNull().default("weight_reps"),
 
-    targetReps: integer(),
-    /** Only for `rep_range_weight` — the top of "8-10". */
-    targetRepsMax: integer(),
-    targetWeightKg: real(),
-    targetSeconds: integer(),
-    targetDistanceM: real(),
-    targetCalories: integer(),
+    reps: integer(),
+    /** The top of a rep range — "8 – 10". */
+    repsMax: integer(),
+    weightKg: real(),
+    seconds: integer(),
+    distanceM: real(),
+    calories: integer(),
     restSeconds: integer(),
   },
   (t) => [
-    uniqueIndex("item_set_position_key").on(t.itemId, t.position),
-    // A rep range that runs backwards is a typo the coach will never see and the client
-    // will read as "8 to 6 reps".
+    uniqueIndex("exercise_set_position_key").on(t.sessionExerciseId, t.position),
+    // A rep range running backwards is a typo the coach never sees and the client reads
+    // as "8 to 6 reps".
     check(
-      "item_set_rep_range_sane",
-      sql`${t.targetRepsMax} is null or ${t.targetReps} is null or ${t.targetRepsMax} >= ${t.targetReps}`,
+      "exercise_set_rep_range_sane",
+      sql`${t.repsMax} is null or ${t.reps} is null or ${t.repsMax} >= ${t.reps}`,
     ),
-    check("item_set_reps_sane", sql`${t.targetReps} is null or ${t.targetReps} between 0 and 1000`),
+    check("exercise_set_reps_sane", sql`${t.reps} is null or ${t.reps} between 0 and 1000`),
     check(
-      "item_set_weight_sane",
-      sql`${t.targetWeightKg} is null or ${t.targetWeightKg} between 0 and 1000`,
+      "exercise_set_weight_sane",
+      sql`${t.weightKg} is null or ${t.weightKg} between 0 and 1000`,
     ),
   ],
 );
 
-/**
- * **[V]** `POST /workout/sections/:id/save-for-reuse` and `GET /workout/sections/saved`.
- *
- * A snapshot rather than a reference: a coach who saves "Warm-up A" and later edits the
- * workout it came from must not have the saved copy change underneath them. `payload`
- * holds the items and sets as written.
- */
+/** Their builder's "Sections" tab: a saved run of exercises to drop into a session. */
 export const savedSections = pgTable(
   "saved_section",
   {
@@ -216,94 +200,12 @@ export const savedSections = pgTable(
       .references(() => studios.id, { onDelete: "cascade" }),
 
     name: text().notNull(),
+    /** A snapshot — editing the workout it came from must not rewrite the saved copy. */
     payload: jsonb().notNull(),
 
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("saved_section_studio_idx").on(t.studioId)],
-);
-
-/* -------------------------------------------------------------------------- */
-/* Packs and assignment                                                        */
-/* -------------------------------------------------------------------------- */
-
-/** **[V]** Coachway's "packs" — `/collections`, shown to the client as "From your coach". */
-export const collections = pgTable(
-  "collection",
-  {
-    id: text().primaryKey(),
-    studioId: text()
-      .notNull()
-      .references(() => studios.id, { onDelete: "cascade" }),
-
-    name: text().notNull(),
-    description: text(),
-    imageUrl: text(),
-    status: templateStatus().notNull().default("draft"),
-
-    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-  },
-  (t) => [index("collection_studio_idx").on(t.studioId, t.status)],
-);
-
-export const collectionItems = pgTable(
-  "collection_item",
-  {
-    collectionId: text()
-      .notNull()
-      .references(() => collections.id, { onDelete: "cascade" }),
-    templateId: text()
-      .notNull()
-      .references(() => workoutTemplates.id, { onDelete: "cascade" }),
-    position: integer().notNull(),
-  },
-  (t) => [
-    uniqueIndex("collection_item_key").on(t.collectionId, t.templateId),
-    uniqueIndex("collection_item_position_key").on(t.collectionId, t.position),
-  ],
-);
-
-/**
- * Who has been given what.
- *
- * A join table rather than a column, because the whole point of a template is that it
- * goes to many clients — and unassigning must not destroy the sessions already logged
- * against it, which a cascade from the template would.
- */
-export const templateAssignments = pgTable(
-  "template_assignment",
-  {
-    templateId: text()
-      .notNull()
-      .references(() => workoutTemplates.id, { onDelete: "cascade" }),
-    clientId: text()
-      .notNull()
-      .references(() => clients.id, { onDelete: "cascade" }),
-
-    assignedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-    assignedBy: text().references(() => memberships.id, { onDelete: "set null" }),
-  },
-  (t) => [
-    uniqueIndex("template_assignment_key").on(t.templateId, t.clientId),
-    index("template_assignment_client_idx").on(t.clientId),
-  ],
-);
-
-export const collectionAssignments = pgTable(
-  "collection_assignment",
-  {
-    collectionId: text()
-      .notNull()
-      .references(() => collections.id, { onDelete: "cascade" }),
-    clientId: text()
-      .notNull()
-      .references(() => clients.id, { onDelete: "cascade" }),
-    assignedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
-  },
-  (t) => [
-    uniqueIndex("collection_assignment_key").on(t.collectionId, t.clientId),
-    index("collection_assignment_client_idx").on(t.clientId),
-  ],
 );
 
 /* -------------------------------------------------------------------------- */
@@ -314,14 +216,12 @@ export const collectionAssignments = pgTable(
  * A session that actually happened. This, not the template, is what the loop reads.
  *
  * `timePeriods` is start/end pairs rather than one span, because their
- * `calculateActiveTime` sums periods — pausing a workout mid-session is a real thing a
- * client does, and elapsed-wall-clock counts the twenty minutes they spent queueing for
- * a rack as training.
+ * `calculateActiveTime` sums periods — pausing mid-workout is real, and wall clock
+ * counts twenty minutes queueing for a rack as training.
  *
- * The metric columns are **stored, not derived**. They are computed from the logged sets
- * at completion and then frozen: an exercise deleted from the library later must not
- * silently change what somebody lifted in March, and the coach's trend has to be
- * readable without re-summing every set in the client's history.
+ * The metric columns are stored and frozen at completion: an exercise removed from the
+ * library later must not change what somebody lifted in March, and the coach's trend has
+ * to be readable without re-summing a client's whole history.
  */
 export const sessions_ = pgTable(
   "training_session",
@@ -330,16 +230,16 @@ export const sessions_ = pgTable(
     clientId: text()
       .notNull()
       .references(() => clients.id, { onDelete: "cascade" }),
-    templateId: text().references(() => workoutTemplates.id, { onDelete: "set null" }),
+    workoutSessionId: text().references(() => workoutSessions.id, { onDelete: "set null" }),
 
     date: text().notNull(),
     startedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
     completedAt: timestamp({ withTimezone: true }),
 
-    /** `[{ startedAt, endedAt }]`. Summed by `calculateActiveTime`. */
+    /** `[{ startedAt, endedAt }]`, summed for active time. */
     timePeriods: jsonb(),
 
-    /** **[V]** Their `RatingSection`: how it went, and how hard it was. 1-5. */
+    /** Their finish screen's `RatingSection`: how it went, and how hard. 1-5. */
     quality: integer(),
     intensity: integer(),
     note: text(),
@@ -358,7 +258,7 @@ export const sessions_ = pgTable(
     // and four more times for the filter counts, so it is the hottest read in the coach
     // app. Without this it is a sequential scan per client.
     index("training_session_completed_idx").on(t.clientId, t.completedAt),
-    index("training_session_template_idx").on(t.templateId),
+    index("training_session_workout_idx").on(t.workoutSessionId),
     check(
       "training_session_quality_sane",
       sql`${t.quality} is null or ${t.quality} between 1 and 5`,
@@ -373,14 +273,9 @@ export const sessions_ = pgTable(
 /**
  * One set, as performed.
  *
- * `completed` is the tick the client taps — their `toggleSet`, which also starts the rest
- * timer. A set can be logged with numbers and *not* ticked, which is how a half-finished
- * exercise survives leaving the app, so the flag is separate from the values being
- * present.
- *
- * `itemSetId` rather than an item plus a number: the prescription already has a row per
- * set, so pointing at it keeps "set 2 of this exercise" meaningful even after the coach
- * reorders the workout. Nullable because a client can add a set that was never planned.
+ * `completed` is the tick the client taps, separate from the values being present: a
+ * half-finished exercise has to survive the app closing, and a set can be logged without
+ * being ticked.
  */
 export const setLogs = pgTable(
   "set_log",
@@ -389,11 +284,10 @@ export const setLogs = pgTable(
     sessionId: text()
       .notNull()
       .references(() => sessions_.id, { onDelete: "cascade" }),
-    itemId: text().references(() => sectionItems.id, { onDelete: "set null" }),
-    itemSetId: text().references(() => itemSets.id, { onDelete: "set null" }),
+    sessionExerciseId: text().references(() => sessionExercises.id, { onDelete: "set null" }),
+    exerciseSetId: text().references(() => exerciseSets.id, { onDelete: "set null" }),
 
     setNumber: integer().notNull(),
-    type: setType().notNull().default("weight_reps"),
     completed: boolean().notNull().default(false),
 
     reps: integer(),
@@ -408,16 +302,16 @@ export const setLogs = pgTable(
   (t) => [
     // The key that makes logging idempotent: a double tap on a flaky gym connection
     // corrects the row instead of inventing an extra set.
-    uniqueIndex("set_log_slot_key").on(t.sessionId, t.itemId, t.setNumber),
-    index("set_log_item_idx").on(t.itemId),
+    uniqueIndex("set_log_slot_key").on(t.sessionId, t.sessionExerciseId, t.setNumber),
+    index("set_log_exercise_idx").on(t.sessionExerciseId),
     check("set_log_reps_sane", sql`${t.reps} is null or ${t.reps} between 0 and 1000`),
     check("set_log_load_sane", sql`${t.loadKg} is null or ${t.loadKg} between 0 and 1000`),
   ],
 );
 
 export type WorkoutTemplate = typeof workoutTemplates.$inferSelect;
-export type WorkoutSection = typeof workoutSections.$inferSelect;
-export type SectionItem = typeof sectionItems.$inferSelect;
-export type ItemSet = typeof itemSets.$inferSelect;
+export type WorkoutSession = typeof workoutSessions.$inferSelect;
+export type SessionExercise = typeof sessionExercises.$inferSelect;
+export type ExerciseSet = typeof exerciseSets.$inferSelect;
 export type TrainingSession = typeof sessions_.$inferSelect;
 export type SetLog = typeof setLogs.$inferSelect;

@@ -61,12 +61,16 @@ const TABS = [
   { label: "Overview", icon: LayoutGrid, ready: true },
   { label: "Development", icon: BarChart, ready: false },
   { label: "Nutrition", icon: Apple, ready: false },
-  { label: "Workouts", icon: Dumbbell, ready: false },
+  // ADR 0024: a client's own workout programmes. Flipped on now that the tab has a
+  // real screen behind it — see `ClientWorkouts`.
+  { label: "Workouts", icon: Dumbbell, ready: true },
   { label: "Vault", icon: FileText, ready: false },
   { label: "Payment", icon: CreditCard, ready: false },
   { label: "Automations", icon: Sparkles, ready: false },
   { label: "Settings", icon: Settings, ready: false },
 ] as const;
+
+type TabLabel = (typeof TABS)[number]["label"];
 
 /** Chat, Tasks, Notes, Info — none of them built, all of them saying which. */
 const ACTIONS: { label: string; icon: Icon; why: string }[] = [
@@ -93,10 +97,15 @@ export function ClientHeader({
   studioId,
   client,
   tags,
+  activeTab,
+  onTabChange,
 }: {
   studioId: string | null;
   client: ClientProfile;
   tags: Tag[];
+  /** Which `ready` tab is open. Omit to render the header with no active tab logic. */
+  activeTab?: TabLabel;
+  onTabChange?: (tab: TabLabel) => void;
 }) {
   return (
     // Sticky against the panel's scroll container, which the shell owns. It needs an
@@ -135,7 +144,7 @@ export function ClientHeader({
         <Actions />
       </div>
 
-      <Tabs />
+      <Tabs active={activeTab} onChange={onTabChange} />
     </header>
   );
 }
@@ -261,20 +270,27 @@ function Actions() {
  * The rule runs edge to edge rather than stopping at the content, so the header reads
  * as one band and the tabs as the thing that divides it from the page.
  */
-function Tabs() {
+function Tabs({ active, onChange }: { active?: TabLabel; onChange?: (tab: TabLabel) => void }) {
   return (
     <TooltipProvider delayDuration={200}>
       <nav className="flex gap-1 overflow-x-auto border-line border-b px-4 sm:px-6">
         {TABS.map(({ label, icon: Glyph, ready }) =>
           ready ? (
-            <span
+            <button
               key={label}
-              aria-current="page"
-              className="-mb-px flex shrink-0 items-center gap-2 whitespace-nowrap border-fg border-b-2 px-2 pt-1 pb-3 font-medium text-body-sm text-fg"
+              type="button"
+              aria-current={active === label ? "page" : undefined}
+              onClick={() => onChange?.(label)}
+              className={cn(
+                "-mb-px flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap border-b-2 px-2 pt-1 pb-3 font-medium text-body-sm transition-colors",
+                active === label
+                  ? "border-fg text-fg"
+                  : "border-transparent text-fg-subtle hover:text-fg",
+              )}
             >
               <Glyph className="size-4" aria-hidden="true" />
               {label}
-            </span>
+            </button>
           ) : (
             <Tooltip key={label}>
               <TooltipTrigger asChild>

@@ -1,3 +1,4 @@
+import { schema } from "@traiv/db";
 import { Router } from "express";
 import { z } from "zod";
 import { requireStudio, requireStudioAuth } from "../../middleware/authorize.js";
@@ -23,6 +24,26 @@ import {
   updateClient,
 } from "./roster.js";
 import { activateStudio, listStudios, preferredStudio } from "./service.js";
+import {
+  archiveTemplate,
+  createExercise,
+  createTemplate,
+  deleteExercise,
+  deleteSavedSection,
+  duplicateTemplate,
+  duplicateTemplateForClient,
+  getExercise,
+  getTemplate,
+  listClientPrograms,
+  listExercises,
+  listSavedSections,
+  listTemplates,
+  saveClientProgramAsTemplate,
+  saveSectionForReuse,
+  setTemplateStatus,
+  updateExercise,
+  updateTemplate,
+} from "./workouts.js";
 
 export const studios: Router = Router();
 
@@ -225,3 +246,302 @@ studios.delete("/:id/tags/:tagId", requireStudio({ param: "id" }), async (req, r
   await deleteTag(studioId, tagId);
   res.sendStatus(204);
 });
+
+/* -------------------------------------------------------------------------- */
+/* Workouts — ADR 0024: Template → Session → Exercise → Set                    */
+/* -------------------------------------------------------------------------- */
+
+const templateParam = z.object({ templateId: z.string().max(64) });
+
+const setInput = z.object({
+  id: z.string().max(64).optional(),
+  reps: z.int().min(0).max(1000).nullable().optional(),
+  repsMax: z.int().min(0).max(1000).nullable().optional(),
+  weightKg: z.number().min(0).max(1000).nullable().optional(),
+  seconds: z.int().min(0).max(86_400).nullable().optional(),
+  distanceM: z.number().min(0).max(1_000_000).nullable().optional(),
+  calories: z.int().min(0).max(10_000).nullable().optional(),
+  restSeconds: z.int().min(0).max(3600).nullable().optional(),
+});
+
+/** "The fields a set starts with … in this order" — a free list, not an enum, because
+ * a coach can pick any combination for any exercise. */
+const FIELD_NAMES = [
+  "weight",
+  "reps",
+  "rep_range",
+  "rest",
+  "duration",
+  "distance",
+  "calories",
+] as const;
+
+const templateInput = z.object({
+  name: z.string().trim().min(1).max(120),
+  description: z.string().max(4096).nullable().optional(),
+  imageUrl: z.string().url().max(2000).nullable().optional(),
+  defaultValues: z
+    .object({
+      sets: z.int().min(1).max(20).optional(),
+      reps: z.int().min(0).max(1000).optional(),
+      rest: z.int().min(0).max(3600).optional(),
+      weightKg: z.number().min(0).max(1000).optional(),
+      durationSeconds: z.int().min(0).max(86_400).optional(),
+      distanceM: z.number().min(0).max(1_000_000).optional(),
+    })
+    .nullable()
+    .optional(),
+  sessions: z
+    .array(
+      z.object({
+        id: z.string().max(64).optional(),
+        name: z.string().trim().max(120),
+        exercises: z
+          .array(
+            z.object({
+              id: z.string().max(64).optional(),
+              exerciseId: z.string().max(64),
+              fields: z.array(z.enum(FIELD_NAMES)).max(7).optional(),
+              supersetGroup: z.int().min(0).max(20).nullable().optional(),
+              note: z.string().max(1000).nullable().optional(),
+              sets: z.array(setInput).max(20),
+            }),
+          )
+          .max(40),
+      }),
+    )
+    .max(20),
+});
+
+studios.get("/:id/exercises", requireStudio({ param: "id" }), async (req, res) => {
+  const { studioId } = requireStudioAuth(req);
+  const opts = z
+    .object({
+      q: z.string().max(80).optional(),
+      muscle: z.string().max(60).optional(),
+      equipment: z.string().max(60).optional(),
+      category: z.string().max(60).optional(),
+    })
+    .parse(req.query);
+  res.json({ exercises: await listExercises(studioId, opts) });
+});
+
+studios.get("/:id/exercises/:exerciseId", requireStudio({ param: "id" }), async (req, res) => {
+  const { studioId } = requireStudioAuth(req);
+  const { exerciseId } = z.object({ exerciseId: z.string().max(64) }).parse(req.params);
+  res.json({ exercise: await getExercise(studioId, exerciseId) });
+});
+
+const exerciseWrite = z.object({
+  name: z.string().trim().min(1).max(120),
+  description: z.string().max(4096).nullable().optional(),
+  muscle: z.string().trim().min(1).max(60),
+  secondaryMuscles: z.array(z.string().max(60)).max(6).optional(),
+  equipment: z.string().trim().min(1).max(60),
+  pattern: z.enum(schema.movementPattern.enumValues),
+  imageUrl: z.string().url().max(2000).nullable().optional(),
+  videoUrl: z.string().url().max(2000).nullable().optional(),
+  stimulus: z.string().max(60).nullable().optional(),
+  level: z.string().max(60).nullable().optional(),
+  category: z.string().max(60).nullable().optional(),
+  location: z.string().max(60).nullable().optional(),
+  injuryRisk: z.string().max(60).nullable().optional(),
+  defaultFields: z.array(z.enum(FIELD_NAMES)).max(7).optional(),
+});
+
+studios.post("/:id/exercises", requireStudio({ param: "id" }), async (req, res) => {
+  const { studioId } = requireStudioAuth(req);
+  res.status(201).json({ exercise: await createExercise(studioId, exerciseWrite.parse(req.body)) });
+});
+
+studios.patch("/:id/exercises/:exerciseId", requireStudio({ param: "id" }), async (req, res) => {
+  const { studioId } = requireStudioAuth(req);
+  const { exerciseId } = z.object({ exerciseId: z.string().max(64) }).parse(req.params);
+  res.json({ exercise: await updateExercise(studioId, exerciseId, exerciseWrite.parse(req.body)) });
+});
+
+studios.delete("/:id/exercises/:exerciseId", requireStudio({ param: "id" }), async (req, res) => {
+  const { studioId } = requireStudioAuth(req);
+  const { exerciseId } = z.object({ exerciseId: z.string().max(64) }).parse(req.params);
+  await deleteExercise(studioId, exerciseId);
+  res.status(204).end();
+});
+
+/* ---- the studio's template library ---- */
+
+studios.get("/:id/workout-templates", requireStudio({ param: "id" }), async (req, res) => {
+  const { studioId } = requireStudioAuth(req);
+  const { status } = z.object({ status: z.enum(["draft", "active"]).optional() }).parse(req.query);
+  res.json({ templates: await listTemplates(studioId, { status }) });
+});
+
+studios.post("/:id/workout-templates", requireStudio({ param: "id" }), async (req, res) => {
+  const { studioId, membershipId } = requireStudioAuth(req);
+  res.status(201).json({
+    template: await createTemplate(studioId, null, membershipId, templateInput.parse(req.body)),
+  });
+});
+
+studios.get(
+  "/:id/workout-templates/:templateId",
+  requireStudio({ param: "id" }),
+  async (req, res) => {
+    const { studioId } = requireStudioAuth(req);
+    const { templateId } = templateParam.parse(req.params);
+    res.json({ template: await getTemplate(studioId, templateId) });
+  },
+);
+
+studios.patch(
+  "/:id/workout-templates/:templateId",
+  requireStudio({ param: "id" }),
+  async (req, res) => {
+    const { studioId } = requireStudioAuth(req);
+    const { templateId } = templateParam.parse(req.params);
+    res.json({
+      template: await updateTemplate(studioId, templateId, templateInput.parse(req.body)),
+    });
+  },
+);
+
+studios.delete(
+  "/:id/workout-templates/:templateId",
+  requireStudio({ param: "id" }),
+  async (req, res) => {
+    const { studioId } = requireStudioAuth(req);
+    const { templateId } = templateParam.parse(req.params);
+    await archiveTemplate(studioId, templateId);
+    res.status(204).end();
+  },
+);
+
+studios.post(
+  "/:id/workout-templates/:templateId/duplicate",
+  requireStudio({ param: "id" }),
+  async (req, res) => {
+    const { studioId, membershipId } = requireStudioAuth(req);
+    const { templateId } = templateParam.parse(req.params);
+    res.status(201).json({ template: await duplicateTemplate(studioId, templateId, membershipId) });
+  },
+);
+
+studios.patch(
+  "/:id/workout-templates/:templateId/status",
+  requireStudio({ param: "id" }),
+  async (req, res) => {
+    const { studioId } = requireStudioAuth(req);
+    const { templateId } = templateParam.parse(req.params);
+    const { status } = z.object({ status: z.enum(["draft", "active"]) }).parse(req.body);
+    res.json({ template: await setTemplateStatus(studioId, templateId, status) });
+  },
+);
+
+/* ---- a client's own programmes ---- */
+
+studios.get("/:id/clients/:clientId/workouts", requireStudio({ param: "id" }), async (req, res) => {
+  const { studioId } = requireStudioAuth(req);
+  const { clientId } = clientParam.parse(req.params);
+  await getClient(studioId, clientId);
+  res.json({ templates: await listClientPrograms(studioId, clientId) });
+});
+
+/** "Create new program" — written for this client directly, not copied. */
+studios.post(
+  "/:id/clients/:clientId/workouts",
+  requireStudio({ param: "id" }),
+  async (req, res) => {
+    const { studioId, membershipId } = requireStudioAuth(req);
+    const { clientId } = clientParam.parse(req.params);
+    await getClient(studioId, clientId);
+    res.status(201).json({
+      template: await createTemplate(
+        studioId,
+        clientId,
+        membershipId,
+        templateInput.parse(req.body),
+      ),
+    });
+  },
+);
+
+/**
+ * "Duplicate from Template" → "Customize Template". Copies one studio template into one
+ * client's own list, as a fresh draft only they (once published) will see.
+ */
+studios.post(
+  "/:id/clients/:clientId/workouts/from-template",
+  requireStudio({ param: "id" }),
+  async (req, res) => {
+    const { studioId, membershipId } = requireStudioAuth(req);
+    const { clientId } = clientParam.parse(req.params);
+    await getClient(studioId, clientId);
+
+    const body = z
+      .object({
+        templateId: z.string().max(64),
+        name: z.string().trim().max(120).optional(),
+        description: z.string().max(4096).nullable().optional(),
+        imageUrl: z.string().url().max(2000).nullable().optional(),
+      })
+      .parse(req.body);
+
+    res.status(201).json({
+      template: await duplicateTemplateForClient(
+        studioId,
+        body.templateId,
+        clientId,
+        membershipId,
+        {
+          name: body.name,
+          description: body.description,
+          imageUrl: body.imageUrl,
+        },
+      ),
+    });
+  },
+);
+
+studios.post(
+  "/:id/clients/:clientId/workouts/:templateId/save-as-template",
+  requireStudio({ param: "id" }),
+  async (req, res) => {
+    const { studioId, membershipId } = requireStudioAuth(req);
+    const { clientId } = clientParam.parse(req.params);
+    const { templateId } = templateParam.parse(req.params);
+    await getClient(studioId, clientId);
+    res
+      .status(201)
+      .json({ template: await saveClientProgramAsTemplate(studioId, templateId, membershipId) });
+  },
+);
+
+/* ---- saved sections ---- */
+
+studios.get("/:id/workout-sections/saved", requireStudio({ param: "id" }), async (req, res) => {
+  const { studioId } = requireStudioAuth(req);
+  res.json({ sections: await listSavedSections(studioId) });
+});
+
+studios.post(
+  "/:id/workout-sessions/:sessionId/save-for-reuse",
+  requireStudio({ param: "id" }),
+  async (req, res) => {
+    const { studioId } = requireStudioAuth(req);
+    const { sessionId } = z.object({ sessionId: z.string().max(64) }).parse(req.params);
+    const { name } = z
+      .object({ name: z.string().trim().max(120).optional() })
+      .parse(req.body ?? {});
+    res.status(201).json({ section: await saveSectionForReuse(studioId, sessionId, name) });
+  },
+);
+
+studios.delete(
+  "/:id/workout-sections/saved/:savedId",
+  requireStudio({ param: "id" }),
+  async (req, res) => {
+    const { studioId } = requireStudioAuth(req);
+    const { savedId } = z.object({ savedId: z.string().max(64) }).parse(req.params);
+    await deleteSavedSection(studioId, savedId);
+    res.status(204).end();
+  },
+);

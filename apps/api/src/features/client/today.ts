@@ -1,5 +1,5 @@
 import { schema } from "@traiv/db";
-import { and, asc, desc, eq, gte, isNotNull, isNull, or } from "drizzle-orm";
+import { and, asc, desc, eq, gte, isNotNull, isNull } from "drizzle-orm";
 import { db } from "../../db.js";
 import { checkInState, type Day, ensureCheckIns, today } from "../studio/check-ins.js";
 
@@ -119,24 +119,19 @@ export async function getToday(clientId: string, userId: string | null, now: Day
         .orderBy(desc(schema.sessions_.date))
         .limit(RECENT_SESSIONS),
 
-      // Assigned by a coach, or authored by the client themselves — either is a reason
-      // to show the tab. Coachway's `WorkoutPlansList` makes the same union: "Your
-      // plans" holds both, and the empty state appears only when neither exists.
+      // A published programme that is this client's own copy — their trainer app
+      // shows "No workout programs yet" until a coach duplicates a template onto this
+      // client, and "Pull — Draft" stays invisible to the client until published. Both
+      // facts are the same query: `clientId` scopes to a copy, `status = 'active'`
+      // scopes to published.
       db
         .select({ id: schema.workoutTemplates.id })
         .from(schema.workoutTemplates)
-        .leftJoin(
-          schema.templateAssignments,
-          eq(schema.templateAssignments.templateId, schema.workoutTemplates.id),
-        )
         .where(
           and(
+            eq(schema.workoutTemplates.clientId, clientId),
             eq(schema.workoutTemplates.status, "active"),
             isNull(schema.workoutTemplates.archivedAt),
-            or(
-              eq(schema.templateAssignments.clientId, clientId),
-              eq(schema.workoutTemplates.clientId, clientId),
-            ),
           ),
         )
         .limit(1),

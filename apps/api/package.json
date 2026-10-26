@@ -8,6 +8,7 @@
     "retention": "tsx src/features/auth/retention.ts",
     "seed": "tsx src/seed.ts",
     "seed:library": "tsx src/library/seed.ts",
+    "seed:exercises": "tsx src/library/exercise-db.ts",
     "seed:metrics": "tsx src/library/metrics.ts",
     "seed:posts": "tsx src/seed-posts.ts",
     "start": "tsx src/server.ts",

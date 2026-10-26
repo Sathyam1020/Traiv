@@ -51,7 +51,36 @@ export const exercises = pgTable(
     equipment: text().notNull(),
 
     videoUrl: text(),
+    imageUrl: text(),
     cues: text(),
+    description: text(),
+
+    /**
+     * Coachway's "Edit Exercise" step 2, and all of it optional as it is there.
+     *
+     * Primary focus is `muscle` above; these are the rest. The vocabulary matches
+     * `free-exercise-db` (public domain, 876 exercises with images), which is what the
+     * library seeds from — so a seeded exercise and a coach-written one carry the same
+     * fields rather than the seed having a richer shape than the form.
+     */
+    secondaryMuscles: text().array(),
+    /** Compound or isolation — their "Stimulus". `mechanic` in the source dataset. */
+    stimulus: text(),
+    /** beginner · intermediate · expert. Their "Experience Level". */
+    level: text(),
+    /** strength · cardio · stretching · plyometrics · … Their "Exercise Type". */
+    category: text(),
+    /** Gym · Home · Outdoors. Coachway-specific; not in the dataset. */
+    location: text(),
+    /** low · medium · high. Coachway-specific; not in the dataset. */
+    injuryRisk: text(),
+
+    /**
+     * "The fields a set starts with when you add this exercise to a workout, in this
+     * order" — their Default fields picker. Copied onto `session_exercise` when the
+     * exercise is added, and editable there afterwards.
+     */
+    defaultFields: text().array().notNull().default(sql`'{"weight","reps","rest"}'::text[]`),
 
     /** Null for the shared library; set when a coach adds their own. */
     studioId: text().references(() => studios.id, { onDelete: "cascade" }),

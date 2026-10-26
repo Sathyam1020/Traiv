@@ -15,6 +15,17 @@ import { completeIntake, FIRST_STEP, getIntake, LAST_STEP, saveStep } from "./in
 import { joinByCode, previewJoin, rotateJoinCode, setJoinEnabled } from "./join.js";
 import { getToday } from "./today.js";
 import { signUpload, uploadsConfigured } from "./uploads.js";
+import {
+  cancelSession,
+  deleteSet,
+  finishSession,
+  getExerciseDetail,
+  getProgram,
+  getSession,
+  listClientPrograms,
+  logSet,
+  startSession,
+} from "./workouts.js";
 
 export const join: Router = Router();
 
@@ -373,4 +384,121 @@ clientApp.post("/:studioId/intake/complete", requireClient({ write: true }), asy
   const { userId } = requireSession(req);
   const { target, awaitingReview } = await completeIntake(userId);
   res.json({ target, awaitingReview });
+});
+
+/* ---- workouts — ADR 0024 ---- */
+
+const workoutTemplateParam = z.object({ templateId: z.string().max(64) });
+
+clientApp.get("/:studioId/workouts", requireClient(), async (req, res) => {
+  const { clientId } = requireClientAuth(req);
+  res.json({ templates: await listClientPrograms(clientId) });
+});
+
+clientApp.get("/:studioId/workouts/:templateId", requireClient(), async (req, res) => {
+  const { clientId } = requireClientAuth(req);
+  const { templateId } = workoutTemplateParam.parse(req.params);
+  res.json(await getProgram(clientId, templateId));
+});
+
+clientApp.get(
+  "/:studioId/workouts/:templateId/sessions/:sessionId",
+  requireClient(),
+  async (req, res) => {
+    const { clientId } = requireClientAuth(req);
+    const { templateId } = workoutTemplateParam.parse(req.params);
+    const { sessionId } = z.object({ sessionId: z.string().max(64) }).parse(req.params);
+    res.json(await getSession(clientId, templateId, sessionId));
+  },
+);
+
+clientApp.post(
+  "/:studioId/workouts/:templateId/sessions/:sessionId/start",
+  requireClient({ write: true }),
+  async (req, res) => {
+    const { clientId } = requireClientAuth(req);
+    const { templateId } = workoutTemplateParam.parse(req.params);
+    const { sessionId } = z.object({ sessionId: z.string().max(64) }).parse(req.params);
+    res.json({ session: await startSession(clientId, templateId, sessionId) });
+  },
+);
+
+/** Upserted on (session, exercise, set number) — a double tap corrects, never duplicates. */
+clientApp.put(
+  "/:studioId/training-sessions/:trainingSessionId/sets",
+  requireClient({ write: true }),
+  async (req, res) => {
+    const { clientId } = requireClientAuth(req);
+    const { trainingSessionId } = z
+      .object({ trainingSessionId: z.string().max(64) })
+      .parse(req.params);
+    const body = z
+      .object({
+        sessionExerciseId: z.string().max(64),
+        setNumber: z.int().min(1).max(20),
+        reps: z.int().min(0).max(1000).nullable().default(null),
+        loadKg: z.number().min(0).max(1000).nullable().default(null),
+        completed: z.boolean().default(true),
+      })
+      .parse(req.body);
+    res.json({ sets: await logSet(clientId, trainingSessionId, body) });
+  },
+);
+
+clientApp.delete(
+  "/:studioId/training-sessions/:trainingSessionId/sets/:sessionExerciseId/:setNumber",
+  requireClient({ write: true }),
+  async (req, res) => {
+    const { clientId } = requireClientAuth(req);
+    const { trainingSessionId, sessionExerciseId, setNumber } = z
+      .object({
+        trainingSessionId: z.string().max(64),
+        sessionExerciseId: z.string().max(64),
+        setNumber: z.coerce.number().int().min(1).max(20),
+      })
+      .parse(req.params);
+    res.json({
+      sets: await deleteSet(clientId, trainingSessionId, sessionExerciseId, setNumber),
+    });
+  },
+);
+
+/** "Cancel Workout" in the Leave-Workout sheet — discards the session entirely. */
+clientApp.delete(
+  "/:studioId/training-sessions/:trainingSessionId",
+  requireClient({ write: true }),
+  async (req, res) => {
+    const { clientId } = requireClientAuth(req);
+    const { trainingSessionId } = z
+      .object({ trainingSessionId: z.string().max(64) })
+      .parse(req.params);
+    await cancelSession(clientId, trainingSessionId);
+    res.status(204).end();
+  },
+);
+
+clientApp.post(
+  "/:studioId/training-sessions/:trainingSessionId/finish",
+  requireClient({ write: true }),
+  async (req, res) => {
+    const { clientId } = requireClientAuth(req);
+    const { trainingSessionId } = z
+      .object({ trainingSessionId: z.string().max(64) })
+      .parse(req.params);
+    const body = z
+      .object({
+        quality: z.int().min(1).max(5).nullable().optional(),
+        intensity: z.int().min(1).max(5).nullable().optional(),
+        note: z.string().max(2000).nullable().optional(),
+        totalSeconds: z.int().min(0).optional(),
+      })
+      .parse(req.body ?? {});
+    res.json({ session: await finishSession(clientId, trainingSessionId, body) });
+  },
+);
+
+clientApp.get("/:studioId/exercises/:exerciseId", requireClient(), async (req, res) => {
+  const { clientId } = requireClientAuth(req);
+  const { exerciseId } = z.object({ exerciseId: z.string().max(64) }).parse(req.params);
+  res.json(await getExerciseDetail(clientId, exerciseId));
 });

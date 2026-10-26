@@ -13,6 +13,15 @@ export const queryKeys = {
   studios: {
     list: ["studios", "list"] as const,
   },
+  workouts: {
+    list: (studioId: string, status?: string) => ["workouts", studioId, status ?? "all"] as const,
+    one: (studioId: string, templateId: string) => ["workout", studioId, templateId] as const,
+    exercises: (studioId: string, opts: Record<string, unknown>) =>
+      ["exercises", studioId, opts] as const,
+    savedSections: (studioId: string) => ["saved-sections", studioId] as const,
+    client: (studioId: string, clientId: string) =>
+      ["client-workouts", studioId, clientId] as const,
+  },
   roster: {
     // Keyed by studio and by every parameter that changes the answer, so paging back
     // and forth is instant and two tabs on different studios never share a cache entry.

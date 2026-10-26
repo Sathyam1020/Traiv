@@ -148,6 +148,20 @@
       "when": 1792951095360,
       "tag": "0020_abnormal_malice",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1792963327761,
+      "tag": "0021_unusual_black_queen",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1792963339353,
+      "tag": "0022_overjoyed_vertigo",
+      "breakpoints": true
     }
   ]
 }

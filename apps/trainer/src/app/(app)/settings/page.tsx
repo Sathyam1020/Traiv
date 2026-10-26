@@ -1,4 +1,5 @@
 import { Page } from "@traiv/ui/components/shell/page";
+import { SidebarToggle } from "@traiv/ui/components/shell/page-header";
 import { JoinCard } from "./_components/join-card";
 
 export const metadata = { title: "Settings · Traiv" };
@@ -8,7 +9,10 @@ export default function SettingsPage() {
   // typography.md keeps a reading measure at 65-75 characters.
   return (
     <Page className="max-w-3xl gap-6 pt-8">
-      <h1 className="text-display font-medium">Settings</h1>
+      <div className="flex items-center gap-3">
+        <SidebarToggle />
+        <h1 className="text-display font-medium">Settings</h1>
+      </div>
       <JoinCard />
     </Page>
   );

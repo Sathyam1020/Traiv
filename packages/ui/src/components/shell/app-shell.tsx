@@ -1,6 +1,7 @@
 "use client";
 
 import { MobileBar } from "@traiv/ui/components/shell/mobile-bar";
+import { NavOverrideProvider } from "@traiv/ui/components/shell/nav-override-context";
 import { Sidebar } from "@traiv/ui/components/shell/sidebar";
 import { SidebarProvider, useSidebar } from "@traiv/ui/components/shell/sidebar-context";
 import type { Icon } from "@traiv/ui/icons";
@@ -78,15 +79,17 @@ export function AppShell({
 }) {
   return (
     <SidebarProvider>
-      <Shell
-        nav={nav}
-        sidebarBrand={sidebarBrand}
-        sidebarFooter={sidebarFooter}
-        sidebarAccount={sidebarAccount}
-        header={header}
-      >
-        {children}
-      </Shell>
+      <NavOverrideProvider>
+        <Shell
+          nav={nav}
+          sidebarBrand={sidebarBrand}
+          sidebarFooter={sidebarFooter}
+          sidebarAccount={sidebarAccount}
+          header={header}
+        >
+          {children}
+        </Shell>
+      </NavOverrideProvider>
     </SidebarProvider>
   );
 }

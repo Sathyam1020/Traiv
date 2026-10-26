@@ -2,29 +2,33 @@
 
 import { Button } from "@traiv/ui/components/button";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
+import { useState } from "react";
 import { useActiveStudioId } from "@/lib/active-studio";
 import { useCheckIns, useClient, useClientOverview, useTags } from "@/lib/query";
 import { ClientHeader, ClientHeaderSkeleton } from "../_components/client-header";
 import { Overview, OverviewSkeleton } from "../_components/overview/overview";
+import { ClientWorkouts } from "../_components/workouts/client-workouts";
 
 /**
  * One client.
  *
- * The header and the overview are built. The four remaining tabs it carries are the
- * shape of what comes next.
- *
- * Two requests, not one: the header and the overview are separate so the name and status
- * paint immediately while the aggregate is still in flight. They are separate cache
- * entries for the same reason.
+ * Overview and Workouts are real; `ClientHeader` owns the tab row itself, including the
+ * five tabs with no screen behind them yet — they stay disabled with a "Not built yet"
+ * tooltip rather than being left off the bar, so the real app's shape stays visible.
+ * This page only has to say which of the *ready* tabs is open.
  */
 export default function ClientPage() {
   const { clientId } = useParams<{ clientId: string }>();
+  const searchParams = useSearchParams();
   const studioId = useActiveStudioId();
   const client = useClient(studioId, clientId);
   const overview = useClientOverview(studioId, clientId);
   const checkIns = useCheckIns(studioId, clientId);
   const tags = useTags(studioId);
+  const [tab, setTab] = useState<"Overview" | "Workouts">(
+    searchParams.get("tab") === "workouts" ? "Workouts" : "Overview",
+  );
 
   if (client.isPending) {
     return (
@@ -49,9 +53,21 @@ export default function ClientPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <ClientHeader studioId={studioId} client={client.data} tags={tags.data ?? []} />
+      <ClientHeader
+        studioId={studioId}
+        client={client.data}
+        tags={tags.data ?? []}
+        activeTab={tab}
+        // Only Overview and Workouts have a screen behind them; the rest stay disabled
+        // in the header itself, so this can never actually be asked to switch to one.
+        onTabChange={(t) => {
+          if (t === "Overview" || t === "Workouts") setTab(t);
+        }}
+      />
 
-      {overview.isPending ? (
+      {tab === "Workouts" ? (
+        <ClientWorkouts studioId={studioId} clientId={clientId} />
+      ) : overview.isPending ? (
         <OverviewSkeleton />
       ) : overview.data ? (
         <Overview data={overview.data} checkIns={checkIns.data} />

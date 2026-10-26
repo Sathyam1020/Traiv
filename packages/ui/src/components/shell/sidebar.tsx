@@ -1,6 +1,7 @@
 "use client";
 
 import type { NavGroup } from "@traiv/ui/components/shell/app-shell";
+import { useNavOverride } from "@traiv/ui/components/shell/nav-override-context";
 import { RAIL_TILE, RailProvider, RailTip } from "@traiv/ui/components/shell/rail";
 import { ChevronDown } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
@@ -107,13 +108,20 @@ function Group({ group, collapsed }: { group: NavGroup; collapsed: boolean }) {
         />
       </button>
 
-      {open ? (
-        <nav className="flex flex-col gap-0.5">
+      <div
+        className={cn(
+          "grid transition-[grid-template-rows] duration-200 ease-out-soft motion-reduce:transition-none",
+          open ? "grid-rows-[1fr]" : "grid-rows-[0fr]",
+        )}
+      >
+        {/* `inert` while closed — the row is already clipped to zero height, but
+            without it a closed group's links would still pick up keyboard focus. */}
+        <nav className="flex flex-col gap-0.5 overflow-hidden" inert={!open}>
           {group.items.map((item) => (
             <Item key={item.href} {...item} collapsed={collapsed} />
           ))}
         </nav>
-      ) : null}
+      </div>
     </div>
   );
 }
@@ -125,8 +133,11 @@ function Item({
   collapsed,
 }: NavGroup["items"][number] & { collapsed: boolean }) {
   const pathname = usePathname();
+  // A screen can borrow another item's highlight when its own route does not say which
+  // section it belongs to — see `useActiveNav`.
+  const current = useNavOverride() ?? pathname;
   // `startsWith` so a detail page keeps its parent lit — /clients/abc is still Clients.
-  const active = pathname === href || pathname.startsWith(`${href}/`);
+  const active = current === href || current.startsWith(`${href}/`);
 
   const link = (
     <Link

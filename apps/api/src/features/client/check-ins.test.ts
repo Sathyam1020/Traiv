@@ -273,33 +273,50 @@ describe("Today", () => {
     expect(reveal).toEqual({ workouts: false, food: false, chat: false });
   });
 
-  it("reveals the workouts tab once a template is assigned", async () => {
+  it("reveals the workouts tab once a published copy exists for this client", async () => {
     const { person, studio, mine } = await scenario();
 
-    const templateId = newId();
+    // The shape of "Duplicate from Template": a row scoped to this client, not a join.
     await db.insert(schema.workoutTemplates).values({
-      id: templateId,
+      id: newId(),
       studioId: studio.id,
+      clientId: mine,
       name: "Lower body",
       status: "active",
       source: "coach",
     });
-    // Creating the template is not enough — it has to reach *this* client. That is the
-    // whole point of the assignment table and the thing a per-client plan could not say.
-    await db.insert(schema.templateAssignments).values({ templateId, clientId: mine });
 
     const res = await person.agent.get(today(studio.id));
     expect((res.body as TodayBody).today.reveal.workouts).toBe(true);
   });
 
-  it("does not reveal workouts for a template that exists but is not assigned", async () => {
+  it("does not reveal a studio template that was never copied to this client", async () => {
     const { person, studio } = await scenario();
 
+    // A library template with no `clientId` — nobody's programme yet.
     await db.insert(schema.workoutTemplates).values({
       id: newId(),
       studioId: studio.id,
       name: "Somebody else's workout",
       status: "active",
+      source: "coach",
+    });
+
+    const res = await person.agent.get(today(studio.id));
+    expect((res.body as TodayBody).today.reveal.workouts).toBe(false);
+  });
+
+  it("does not reveal a copy that is still a draft", async () => {
+    const { person, studio, mine } = await scenario();
+
+    // Verified against the real trainer app: "even if the template is assigned to a
+    // client in draft stage the client doesn't see it, only after publishing."
+    await db.insert(schema.workoutTemplates).values({
+      id: newId(),
+      studioId: studio.id,
+      clientId: mine,
+      name: "Pull",
+      status: "draft",
       source: "coach",
     });
 

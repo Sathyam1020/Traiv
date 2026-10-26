@@ -1,13 +1,14 @@
 import type { NavGroup } from "@traiv/ui/components/shell/app-shell";
-import { Home, Users } from "@traiv/ui/icons";
+import { Dumbbell, LayoutGrid, Users } from "@traiv/ui/icons";
 
 /**
  * The coach's rail, grouped by subject.
  *
- * One group and one link today, because one screen exists. The groups are here rather
- * than a flat array because the shape the app is growing into is four subjects —
- * clients, training, nutrition, forms — and a flat list of fourteen links makes you read
- * all fourteen to find one.
+ * The groups are here rather than a flat array because the shape the app is growing
+ * into is four subjects — clients, training, nutrition, forms — and a flat list of
+ * fourteen links makes you read all fourteen to find one. **Workouts** is a labelled
+ * group of its own, matching the real Coachway rail: "Workouts" as a section header
+ * with Exercises and Templates beneath it, not a single flat link.
  *
  * Nothing goes in until the screen behind it does. ADR 0020: shipping the full set and
  * leaving most of it empty is how every competitor's app ends up feeling hollow.
@@ -16,9 +17,13 @@ import { Home, Users } from "@traiv/ui/icons";
 export const navItems: readonly NavGroup[] = [
   {
     label: "Coaching",
+    items: [{ href: "/clients", label: "Clients", icon: Users }],
+  },
+  {
+    label: "Workouts",
     items: [
-      { href: "/dashboard", label: "Today", icon: Home },
-      { href: "/clients", label: "Clients", icon: Users },
+      { href: "/exercises", label: "Exercises", icon: Dumbbell },
+      { href: "/templates", label: "Templates", icon: LayoutGrid },
     ],
   },
 ];

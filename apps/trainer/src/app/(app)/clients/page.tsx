@@ -119,6 +119,7 @@ export default function ClientsPage() {
           href: href({ status: s.value, filter: "all" }),
           label: s.label,
           count: data?.statuses[s.value] ?? 0,
+          active: status === s.value,
         }))}
       />
 

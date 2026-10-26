@@ -25,7 +25,7 @@ export function PageHeader({
 }: {
   /** Optional: a screen whose rail entry already names it does not need saying twice. */
   title?: string;
-  tabs?: readonly { href: string; label: string; count?: number }[];
+  tabs?: readonly { href: string; label: string; count?: number; active?: boolean }[];
   /** The right-hand side of the row — a button, a menu. */
   children?: ReactNode;
 }) {
@@ -71,11 +71,28 @@ export function SidebarToggle() {
   );
 }
 
-function Tab({ href, label, count }: { href: string; label: string; count?: number }) {
+/**
+ * `active` is optional: pass it whenever the tab represents one of several URL params
+ * (like `status`) rather than the whole URL. Comparing the full query string meant
+ * picking any other chip on the page cleared every tab's underline, because the href a
+ * tab points at and the href the page is actually on stopped matching the moment an
+ * unrelated param (like `filter`) changed.
+ */
+function Tab({
+  href,
+  label,
+  count,
+  active: activeProp,
+}: {
+  href: string;
+  label: string;
+  count?: number;
+  active?: boolean;
+}) {
   const pathname = usePathname();
   const params = useSearchParams();
   const current = `${pathname}${params.size ? `?${params}` : ""}`;
-  const active = current === href;
+  const active = activeProp ?? current === href;
 
   return (
     <Link

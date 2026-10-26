@@ -1,17 +1,18 @@
 "use client";
 
-import { Logo } from "@traiv/ui/components/logo";
 import { AppShell } from "@traiv/ui/components/shell/app-shell";
-import { MobileHeader } from "@traiv/ui/components/shell/mobile-header";
 import { RailBrand } from "@traiv/ui/components/shell/rail";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useLayoutEffect, useState } from "react";
 import { StatusGate } from "@/components/common/status-gate";
 import { AccountButton } from "@/components/layout/account-button";
 import { BrandTheme } from "@/components/layout/brand-theme";
 import { navFor } from "@/components/layout/nav-items";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import type { Today } from "@/lib/api";
 import { useActiveStudio, useIntake, useSession, useToday } from "@/lib/query";
+
+const REVEAL_CACHE_KEY = "traiv.reveal-cache";
 
 /**
  * The frame for every signed-in client screen.
@@ -23,8 +24,14 @@ import { useActiveStudio, useIntake, useSession, useToday } from "@/lib/query";
  */
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const session = useSession();
   const signedIn = Boolean(session.data?.user);
+
+  // A workout in progress, and the screen right after it, are the one place Coachway
+  // drops every bit of app chrome — no tab bar, no header, nothing to tap by accident
+  // while a set is mid-rep.
+  const immersive = /^\/workouts\/[^/]+\/[^/]+\/(active|finish)(\/|$)/.test(pathname ?? "");
 
   // Blocked only when nothing is running. With two coaches and one paused, the app works
   // and the paused one carries its state on its own card.
@@ -46,6 +53,34 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const onboarded = Boolean(intake.data?.intake?.completedAt);
   const today = useToday(onboarded ? studioId : null);
 
+  /**
+   * The nav popping a tab in a second or two after the rest of the screen is more
+   * jarring than being wrong for a frame — a tab somebody just tapped moving under
+   * their thumb. `useLayoutEffect`, not `useEffect`: it still only runs on the client
+   * (the server has no `window` either way — see `sidebar-context.tsx`), but it runs
+   * *before* the browser paints rather than after, which is the difference between the
+   * cached nav applying invisibly and applying as a visible pop a frame later.
+   */
+  const [cachedReveal, setCachedReveal] = useState<Today["reveal"] | undefined>(undefined);
+  useLayoutEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(REVEAL_CACHE_KEY);
+      if (raw) setCachedReveal(JSON.parse(raw));
+    } catch {
+      // Private windows and blocked site data both throw. Worst case, the tab pops in
+      // once more.
+    }
+  }, []);
+  useEffect(() => {
+    if (!today.data?.reveal) return;
+    try {
+      window.localStorage.setItem(REVEAL_CACHE_KEY, JSON.stringify(today.data.reveal));
+    } catch {
+      // As above.
+    }
+  }, [today.data?.reveal]);
+  const reveal = today.data?.reveal ?? cachedReveal;
+
   useEffect(() => {
     if (!session.isPending && !signedIn) router.replace("/");
   }, [session.isPending, signedIn, router]);
@@ -64,28 +99,31 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return <StatusGate status={stalled?.status} coachName={stalled?.studio.name} />;
   }
 
+  if (immersive) {
+    return (
+      <>
+        <BrandTheme color={brand} />
+        <div className="fixed inset-0 flex flex-col overflow-y-auto bg-panel">{children}</div>
+      </>
+    );
+  }
+
   return (
     <>
       <BrandTheme color={brand} />
       <AppShell
-        nav={navFor(today.data?.reveal)}
+        nav={navFor(reveal)}
         sidebarBrand={
           <RailBrand name={session.data?.user.name || "You"} sub="Traiv">
             <ThemeToggle tone="rail" />
           </RailBrand>
         }
         sidebarAccount={<AccountButton tone="rail" />}
-        header={
-          <MobileHeader
-            left={<Logo size={26} className="shrink-0" />}
-            right={
-              <>
-                <ThemeToggle />
-                <AccountButton compact />
-              </>
-            }
-          />
-        }
+        // No top header bar at all, on any screen — Coachway's own mobile app has no
+        // equivalent of this anywhere, and it was flagged as pure clutter. Below `lg`
+        // the bottom tab bar is the only chrome; above it the rail already carries
+        // everything this bar used to (account, theme).
+        header={null}
       >
         {children}
       </AppShell>
