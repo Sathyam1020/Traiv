@@ -9,6 +9,8 @@
     "seed": "tsx src/seed.ts",
     "seed:library": "tsx src/library/seed.ts",
     "seed:exercises": "tsx src/library/exercise-db.ts",
+    "seed:fdc-ingredients": "tsx src/library/fdc-ingredients.ts",
+    "seed:ifct-ingredients": "tsx src/library/ifct-ingredients.ts",
     "seed:metrics": "tsx src/library/metrics.ts",
     "seed:posts": "tsx src/seed-posts.ts",
     "start": "tsx src/server.ts",

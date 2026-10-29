@@ -24,6 +24,7 @@ import {
   updateClient,
 } from "./roster.js";
 import { activateStudio, listStudios, preferredStudio } from "./service.js";
+import { signStudioUpload, studioUploadsConfigured } from "./uploads.js";
 import {
   archiveTemplate,
   createExercise,
@@ -245,6 +246,33 @@ studios.delete("/:id/tags/:tagId", requireStudio({ param: "id" }), async (req, r
   const { tagId } = z.object({ tagId: z.string().max(64) }).parse(req.params);
   await deleteTag(studioId, tagId);
   res.sendStatus(204);
+});
+
+/* -------------------------------------------------------------------------- */
+/* Media uploads — the studio-scoped twin of the client app's check-in uploads */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A signed ticket for one upload, uploaded by the browser straight to Cloudinary.
+ *
+ * The folder is derived from the studio id inside the signature, so a ticket cannot be
+ * pointed at anybody else's media. 503 when Cloudinary is not configured, which the New
+ * Recipe/New Ingredient panels read to hide the upload button rather than offering one
+ * that fails.
+ */
+studios.post("/:id/uploads/sign", requireStudio({ param: "id" }), async (req, res) => {
+  const { studioId } = requireStudioAuth(req);
+  const { kind } = z
+    .object({
+      kind: z.enum(["recipe-image", "recipe-video", "ingredient-image", "mealplan-cover"]),
+    })
+    .parse(req.body ?? {});
+  res.json(signStudioUpload(studioId, kind));
+});
+
+/** Asked before a panel offers an upload button at all. */
+studios.get("/:id/uploads/config", requireStudio({ param: "id" }), (_req, res) => {
+  res.json({ uploads: studioUploadsConfigured() });
 });
 
 /* -------------------------------------------------------------------------- */

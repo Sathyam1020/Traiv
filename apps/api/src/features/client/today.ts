@@ -30,7 +30,7 @@ export async function getToday(clientId: string, userId: string | null, now: Day
   // never runs dry because a scheduled job was quietly failing.
   await ensureCheckIns(clientId, now);
 
-  const [client, due, weights, measurements, sessions, workoutPlan, dietPlan, goal, first] =
+  const [client, due, weights, measurements, sessions, workoutPlan, mealPlan, goal, first] =
     await Promise.all([
       db
         .select({ name: schema.clients.name, goal: schema.clients.goal })
@@ -136,10 +136,18 @@ export async function getToday(clientId: string, userId: string | null, now: Day
         )
         .limit(1),
 
+      // Same shape as the workout check above: a meal plan template that is this
+      // client's own copy (`clientId` set) and published (`status = 'active'`).
       db
-        .select({ id: schema.dietPlans.id })
-        .from(schema.dietPlans)
-        .where(and(eq(schema.dietPlans.clientId, clientId), eq(schema.dietPlans.status, "active")))
+        .select({ id: schema.mealPlanTemplates.id })
+        .from(schema.mealPlanTemplates)
+        .where(
+          and(
+            eq(schema.mealPlanTemplates.clientId, clientId),
+            eq(schema.mealPlanTemplates.status, "active"),
+            isNull(schema.mealPlanTemplates.archivedAt),
+          ),
+        )
         .limit(1),
 
       // The goal weight they set during onboarding. It is what turns a number into
@@ -223,7 +231,7 @@ export async function getToday(clientId: string, userId: string | null, now: Day
      */
     reveal: {
       workouts: workoutPlan.length > 0,
-      food: dietPlan.length > 0,
+      food: mealPlan.length > 0,
       // No messages table yet. One line changes here the day there is one.
       chat: false,
     },

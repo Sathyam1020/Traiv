@@ -6,4 +6,5 @@ export { studiosApi } from "./studios";
 export type * from "./types";
 // Values, not types — the filter pills and field pickers iterate these.
 export { FIELD_LABELS, FIELD_NAMES } from "./types";
+export { uploadApi } from "./uploads";
 export { workoutApi } from "./workouts";

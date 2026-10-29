@@ -49,4 +49,21 @@ export const queryKeys = {
     // Keyed by studio: two tabs on different studios must not share one cache entry.
     code: (studioId: string) => ["studio", "join-code", studioId] as const,
   },
+  uploads: {
+    configured: (studioId: string) => ["uploads", "configured", studioId] as const,
+  },
+  nutrition: {
+    ingredients: (studioId: string, opts: Record<string, unknown>) =>
+      ["ingredients", studioId, opts] as const,
+    ingredient: (studioId: string, ingredientId: string) =>
+      ["ingredient", studioId, ingredientId] as const,
+    recipes: (studioId: string, opts: Record<string, unknown>) =>
+      ["recipes", studioId, opts] as const,
+    recipe: (studioId: string, recipeId: string) => ["recipe", studioId, recipeId] as const,
+    mealPlanTemplates: (studioId: string) => ["mealplan-templates", studioId] as const,
+    mealPlanTemplate: (studioId: string, templateId: string) =>
+      ["mealplan-template", studioId, templateId] as const,
+    clientMealPlan: (studioId: string, clientId: string) =>
+      ["client-mealplan", studioId, clientId] as const,
+  },
 } as const;

@@ -2,17 +2,16 @@ import { newId, schema } from "@traiv/db";
 import { and, eq, isNull } from "drizzle-orm";
 import { db } from "../db.js";
 import { SEED_EXERCISES } from "./exercises.js";
-import { SEED_FOODS } from "./foods.js";
 
 /**
- * The shared libraries a generated plan picks from.
+ * The shared exercise library a workout template picks from.
  *
- * Idempotent, keyed on name, so re-running corrects rows rather than duplicating them —
- * which matters because these get edited as the numbers are checked, and a seed that
- * inserts a second "Dal tadka" every run would quietly double the model's menu.
+ * Idempotent, keyed on name, so re-running corrects rows rather than duplicating them.
  *
- * Image URLs are never touched here. They are earned once by a real generation and cost
- * money; a reseed must not throw them away.
+ * Nutrition's own libraries (ingredients) seed separately — `seed:fdc-ingredients` and
+ * `seed:ifct-ingredients` — because they're each a much larger, independent import, not
+ * a handful of hand-written rows reviewed alongside exercises. See
+ * `.ai/features/nutrition/spec.md`.
  *
  *     pnpm --filter @traiv/api seed:library
  */
@@ -39,47 +38,12 @@ export async function seedLibrary() {
     }
   }
 
-  let foodsAdded = 0;
-  let foodsUpdated = 0;
-
-  for (const f of SEED_FOODS) {
-    const row = {
-      name: f.name,
-      homeMeasure: f.homeMeasure,
-      grams: f.grams,
-      kcal: f.kcal,
-      proteinG: f.p,
-      carbsG: f.c,
-      fatG: f.f,
-      tags: f.tags,
-      slots: f.slots,
-    };
-
-    const [existing] = await db
-      .select({ id: schema.foods.id })
-      .from(schema.foods)
-      .where(eq(schema.foods.name, f.name))
-      .limit(1);
-
-    if (existing) {
-      // Deliberately not imageUrl or imageStatus — see above.
-      await db.update(schema.foods).set(row).where(eq(schema.foods.id, existing.id));
-      foodsUpdated += 1;
-    } else {
-      await db.insert(schema.foods).values({ id: newId(), ...row });
-      foodsAdded += 1;
-    }
-  }
-
-  return { exercisesAdded, exercisesUpdated, foodsAdded, foodsUpdated };
+  return { exercisesAdded, exercisesUpdated };
 }
 
 // Run directly: `tsx src/library/seed.ts`
 if (process.argv[1]?.endsWith("seed.ts")) {
   const r = await seedLibrary();
-  console.warn(
-    `exercises: +${r.exercisesAdded} new, ${r.exercisesUpdated} updated · ` +
-      `foods: +${r.foodsAdded} new, ${r.foodsUpdated} updated`,
-  );
+  console.warn(`exercises: +${r.exercisesAdded} new, ${r.exercisesUpdated} updated`);
   process.exit(0);
 }

@@ -58,3 +58,4 @@ overwrite.
 | 0022 | Featurebase as the visual direction | accepted · supersedes 0015's palette, radius, type |
 | 0023 | Workouts are templates you assign | accepted · supersedes the workout half of 0004 |
 | 0024 | Workout templates, corrected against the real trainer app | accepted · supersedes 0023's section/item model |
+| 0025 | Nutrition is recipes and meal-plan templates, not AI-generated diet plans | accepted · supersedes the food/nutrition half of 0004 |

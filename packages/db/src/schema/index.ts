@@ -7,7 +7,7 @@ export * from "./intake.js";
 export * from "./job.js";
 export * from "./library.js";
 export * from "./marketing.js";
-export * from "./plan.js";
+export * from "./nutrition.js";
 export * from "./studio.js";
 export * from "./tag.js";
 export * from "./user.js";

@@ -350,3 +350,19 @@ export type TemplateInput = {
 };
 
 export type SavedSection = { id: string; name: string; payload: WorkoutSession };
+
+/* -------------------------------------------------------------------------- */
+/* Uploads                                                                     */
+/* -------------------------------------------------------------------------- */
+
+export type UploadTicket = {
+  url: string;
+  publicId: string;
+  fields: Record<string, string>;
+};
+
+export type StudioUploadKind =
+  | "recipe-image"
+  | "recipe-video"
+  | "ingredient-image"
+  | "mealplan-cover";
