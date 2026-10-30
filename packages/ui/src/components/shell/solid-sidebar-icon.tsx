@@ -1,4 +1,16 @@
-import { BookOpen, Dumbbell, LayoutGrid, LogOut, Moon, Salad, Settings, Sun, Users, type Icon } from "@traiv/ui/icons";
+import {
+  BookOpen,
+  ClipboardList,
+  Dumbbell,
+  LayoutGrid,
+  LogOut,
+  Moon,
+  Salad,
+  Settings,
+  Sun,
+  Users,
+  type Icon,
+} from "@traiv/ui/icons";
 
 /** Solid silhouettes are confined to the desktop rail; content/mobile icons stay outlined. */
 export function SolidSidebarIcon({ icon: Outline, className }: { icon: Icon; className?: string }) {
@@ -29,6 +41,13 @@ export function SolidSidebarIcon({ icon: Outline, className }: { icon: Icon; cla
         <rect x="2" y="13" width="9" height="9" rx="2" />
         <rect x="13" y="13" width="9" height="9" rx="2" />
       </>
+    );
+  else if (Outline === ClipboardList)
+    shape = (
+      <path
+        fillRule="evenodd"
+        d="M8 2h8v3H8zm-3 1h1v4h12V3h1a3 3 0 0 1 3 3v15a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3zm1 7v2h2v-2zm4 0v2h8v-2zm-4 5v2h2v-2zm4 0v2h8v-2zm-4 5v2h2v-2zm4 0v2h8v-2z"
+      />
     );
   else if (Outline === BookOpen)
     shape = <path d="M2 3c4-1 7 0 9 2v17c-3-2-6-3-10-2V4zm20 0c-4-1-7 0-9 2v17c3-2 6-3 10-2V4z" />;

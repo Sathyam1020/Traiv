@@ -1,3 +1,19 @@
+import {
+  archiveMealPlan,
+  createMealPlan,
+  discardMealPlan,
+  duplicateMealPlan,
+  getMealPlan,
+  listMealPlans,
+  mealPlanPresets,
+  mealPlanRecipeOption,
+  planDocumentSchema,
+  planWriteSchema,
+  presetSchema,
+  publishMealPlan,
+  saveMealPlanPreset,
+  updateMealPlan,
+} from "./meal-plans.js";
 import { schema } from "@traiv/db";
 import { Router } from "express";
 import { z } from "zod";
@@ -688,4 +704,99 @@ studios.delete("/:id/recipes/:recipeId", requireStudio({ param: "id" }), async (
     z.string().min(1).max(64).parse(req.params.recipeId),
   );
   res.json({ deleted: true });
+});
+
+// Meal plan templates. Client assignment is deliberately a later phase.
+studios.get("/:id/mealplan-presets", requireStudio({ param: "id" }), async (req, res) => {
+  res.json(await mealPlanPresets(requireStudioAuth(req).studioId));
+});
+studios.post("/:id/mealplan-presets", requireStudio({ param: "id" }), async (req, res) => {
+  res
+    .status(201)
+    .json(await saveMealPlanPreset(requireStudioAuth(req).studioId, presetSchema.parse(req.body)));
+});
+studios.get("/:id/mealplan-recipes/:recipeId", requireStudio({ param: "id" }), async (req, res) => {
+  res.json(
+    await mealPlanRecipeOption(
+      requireStudioAuth(req).studioId,
+      z.string().parse(req.params.recipeId),
+    ),
+  );
+});
+studios.get("/:id/mealplans", requireStudio({ param: "id" }), async (req, res) => {
+  const q = z
+    .object({
+      search: z.string().max(120).default(""),
+      page: z.coerce.number().int().min(1).max(10000).default(1),
+    })
+    .parse(req.query);
+  res.json(await listMealPlans(requireStudioAuth(req).studioId, q.search, q.page));
+});
+studios.post("/:id/mealplans", requireStudio({ param: "id" }), async (req, res) => {
+  const auth = requireStudioAuth(req);
+  const input = z.object({ id: z.string().uuid(), document: planDocumentSchema }).parse(req.body);
+  res
+    .status(201)
+    .json(await createMealPlan(auth.studioId, auth.membershipId, input.id, input.document));
+});
+studios.get("/:id/mealplans/:planId", requireStudio({ param: "id" }), async (req, res) => {
+  res.json(
+    await getMealPlan(requireStudioAuth(req).studioId, z.string().uuid().parse(req.params.planId)),
+  );
+});
+studios.put("/:id/mealplans/:planId", requireStudio({ param: "id" }), async (req, res) => {
+  const auth = requireStudioAuth(req);
+  res.json(
+    await updateMealPlan(
+      auth.studioId,
+      auth.membershipId,
+      z.string().uuid().parse(req.params.planId),
+      planWriteSchema.parse(req.body),
+    ),
+  );
+});
+studios.post("/:id/mealplans/:planId/publish", requireStudio({ param: "id" }), async (req, res) => {
+  res.json(
+    await publishMealPlan(
+      requireStudioAuth(req).studioId,
+      z.string().uuid().parse(req.params.planId),
+      z.object({ expectedUpdatedAt: z.iso.datetime() }).parse(req.body).expectedUpdatedAt,
+    ),
+  );
+});
+studios.post("/:id/mealplans/:planId/discard", requireStudio({ param: "id" }), async (req, res) => {
+  const auth = requireStudioAuth(req);
+  res.json(
+    await discardMealPlan(
+      auth.studioId,
+      auth.membershipId,
+      z.string().uuid().parse(req.params.planId),
+      z.object({ expectedUpdatedAt: z.iso.datetime() }).parse(req.body).expectedUpdatedAt,
+    ),
+  );
+});
+studios.post(
+  "/:id/mealplans/:planId/duplicate",
+  requireStudio({ param: "id" }),
+  async (req, res) => {
+    const auth = requireStudioAuth(req);
+    res
+      .status(201)
+      .json(
+        await duplicateMealPlan(
+          auth.studioId,
+          auth.membershipId,
+          z.string().uuid().parse(req.params.planId),
+          z.object({ id: z.string().uuid() }).parse(req.body).id,
+        ),
+      );
+  },
+);
+studios.post("/:id/mealplans/:planId/archive", requireStudio({ param: "id" }), async (req, res) => {
+  await archiveMealPlan(
+    requireStudioAuth(req).studioId,
+    z.string().uuid().parse(req.params.planId),
+    z.object({ expectedUpdatedAt: z.iso.datetime() }).parse(req.body).expectedUpdatedAt,
+  );
+  res.json({ archived: true });
 });

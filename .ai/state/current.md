@@ -1,7 +1,40 @@
 # Current state
 
 **Updated:** 2026-10-30
-**Phase:** nutrition Ingredients + Recipes (A + B); meal plans and client food logging next
+**Phase:** nutrition A + B and Phase C meal plan templates implemented; founder UI acceptance pending; client assignment/logging next
+
+## Meal plan recipe sheet — 2026-10-30
+
+Clicking a recipe card now opens a rounded right-side meal sheet instead of expanding
+inline. It lists the meal's recipes with collapsible editors, thumbnails, macro totals,
+compare, lock and Personal-save actions. Ingredients support quantity/unit edits, library
+search/add and removal. Show/Hide Steps reveals the existing editable/reorderable RecipeSteps
+composition. Nutrients toggle separately. Previous/Done/Next stays fixed at the bottom.
+Changes update the device draft; Save changes persists the plan, and Publish remains
+separate. API reconciles additions against visible ingredients and preserves server-owned
+nutrition/allergen metadata. Original library recipes remain unchanged. No tests run.
+
+## Meal plan templates — Phase C, 2026-10-30
+
+Implemented trainer `/nutrition/mealplans` and `/nutrition/mealplans/:id`, with a shared
+Create/Edit settings sheet. Defaults populate four recipe alternatives for each enabled
+meal where eligible recipes exist. Settings include targets, percent/gram entry, studio
+macro presets, ordered/custom meals, draggable distribution, preferences, source and
+matching. Builder supports recipe selection/removal, per-plan ingredient quantities and
+unit conversion, original comparison, locks and saving a Personal recipe. Headers remain
+fixed inside the existing shell; both themes use existing tokens and font.
+
+Server selects eligible recipes and fits ingredient quantities deterministically. Allergens
+are exclusions; dietary preferences influence ranking. Shortages remain explicit. Calories
+are choice ranges, and macros/micros are averages across each slot's alternatives, never a
+sum of all alternatives or invented DV scores. Published snapshots survive draft edits;
+Live/Local changes, publish, discard, duplicate and archive are implemented with studio
+scoping, idempotent creation and revision checks. Device draft recovery is included.
+
+Migrations 0030–0031 applied to development and test databases. No new dependencies or
+branch. No tests, typechecks or browser checks run, as requested; founder UI acceptance
+remains pending. Phase D client assignment and Phase E client logging are not implemented.
+See ADR 0029 and `features/meal-plan-templates/`.
 
 ## Fixed library headers — 2026-10-30
 
@@ -28,7 +61,7 @@ settings or reverting edits does not enable it. Micronutrients are collapsed by 
 Right-side shared sheets have rounded top-left/bottom-left corners; left sheets mirror
 them. Only desktop sidebar navigation, theme and account icons use solid silhouettes; mobile and
 content icons remain outlined. Recipe filter chips stay compact rather than full-width.
-Phase C remains unstarted pending founder approval.
+Phase C was subsequently approved and implemented; see the entry below.
 
 ## Nutrition editing and reference polish — 2026-10-30
 
@@ -42,7 +75,7 @@ Recipe ingredient expansions edit preparation notes and minimum-unit choices; bo
 and survive duplication. Migration 0029 applied to development/test; 664 source ingredient
 types populated from the existing export. Select menus anchor below controls and use
 neutral selection, consistent padding and rounded surfaces. See ADR 0028.
-Phase C remains unstarted pending the founder's explicit approval.
+Phase C was subsequently approved and implemented; see the entry below.
 
 ## Trainer typography — 2026-10-30
 

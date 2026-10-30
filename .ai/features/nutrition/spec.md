@@ -906,9 +906,11 @@ nothing else built yet.
 **Phase B — Recipes (implemented with A, 2026-10-30).** `recipe`/`recipe_ingredient`/`recipe_step` tables + trainer
 Recipes list/filter/New Recipe panel/detail-edit page. Depends on A.
 
-**Phase C — Meal Plan Templates.** `meal_plan_template`/`meal_plan_slot`/`meal_plan_recipe`
+**Phase C — Meal Plan Templates (implemented 2026-10-30; founder UI acceptance pending).** `meal_plan_template`/`meal_plan_slot`/`meal_plan_recipe`
 tables + trainer Mealplans list/New template panel/builder page (including the
-scale-to-targets recipe-matching logic). Depends on B.
+scale-to-targets recipe-matching logic). Depends on B. Draft/published snapshots, revision checks,
+choice ranges, ingredient fitting and locks are implemented under ADR 0029. Migrations
+0030–0031 applied. Tests/typechecks/browser checks deferred at founder request.
 
 **Phase D — Client assignment flow.** The client profile's Nutrition tab (empty state,
 Create new plan, Create from template two-step flow), `reveal.food` cutover. Depends on

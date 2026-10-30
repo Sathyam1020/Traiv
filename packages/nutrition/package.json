@@ -9,7 +9,8 @@
     "./flags": "./src/flags.ts",
     "./targets": "./src/targets.ts",
     "./types": "./src/types.ts",
-    "./recipes": "./src/recipes.ts"
+    "./recipes": "./src/recipes.ts",
+    "./meal-plans": "./src/meal-plans.ts"
   },
   "scripts": {
     "typecheck": "tsc --noEmit"

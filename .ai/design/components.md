@@ -117,3 +117,10 @@ confined to the desktop rail; it does not change the shared outline icon exports
 StickyPageHeader groups title/search/filter controls inside Page and pins them to the
 shell scroll area with an opaque panel background and existing gutters. Used by trainer
 Exercises, Templates, Ingredients, Recipes and Settings; Clients stays unchanged.
+
+Mealplans uses StickyPageHeader for the list and a fixed builder toolbar. Its app-local
+PlanSettingsSheet shares Create/Edit configuration with a two-column scrollable form,
+macro presets and pointer/keyboard distribution controls. PlanRecipePicker composes the
+existing left Sheet and library filters; PlanOptionCard/Editor present plan snapshots,
+quantities, compare and locks. Nutrient details collapse through native details/summary.
+No new shared primitives, fonts or colour tokens. UI acceptance remains pending.

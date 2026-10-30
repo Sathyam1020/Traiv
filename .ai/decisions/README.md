@@ -64,3 +64,5 @@ overwrite.
 
 - [0027 — DM Sans in the trainer app](0027-coachway-font.md)
 - [0028 — Edit nutrition library items without a manual duplication step](0028-nutrition-inline-editing.md)
+
+- [0029 — Meal plan templates, snapshots and publishing](0029-meal-plan-templates.md)

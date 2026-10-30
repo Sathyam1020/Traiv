@@ -239,12 +239,14 @@ export const mealPlanTemplates = pgTable(
     description: text(),
     coverImageUrl: text(),
 
+    draftDocument: jsonb(),
+    publishedDocument: jsonb(),
     calorieTarget: integer().notNull(),
     recipesPerMeal: integer().notNull().default(4),
 
-    proteinPct: integer().notNull(),
-    carbsPct: integer().notNull(),
-    fatPct: integer().notNull(),
+    proteinPct: real().notNull(),
+    carbsPct: real().notNull(),
+    fatPct: real().notNull(),
 
     dietaryPreferences: text().array().notNull().default(sql`'{}'::text[]`),
     allergensToAvoid: text().array().notNull().default(sql`'{}'::text[]`),
@@ -268,7 +270,7 @@ export const mealPlanTemplates = pgTable(
     index("meal_plan_template_client_idx").on(t.clientId),
     check(
       "meal_plan_template_macro_pct_sane",
-      sql`${t.proteinPct} + ${t.carbsPct} + ${t.fatPct} = 100`,
+      sql`${t.proteinPct} between 0 and 100 and ${t.carbsPct} between 0 and 100 and ${t.fatPct} between 0 and 100 and abs(${t.proteinPct} + ${t.carbsPct} + ${t.fatPct} - 100) < 0.02`,
     ),
   ],
 );
@@ -329,6 +331,27 @@ export const mealPlanRecipes = pgTable(
     uniqueIndex("meal_plan_recipe_position_key").on(t.slotId, t.position),
     index("meal_plan_recipe_recipe_idx").on(t.recipeId),
     check("meal_plan_recipe_scale_sane", sql`${t.scaleFactor} between 0.1 and 10`),
+  ],
+);
+
+export const mealPlanPresets = pgTable(
+  "meal_plan_preset",
+  {
+    id: text().primaryKey(),
+    studioId: text()
+      .notNull()
+      .references(() => studios.id, { onDelete: "cascade" }),
+    name: text().notNull(),
+    proteinPct: real().notNull(),
+    carbsPct: real().notNull(),
+    fatPct: real().notNull(),
+  },
+  (t) => [
+    uniqueIndex("meal_plan_preset_name_key").on(t.studioId, t.name),
+    check(
+      "meal_plan_preset_split_sane",
+      sql`${t.proteinPct} between 0 and 100 and ${t.carbsPct} between 0 and 100 and ${t.fatPct} between 0 and 100 and abs(${t.proteinPct}+${t.carbsPct}+${t.fatPct}-100)<0.02`,
+    ),
   ],
 );
 
