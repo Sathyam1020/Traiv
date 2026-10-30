@@ -8,8 +8,7 @@ add, barcode scan, My Recipes). Every claim about their behaviour is marked **[V
 something genuinely unknown that a future pass should resolve. This follows the exact
 shape and evidence discipline of `.ai/features/check-ins/spec.md`.
 
-**No code has been written for this plan yet.** Per the founder's instruction, this spec
-is for review and approval before any implementation begins.
+**Implementation scope approved 2026-10-30:** complete Ingredients and Recipes (A + B). Indian recipes live in the same Recipes library, never a separate section. System items open in editable forms; saving creates an independent Personal version without requiring a manual Duplicate step (ADR 0028). Shared source rows remain immutable. The founder clarified that the Coachway export must also populate the library: 1,099 source recipes plus 136 Indian recipes. Authenticated details resolve ingredient names and steps; original source images and nutrition snapshots are retained. Indian recipes are authored with explicit ingredient weights and instructions. Meal plans and client food logging remain later phases.
 
 ---
 
@@ -72,9 +71,7 @@ AI-generated diet plans," superseding the food/nutrition half of ADR 0004:**
    answers it for exercises: it isn't promoted, a coach's own ingredient/recipe is just a
    row with `studioId` set, visible only to them, same table as the System rows.
 
-**This is a product decision, not a technical one — the plan below is written assuming
-this resolution, but it is not yet made. Confirm or override it before implementation
-starts.**
+**Confirmed:** no AI generation; see ADR 0025 and the approved implementation scope above.
 
 ---
 
@@ -120,11 +117,10 @@ existing **Food** tab (currently an empty shell gated by the stale `reveal.food`
 
 ## Decision #2 — RESOLVED (2026-10-27): use the GitHub dataset, pinned pre-AGPL
 
-The founder confirmed: use `nodef/ifct2017` rather than hand-keying a smaller set.
-Resolution: pin the import to the last commit/tag **before** the 2025-04-18 MIT→AGPL-3.0
-relicense — the full 542-row, 151-nutrient-field dataset, under the license it carried
-when it was still MIT, with no AGPL network-use entanglement for a closed-source backend.
-Verify the pinned commit's `LICENSE` file reads MIT before importing.
+Implementation clarification (ADR 0026, 2026-10-30): the import pins the immutable
+`@ifct2017/compositions@2.0.8` npm archive (2022), checks its version and MIT package
+metadata **and actual LICENSE text** before import, and retains the MIT notice.
+This replaces the earlier Git-commit pin mechanism; the archive contains 542 rows.
 
 ## The ingredient database architecture (the load-bearing part)
 
@@ -182,7 +178,7 @@ recurring paid cost) would.
 ## Schema
 
 New file `packages/db/src/schema/nutrition.ts`. Migration **0023** (next free number).
-Six new tables, three new enums. Mirrors the Template → Session → Exercise → Set shape
+Eight new tables, five new enums. Mirrors the Template → Session → Exercise → Set shape
 ADR 0024 already established for workouts, adapted where recipes genuinely differ from
 exercises (a recipe has its own nutrition, computed from children; an exercise doesn't).
 
@@ -902,12 +898,12 @@ one; a recipe before a meal plan can reference one).
 **Phase 0 — prerequisite.** Studio-scoped upload signer (`POST /:studioId/uploads/sign`).
 Small, mechanical, nothing downstream can ship real images without it.
 
-**Phase A — Ingredient library.** Schema + migration 0023 (`ingredient` table only) +
+**Phase A — Ingredient library (implemented with B, 2026-10-30).** Schema + migration 0023 (`ingredient` table only) +
 FDC seed script + pinned-MIT IFCT seed script (§ Decision #2) + trainer Ingredients
 list/filter/create/edit UI. Ships alone — a coach can browse/search/add ingredients with
 nothing else built yet.
 
-**Phase B — Recipes.** `recipe`/`recipe_ingredient`/`recipe_step` tables + trainer
+**Phase B — Recipes (implemented with A, 2026-10-30).** `recipe`/`recipe_ingredient`/`recipe_step` tables + trainer
 Recipes list/filter/New Recipe panel/detail-edit page. Depends on A.
 
 **Phase C — Meal Plan Templates.** `meal_plan_template`/`meal_plan_slot`/`meal_plan_recipe`
@@ -970,9 +966,7 @@ blocking, not because it's optional.
    logged from.
 8. `reveal.food` turns true the moment a client has an active meal plan — not before, and
    never because they have logged food without one.
-9. The IFCT seed import is built from the pinned pre-AGPL commit, and that commit's
-   `LICENSE` file is confirmed MIT before the seed script ever runs against production
-   (§ Decision #2).
+9. The IFCT import is pinned to `@ifct2017/compositions@2.0.8`; its version, MIT license metadata and actual `LICENSE` text are verified before database writes (§ Decision #2, ADR 0026).
 
 ## Deliberately not in v1
 

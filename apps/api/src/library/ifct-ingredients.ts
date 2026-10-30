@@ -2,14 +2,13 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { newId, schema } from "@traiv/db";
-import { and, eq, isNull } from "drizzle-orm";
-import { db } from "../db.js";
+import { newId, type schema } from "@traiv/db";
 import { parseCsvRecords } from "./csv.js";
+import { upsertSystemIngredients } from "./upsert-ingredients.js";
 
 /**
  * The shared ingredient library's India layer — the Indian Food Composition Tables 2017
- * (NIN/ICMR), via the `@ifct2017/compositions` digitisation: 528 foods, each with full
+ * (NIN/ICMR), via the `@ifct2017/compositions` digitisation: 542 foods, each with full
  * macro + micronutrient values in one row. See `.ai/features/nutrition/spec.md` and ADR
  * 0025 for why this exists at all — none of Coachway's own country coverage includes
  * India, and generic USDA data (`fdc-ingredients.ts`) has almost no Indian dishes.
@@ -81,11 +80,19 @@ export async function seedIfctIngredients() {
     );
   }
 
+  const license = readFileSync(join(dir, "LICENSE"), "utf-8");
+  if (
+    !license.startsWith("MIT License") ||
+    !license.includes("Permission is hereby granted, free of charge")
+  ) {
+    throw new Error(
+      "IFCT seed refused: the pinned archive does not contain the expected MIT LICENSE text.",
+    );
+  }
   const csv = readFileSync(join(dir, "index.csv"), "utf-8");
   const rows = parseCsvRecords(csv);
 
-  let added = 0;
-  let updated = 0;
+  const prepared: IngredientRow[] = [];
   let skipped = 0;
 
   for (const r of rows) {
@@ -128,23 +135,10 @@ export async function seedIfctIngredients() {
       micronutrients: Object.keys(micronutrients).length > 0 ? micronutrients : null,
     };
 
-    const [existing] = await db
-      .select({ id: schema.ingredients.id })
-      .from(schema.ingredients)
-      .where(and(eq(schema.ingredients.name, row.name), isNull(schema.ingredients.studioId)))
-      .limit(1);
-
-    if (existing) {
-      const { id: _id, ...patch } = row;
-      await db.update(schema.ingredients).set(patch).where(eq(schema.ingredients.id, existing.id));
-      updated += 1;
-    } else {
-      await db.insert(schema.ingredients).values(row);
-      added += 1;
-    }
+    prepared.push(row);
   }
 
-  return { added, updated, skipped, total: rows.length };
+  return { ...(await upsertSystemIngredients(prepared)), skipped, total: rows.length };
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {

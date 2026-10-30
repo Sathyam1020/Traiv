@@ -16,7 +16,10 @@
     "start": "tsx src/server.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "seed:recipes": "tsx src/library/seed-recipes.ts",
+    "setup:nutrition": "tsx src/library/setup-nutrition.ts",
+    "seed:coachway-recipes": "tsx src/library/seed-coachway-recipes.ts"
   },
   "dependencies": {
     "@traiv/db": "workspace:*",

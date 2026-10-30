@@ -176,6 +176,41 @@
       "when": 1793049481559,
       "tag": "0024_stale_freak",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1793306295543,
+      "tag": "0025_square_the_leader",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1793307287163,
+      "tag": "0026_flimsy_morg",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1793307702691,
+      "tag": "0027_curious_sunfire",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1793310291327,
+      "tag": "0028_loud_ben_grimm",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1793347303269,
+      "tag": "0029_youthful_sir_ram",
+      "breakpoints": true
     }
   ]
 }

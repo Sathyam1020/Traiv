@@ -17,6 +17,7 @@ import {
 } from "@traiv/ui/components/dropdown-menu";
 import { Input } from "@traiv/ui/components/input";
 import { Page } from "@traiv/ui/components/shell/page";
+import { StickyPageHeader } from "@traiv/ui/components/shell/sticky-page-header";
 import { SidebarToggle } from "@traiv/ui/components/shell/page-header";
 import { Skeleton } from "@traiv/ui/components/skeleton";
 import {
@@ -83,27 +84,28 @@ export default function TemplatesPage() {
 
   return (
     <Page className="max-w-none gap-5">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <SidebarToggle />
-          <h1 className="text-display font-medium">Templates</h1>
+      <StickyPageHeader>
+        <header className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <SidebarToggle />
+            <h1 className="text-display font-medium">Templates</h1>
+          </div>
+          <Button onClick={() => setCreating(true)}>
+            <Plus className="size-4" />
+            New Template
+          </Button>
+        </header>
+
+        <div className="relative max-w-sm">
+          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-subtle" />
+          <Input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search workouts"
+            className="h-10 pl-9"
+          />
         </div>
-        <Button onClick={() => setCreating(true)}>
-          <Plus className="size-4" />
-          New Template
-        </Button>
-      </header>
-
-      <div className="relative max-w-sm">
-        <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-subtle" />
-        <Input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Search workouts"
-          className="h-10 pl-9"
-        />
-      </div>
-
+      </StickyPageHeader>
       {templates.isPending ? (
         <Loading />
       ) : rows.length === 0 ? (

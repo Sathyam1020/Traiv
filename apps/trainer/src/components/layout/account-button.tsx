@@ -1,4 +1,5 @@
 "use client";
+import { SolidSidebarIcon } from "@traiv/ui/components/shell/solid-sidebar-icon";
 
 import { Avatar } from "@traiv/ui/components/avatar";
 import { RailTip, useRailCollapsed } from "@traiv/ui/components/shell/rail";
@@ -50,13 +51,24 @@ export function AccountButton({
       {!compact && !railCollapsed && (
         <span className="min-w-0 flex-1 truncate text-body-sm">{name}</span>
       )}
-      <LogOut
-        className={cn(
-          "shrink-0",
-          railCollapsed ? "size-4" : "size-3.5",
-          tone === "rail" ? "text-contrast-fg/50" : "text-fg-subtle",
-        )}
-      />
+      {tone === "rail" ? (
+        <SolidSidebarIcon
+          icon={LogOut}
+          className={cn(
+            "shrink-0",
+            railCollapsed ? "size-4" : "size-3.5",
+            tone === "rail" ? "text-contrast-fg/50" : "text-fg-subtle",
+          )}
+        />
+      ) : (
+        <LogOut
+          className={cn(
+            "shrink-0",
+            railCollapsed ? "size-4" : "size-3.5",
+            tone === "rail" ? "text-contrast-fg/50" : "text-fg-subtle",
+          )}
+        />
+      )}
     </button>
   );
 

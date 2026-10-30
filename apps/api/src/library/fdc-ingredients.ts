@@ -2,10 +2,9 @@ import { execFileSync } from "node:child_process";
 import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { newId, schema } from "@traiv/db";
-import { and, eq, isNull } from "drizzle-orm";
-import { db } from "../db.js";
+import { newId, type schema } from "@traiv/db";
 import { parseCsvRecords } from "./csv.js";
+import { upsertSystemIngredients } from "./upsert-ingredients.js";
 
 /**
  * The shared ingredient library's generic layer — USDA FoodData Central.
@@ -50,6 +49,8 @@ const PROTEIN = "1003";
 const FAT = "1004";
 const CARBS = "1005";
 const ENERGY_KCAL = "1008";
+const ENERGY_ATWATER_GENERAL = "2047";
+const ENERGY_ATWATER_SPECIFIC = "2048";
 const FIBER = "1079";
 const SUGAR = "1063";
 const SODIUM = "1093";
@@ -108,7 +109,15 @@ async function importFdcSource(source: (typeof SOURCES)[number]) {
   // One pass over the (large) long-format nutrient file, keeping only the ids this
   // schema uses — a food can carry a hundred-plus nutrient rows, most of which nothing
   // here reads.
-  const wanted = new Set([PROTEIN, FAT, CARBS, ENERGY_KCAL, ...Object.keys(MICRONUTRIENT_IDS)]);
+  const wanted = new Set([
+    PROTEIN,
+    FAT,
+    CARBS,
+    ENERGY_KCAL,
+    ENERGY_ATWATER_GENERAL,
+    ENERGY_ATWATER_SPECIFIC,
+    ...Object.keys(MICRONUTRIENT_IDS),
+  ]);
   const byFood = new Map<string, Map<string, number>>();
   for (const r of parseCsvRecords(findCsv(dir, "food_nutrient.csv"))) {
     const nutrientId = r.nutrient_id ?? "";
@@ -121,13 +130,13 @@ async function importFdcSource(source: (typeof SOURCES)[number]) {
     byFood.set(fdcId, existing);
   }
 
-  let added = 0;
-  let updated = 0;
+  const prepared: IngredientRow[] = [];
   let skipped = 0;
 
   for (const f of foods) {
     const n = byFood.get(f.fdc_id ?? "");
-    const kcal = n?.get(ENERGY_KCAL);
+    const kcal =
+      n?.get(ENERGY_KCAL) ?? n?.get(ENERGY_ATWATER_SPECIFIC) ?? n?.get(ENERGY_ATWATER_GENERAL);
     const protein = n?.get(PROTEIN);
     const fat = n?.get(FAT);
     const carbs = n?.get(CARBS);
@@ -158,23 +167,10 @@ async function importFdcSource(source: (typeof SOURCES)[number]) {
       micronutrients: Object.keys(micronutrients).length > 0 ? micronutrients : null,
     };
 
-    const [existing] = await db
-      .select({ id: schema.ingredients.id })
-      .from(schema.ingredients)
-      .where(and(eq(schema.ingredients.name, row.name), isNull(schema.ingredients.studioId)))
-      .limit(1);
-
-    if (existing) {
-      const { id: _id, ...patch } = row;
-      await db.update(schema.ingredients).set(patch).where(eq(schema.ingredients.id, existing.id));
-      updated += 1;
-    } else {
-      await db.insert(schema.ingredients).values(row);
-      added += 1;
-    }
+    prepared.push(row);
   }
 
-  return { added, updated, skipped, total: foods.length };
+  return { ...(await upsertSystemIngredients(prepared)), skipped, total: foods.length };
 }
 
 export async function seedFdcIngredients() {

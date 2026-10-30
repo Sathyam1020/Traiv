@@ -3,6 +3,7 @@
 import type { NavGroup } from "@traiv/ui/components/shell/app-shell";
 import { useNavOverride } from "@traiv/ui/components/shell/nav-override-context";
 import { RAIL_TILE, RailProvider, RailTip } from "@traiv/ui/components/shell/rail";
+import { SolidSidebarIcon } from "@traiv/ui/components/shell/solid-sidebar-icon";
 import { ChevronDown } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
 import Link from "next/link";
@@ -157,7 +158,7 @@ function Item({
     >
       {/* The selected icon is the signal colour — the one place violet appears in the
           rail, which is what makes "you are here" readable at a glance. */}
-      <Icon className={cn("size-4 shrink-0", active && "text-signal")} />
+      <SolidSidebarIcon icon={Icon} className={cn("size-4 shrink-0", active && "text-signal")} />
       {collapsed ? <span className="sr-only">{label}</span> : label}
     </Link>
   );

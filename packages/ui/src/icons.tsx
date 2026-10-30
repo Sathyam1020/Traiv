@@ -30,9 +30,12 @@ import DashboardSquare01Icon from "@hugeicons/core-free-icons/DashboardSquare01I
 import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
 import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
 import DragDropVerticalIcon from "@hugeicons/core-free-icons/DragDropVerticalIcon";
+import DropletsIcon from "@hugeicons/core-free-icons/DropletsIcon";
 import Dumbbell01Icon from "@hugeicons/core-free-icons/Dumbbell01Icon";
 import File01Icon from "@hugeicons/core-free-icons/File01Icon";
 import FireIcon from "@hugeicons/core-free-icons/FireIcon";
+import Folder01Icon from "@hugeicons/core-free-icons/Folder01Icon";
+import Globe02Icon from "@hugeicons/core-free-icons/Globe02Icon";
 import HeartPulseIcon from "@hugeicons/core-free-icons/HeartPulseIcon";
 import Home01Icon from "@hugeicons/core-free-icons/Home01Icon";
 import HourglassIcon from "@hugeicons/core-free-icons/HourglassIcon";
@@ -46,6 +49,7 @@ import Menu01Icon from "@hugeicons/core-free-icons/Menu01Icon";
 import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
 import Moon02Icon from "@hugeicons/core-free-icons/Moon02Icon";
 import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import MoreVerticalIcon from "@hugeicons/core-free-icons/MoreVerticalIcon";
 import NoteEditIcon from "@hugeicons/core-free-icons/NoteEditIcon";
 import PaintBoardIcon from "@hugeicons/core-free-icons/PaintBoardIcon";
 import PauseCircleIcon from "@hugeicons/core-free-icons/PauseCircleIcon";
@@ -66,9 +70,11 @@ import SidebarLeftIcon from "@hugeicons/core-free-icons/SidebarLeftIcon";
 import SkipForwardIcon from "@hugeicons/core-free-icons/SkipForwardIcon";
 import SmartPhone01Icon from "@hugeicons/core-free-icons/SmartPhone01Icon";
 import SnowIcon from "@hugeicons/core-free-icons/SnowIcon";
+import Sorting05Icon from "@hugeicons/core-free-icons/Sorting05Icon";
 import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
 import SquareLock02Icon from "@hugeicons/core-free-icons/SquareLock02Icon";
 import StarIcon from "@hugeicons/core-free-icons/StarIcon";
+import SteakIcon from "@hugeicons/core-free-icons/SteakIcon";
 import Sun03Icon from "@hugeicons/core-free-icons/Sun03Icon";
 import Tag01Icon from "@hugeicons/core-free-icons/Tag01Icon";
 import TaskDone01Icon from "@hugeicons/core-free-icons/TaskDone01Icon";
@@ -83,6 +89,7 @@ import Video02Icon from "@hugeicons/core-free-icons/Video02Icon";
 import VolumeMute02Icon from "@hugeicons/core-free-icons/VolumeMute02Icon";
 import VolumeUpIcon from "@hugeicons/core-free-icons/VolumeUpIcon";
 import WeightScaleIcon from "@hugeicons/core-free-icons/WeightScaleIcon";
+import WheatIcon from "@hugeicons/core-free-icons/WheatIcon";
 import { HugeiconsIcon, type HugeiconsIconProps, type IconSvgElement } from "@hugeicons/react";
 import type * as React from "react";
 
@@ -220,3 +227,15 @@ export const Image = icon(Image01Icon, "Image");
 export const GripVertical = icon(DragDropVerticalIcon, "GripVertical");
 export const Video = icon(Video02Icon, "Video");
 export const Upload = icon(Upload04Icon, "Upload");
+
+// Recipe nutrition and card actions.
+export const Protein = icon(SteakIcon, "Protein");
+export const Carbs = icon(WheatIcon, "Carbs");
+export const Fat = icon(DropletsIcon, "Fat");
+export const MoreVertical = icon(MoreVerticalIcon, "MoreVertical");
+
+export const Globe = icon(Globe02Icon, "Globe");
+export const Folder = icon(Folder01Icon, "Folder");
+export const Sort = icon(Sorting05Icon, "Sort");
+
+export const List = icon(Menu01Icon, "List");

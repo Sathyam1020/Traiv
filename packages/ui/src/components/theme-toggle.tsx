@@ -1,5 +1,6 @@
 "use client";
 
+import { SolidSidebarIcon } from "@traiv/ui/components/shell/solid-sidebar-icon";
 import { Moon, Sun } from "@traiv/ui/icons";
 
 /**
@@ -28,7 +29,13 @@ export function ThemeToggle({
           : "flex size-7 cursor-pointer items-center justify-center rounded-control text-fg-muted transition-colors hover:bg-hover hover:text-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-focus"
       }
     >
-      {theme === "dark" ? <Moon className="size-4" /> : <Sun className="size-4" />}
+      {tone === "rail" ? (
+        <SolidSidebarIcon icon={theme === "dark" ? Moon : Sun} className="size-4" />
+      ) : theme === "dark" ? (
+        <Moon className="size-4" />
+      ) : (
+        <Sun className="size-4" />
+      )}
     </button>
   );
 }

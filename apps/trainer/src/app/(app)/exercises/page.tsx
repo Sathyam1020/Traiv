@@ -3,6 +3,7 @@
 import { Button } from "@traiv/ui/components/button";
 import { Input } from "@traiv/ui/components/input";
 import { Page } from "@traiv/ui/components/shell/page";
+import { StickyPageHeader } from "@traiv/ui/components/shell/sticky-page-header";
 import { SidebarToggle } from "@traiv/ui/components/shell/page-header";
 import { Skeleton } from "@traiv/ui/components/skeleton";
 import {
@@ -64,60 +65,61 @@ export default function ExercisesPage() {
 
   return (
     <Page className="max-w-none gap-5">
-      <header className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          <SidebarToggle />
-          <h1 className="text-display font-medium">Exercises</h1>
-        </div>
-        <Button onClick={() => setPanel({ open: true, exerciseId: null })}>
-          <Plus className="size-4" />
-          New Exercise
-        </Button>
-      </header>
+      <StickyPageHeader>
+        <header className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <SidebarToggle />
+            <h1 className="text-display font-medium">Exercises</h1>
+          </div>
+          <Button onClick={() => setPanel({ open: true, exerciseId: null })}>
+            <Plus className="size-4" />
+            New Exercise
+          </Button>
+        </header>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <div className="relative min-w-[16rem] flex-1">
-          <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-subtle" />
-          <Input
-            value={q}
-            onChange={(e) => {
-              setQ(e.target.value);
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-[16rem] flex-1">
+            <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-subtle" />
+            <Input
+              value={q}
+              onChange={(e) => {
+                setQ(e.target.value);
+                setPage(1);
+              }}
+              placeholder="Search exercises..."
+              className="h-10 pl-9"
+            />
+          </div>
+          <FilterPill
+            label="Muscle Group"
+            value={muscle}
+            options={muscles}
+            onChange={(v) => {
+              setMuscle(v);
               setPage(1);
             }}
-            placeholder="Search exercises..."
-            className="h-10 pl-9"
+          />
+          <FilterPill
+            label="Equipment"
+            value={equipment}
+            options={equipments}
+            format={(v) => v.replace(/_/gu, " ")}
+            onChange={(v) => {
+              setEquipment(v);
+              setPage(1);
+            }}
+          />
+          <FilterPill
+            label="Type"
+            value={category}
+            options={categories}
+            onChange={(v) => {
+              setCategory(v);
+              setPage(1);
+            }}
           />
         </div>
-        <FilterPill
-          label="Muscle Group"
-          value={muscle}
-          options={muscles}
-          onChange={(v) => {
-            setMuscle(v);
-            setPage(1);
-          }}
-        />
-        <FilterPill
-          label="Equipment"
-          value={equipment}
-          options={equipments}
-          format={(v) => v.replace(/_/gu, " ")}
-          onChange={(v) => {
-            setEquipment(v);
-            setPage(1);
-          }}
-        />
-        <FilterPill
-          label="Type"
-          value={category}
-          options={categories}
-          onChange={(v) => {
-            setCategory(v);
-            setPage(1);
-          }}
-        />
-      </div>
-
+      </StickyPageHeader>
       {exercises.isPending ? (
         <Loading />
       ) : rows.length === 0 ? (

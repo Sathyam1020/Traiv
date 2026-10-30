@@ -2,16 +2,24 @@ import { sql } from "drizzle-orm";
 import { db } from "../db.js";
 
 /**
- * Delete every trace of the given test phone numbers in a single round trip.
+ * Delete every trace of the given test phone numbers, removing recipes first.
  *
- * Written as one data-modifying CTE on purpose. The test database is remote — roughly
- * 300ms per query from here — so a teardown written as a dozen sequential statements
- * costs about four seconds per test before anything is exercised. This is one.
+ * The remaining tree is removed with one data-modifying CTE to keep teardown cheap
+ * on remote databases too. Recipes need their own preceding statement because a
+ * membership cascade would otherwise update the same child the studio cascade deletes.
  *
  * Order matters: children before parents, since the foreign keys restrict deletes.
  */
 export async function resetPhones(phones: string[]) {
   if (!phones.length) return;
+  // Remove recipes before membership deletion SET NULLs their created_by. Updating a
+  // child through one data-modifying CTE then deleting it through another cascade in
+  // the same statement is undefined in Postgres; nutrition introduces that overlap.
+  await db.execute(sql`delete from recipe where studio_id in (
+    select studio_id from membership where user_id in (
+      select id from "user" where phone = any(${sql.param(phones)}::text[])
+    )
+  )`);
   await db.execute(sql`
     with u as (
       select id from "user" where phone = any(${sql.raw(`ARRAY[${phones.map((p) => `'${p}'`).join(",")}]::text[]`)})

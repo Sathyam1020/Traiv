@@ -158,3 +158,10 @@ Stored as: `app/icon.svg` (Next turns this into the favicon), `packages/ui/src/a
 
 `<Wordmark />` pairs the mark with the name as live text in Inter — never as paths, so it
 stays selectable and does not ship a second copy of the typeface.
+
+## Nutrition macro icons (ADR 0028)
+
+Protein/carbs/fat use semantic `macro-protein`, `macro-carbs`, `macro-fat` tokens.
+Light: #F28A50 / #2C7A62 / #C49A26. Dark: #F5A373 / #74B89E / #E6C65C.
+These distinguish nutrient identities in the ingredient table, matching the supplied
+Coachway reference; they do not replace the app's action/signal colours.

@@ -31,7 +31,7 @@ import { memberships, studios } from "./studio.js";
 /** Who authored it — kept as its own enum rather than reused from `workout.ts`, same
  *  reasoning every other lifecycle enum in this codebase follows: `checkInStatus`,
  *  `targetStatus` and `templateStatus` are all independent despite overlapping values. */
-export const recipeSource = pgEnum("recipe_source", ["coach", "client"]);
+export const recipeSource = pgEnum("recipe_source", ["system", "coach", "client"]);
 export const mealPlanStatus = pgEnum("meal_plan_status", ["draft", "active"]);
 export const mealPlanSource = pgEnum("meal_plan_source", ["coach", "client"]);
 export const mealPlanRecipeSource = pgEnum("meal_plan_recipe_source", ["all", "mine"]);
@@ -78,6 +78,7 @@ export const ingredients = pgTable(
 
     /** What a typed quantity resolves to — e.g. "tsp" + 5 means 5g per tsp, the same job
      *  `exercise.defaultFields` does for a session_exercise. */
+    nutrientType: text(),
     defaultUnit: text(),
     gramsPerUnit: real(),
 
@@ -99,6 +100,9 @@ export const ingredients = pgTable(
   },
   (t) => [
     uniqueIndex("ingredient_name_key").on(t.name, t.studioId).where(sql`${t.deletedAt} is null`),
+    uniqueIndex("ingredient_system_name_key")
+      .on(t.name, t.dataSource)
+      .where(sql`${t.studioId} is null and ${t.deletedAt} is null`),
     uniqueIndex("ingredient_barcode_key").on(t.barcode).where(sql`${t.barcode} is not null`),
     index("ingredient_studio_idx").on(t.studioId),
     index("ingredient_category_idx").on(t.category),
@@ -124,11 +128,10 @@ export const recipes = pgTable(
   "recipe",
   {
     id: text().primaryKey(),
-    studioId: text()
-      .notNull()
-      .references(() => studios.id, { onDelete: "cascade" }),
+    studioId: text().references(() => studios.id, { onDelete: "cascade" }),
     clientId: text().references(() => clients.id, { onDelete: "cascade" }),
 
+    seedKey: text(),
     name: text().notNull(),
     description: text(),
     servings: integer().notNull().default(1),
@@ -160,6 +163,11 @@ export const recipes = pgTable(
     deletedAt: timestamp({ withTimezone: true }),
   },
   (t) => [
+    uniqueIndex("recipe_seed_key").on(t.seedKey),
+    check(
+      "recipe_owner_sane",
+      sql`(${t.source}::text = 'system' and ${t.studioId} is null and ${t.clientId} is null) or (${t.source}::text <> 'system' and ${t.studioId} is not null)`,
+    ),
     index("recipe_studio_idx").on(t.studioId),
     index("recipe_client_idx").on(t.clientId),
     check("recipe_servings_sane", sql`${t.servings} between 1 and 50`),
@@ -176,9 +184,11 @@ export const recipeIngredients = pgTable(
       .references(() => recipes.id, { onDelete: "cascade" }),
     ingredientId: text()
       .notNull()
-      .references(() => ingredients.id, { onDelete: "restrict" }),
+      .references(() => ingredients.id, { onDelete: "no action" }),
 
     position: integer().notNull(),
+    preparationNote: text(),
+    minimumUnitAmount: text().notNull().default("all"),
     quantity: real().notNull(),
     /** "grams" | "ml" | "piece" | "tsp" | "cup" | "bar" | "bunch" | "bag" | "can" | "dl" |
      *  "handful" | "head" | "leaf" | "portion". */
@@ -305,7 +315,7 @@ export const mealPlanRecipes = pgTable(
       .references(() => mealPlanSlots.id, { onDelete: "cascade" }),
     recipeId: text()
       .notNull()
-      .references(() => recipes.id, { onDelete: "restrict" }),
+      .references(() => recipes.id, { onDelete: "no action" }),
 
     position: integer().notNull(),
     scaleFactor: real().notNull().default(1),

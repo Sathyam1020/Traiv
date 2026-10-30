@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "ingredient_system_name_key" ON "ingredient" USING btree ("name") WHERE "ingredient"."studio_id" is null and "ingredient"."deleted_at" is null;

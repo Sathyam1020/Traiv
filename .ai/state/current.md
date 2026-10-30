@@ -1,7 +1,100 @@
 # Current state
 
-**Updated:** 2026-10-24
-**Phase:** monorepo root scaffolded · next is the database package, then auth
+**Updated:** 2026-10-30
+**Phase:** nutrition Ingredients + Recipes (A + B); meal plans and client food logging next
+
+## Fixed library headers — 2026-10-30
+
+Exercises, Templates, Ingredients and Recipes pin their title/search/filter controls
+as one opaque sticky header inside the shell scroll region. Settings pins its heading.
+Recipe and workout detail editors retain their existing fixed headers. Clients routes
+are unchanged. Shared StickyPageHeader preserves Page gutters and mobile shell offset.
+Recipe toolbar now has Search/Sort icons, Tag/Meal type/Type filter icons and a segmented
+List/Grid icon control in place of the view dropdown. Code-only change; no tests or
+browser checks run, per founder instruction.
+
+## Recipe interaction corrections — 2026-10-30
+
+Founder requested code edits only and will test the UI personally. No tests, typechecks
+or browser checks were run for this correction (the earlier 360 passing scenarios
+precede these UI changes).
+
+Ingredient move arrows removed; rows keep only Delete. Instructions have pointer/touch
+and keyboard drag handles and Delete, using an app-local RecipeSteps composition with
+no dependency. Ingredient detail expansion animates open/closed and honours reduced
+motion. Edit recipe opens a right-hand settings sheet with Cancel restoring its opening
+snapshot. Save uses a normalised comparison with the saved recipe, so merely opening
+settings or reverting edits does not enable it. Micronutrients are collapsed by default.
+Right-side shared sheets have rounded top-left/bottom-left corners; left sheets mirror
+them. Only desktop sidebar navigation, theme and account icons use solid silhouettes; mobile and
+content icons remain outlined. Recipe filter chips stay compact rather than full-width.
+Phase C remains unstarted pending founder approval.
+
+## Nutrition editing and reference polish — 2026-10-30
+
+Ingredient table now follows the supplied Coachway structure: compact heading, search
+icon, sort/new toolbar, icon filter pills, macro icons, category/country/library columns
+and contained pagination. Ingredient edit sheets have fixed header/footer, grouped fields,
+common and expandable additional micronutrients, serving conversion and ingredient type.
+System ingredient/recipe forms are editable; saving creates a private Personal version
+without a manual duplication step. Shared source PATCH permissions remain unchanged.
+Recipe ingredient expansions edit preparation notes and minimum-unit choices; both persist
+and survive duplication. Migration 0029 applied to development/test; 664 source ingredient
+types populated from the existing export. Select menus anchor below controls and use
+neutral selection, consistent padding and rounded surfaces. See ADR 0028.
+Phase C remains unstarted pending the founder's explicit approval.
+
+## Trainer typography — 2026-10-30
+
+Coachway's live font is DM Sans, verified through computed body/button/table styles.
+Trainer now uses DM Sans (400/500/600), with existing colours and light/dark support.
+The earlier Tacto appearance preview was reverted. See ADR 0027.
+
+## Ingredient search — 2026-10-30
+
+Salt was present but buried by alphabetically sorted substring matches ("with salt",
+"without salt"). Ingredient search now ranks exact names, phrase prefixes and whole
+words before incidental substrings, before pagination, with shorter names breaking ties.
+Whitespace is trimmed and SQL/regex metacharacters remain literal. The ingredient list
+and recipe picker share this API. Regression covers retries, two studios, pagination,
+case/whitespace and literal punctuation; all 8 nutrition scenarios and API typecheck pass.
+
+## Nutrition layout refinement — 2026-10-30
+
+Ingredients and Recipes lists use the same `Page max-w-none` container as Exercises.
+The sidebar and its collapse preference are unchanged. Recipe details have a compact
+header with the standard sidebar toggle, a summary/nutrients column and an ingredients/
+instructions column that scroll independently from 768px. Phones use one scrolling
+column. Ingredient rows disclose macro details, show conversion badges and calories;
+changing a serving unit preserves ingredient weight. Nutrients use a semicircle and
+visible micronutrient breakdown. Browser verified expanded/collapsed desktop sidebar,
+independent left scrolling and gram-to-teaspoon conversion (32 g → 6.4 tsp, 499 kcal).
+
+## Nutrition library — 2026-10-30
+
+Phases A + B implemented. Trainer `/nutrition/ingredients`, `/nutrition/recipes`,
+`/nutrition/recipes/:id`. Search, sort, pagination, multi-select filters, Personal/System
+visibility, ingredient create/edit/delete, recipe create/edit/duplicate/delete, ordered
+ingredients/instructions, servings and live calculated macro/micronutrient totals.
+Shared source records remain immutable; editable System forms save independent Personal versions (ADR 0028).
+All 136 Indian recipes live in this same library alongside 1,099 Coachway source recipes
+(1,235 combined). The authenticated detail export resolves all 664 source ingredients
+and preserves real preparation steps; 23 source recipes have none. Ingredient imports and migrations
+0023–0028 are applied to development and test databases. See ADR 0026 and
+`docs/nutrition-data.md` for datasets, pinned MIT IFCT archive, and original recipe data.
+
+Device drafts survive navigation; stale recipe revisions return 409 instead of overwriting.
+Signed uploads remain configuration-gated; hosted media URLs work without credentials.
+One shared `@traiv/nutrition/recipes` calculation serves the editor and API.
+
+Verified: 358 API scenarios, all workspace typechecks, trainer webpack production build.
+Browser: shared Indian recipe search, duplication, quantity change/save, draft recovery,
+mobile recipe creation and ingredient creation; layouts inspected at 360px and 1280px.
+The old entries below describe earlier milestones and include outdated feature-absence
+claims; this section and newer ADRs take precedence for nutrition.
+
+Not included: meal-plan builder, client assignment, client Food screens or barcode scan.
+Indian recipes currently use icon fallbacks; imported source recipes use their original image URLs.
 
 ## How we work
 

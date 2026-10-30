@@ -1,5 +1,12 @@
 # Typography
 
+## Trainer font — 2026-10-30
+
+The founder requested Coachway's font. Its live app computes to **DM Sans** for body,
+buttons and table text. Trainer now loads DM Sans weights 400/500/600 via `next/font`
+and sets `--font-app-sans`. Shared font tokens prefer that variable and otherwise retain
+Inter. Colours, type sizes, layout and light/dark support are unchanged. See ADR 0027.
+
 ## The stack
 
 **Inter**, which is cal.com's UI face (ADR 0015). Self-hosted by `next/font` at build

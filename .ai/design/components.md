@@ -95,4 +95,25 @@ root — that re-exports twelve thousand files), and add a named export. A prop 
 icon" is `Icon` from the same module.
 
 The selected state of an icon is `text-signal`. Nothing else colours an icon except
-semantic state (danger, warning, success).
+semantic state (danger, warning, success). Nutrition macro identities are the explicit
+exception in ADR 0028 (`macro-protein`, `macro-carbs`, `macro-fat`).
+
+## Nutrition compositions (trainer)
+
+`apps/trainer/src/app/(app)/nutrition/_components/`: existing Select/Popover/Checkbox
+compose multi-select library filters; IngredientPanel and RecipePanel use Sheet;
+MacroBars and NutrientSummary visualise computed per-serving nutrition using existing
+tokens. MediaField reuses the studio upload signer, hidden without configuration.
+IngredientPanel uses a fixed header/footer and scrollable form; System forms save
+Personal versions. Ingredient list filter chips use Folder/Tag/Globe/Plus icons. Shared
+Select uses anchored poppers, neutral selection fills and consistent item padding.
+Recipe line expansion contains preparation notes and a minimum-unit segmented group.
+These are app-specific compositions, not new shared primitives.
+
+RecipeSteps supports pointer/touch capture and keyboard pickup/move/drop/cancel without
+an added library. Recipe settings reuse RecipeIdentity in Sheet. SolidSidebarIcon is
+confined to the desktop rail; it does not change the shared outline icon exports.
+
+StickyPageHeader groups title/search/filter controls inside Page and pins them to the
+shell scroll area with an opaque panel background and existing gutters. Used by trainer
+Exercises, Templates, Ingredients, Recipes and Settings; Clients stays unchanged.

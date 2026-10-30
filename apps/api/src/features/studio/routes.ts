@@ -12,6 +12,22 @@ import {
   submitCheckIn,
 } from "./check-ins.js";
 import {
+  createIngredient,
+  deleteIngredient,
+  deleteRecipe,
+  duplicateRecipe,
+  getIngredient,
+  getRecipe,
+  ingredientInput,
+  libraryQuery,
+  listIngredients,
+  listRecipes,
+  parseNutritionInput,
+  recipeInput,
+  saveRecipe,
+  updateIngredient,
+} from "./nutrition.js";
+import {
   createTag,
   deleteTag,
   FILTERS,
@@ -573,3 +589,103 @@ studios.delete(
     res.status(204).end();
   },
 );
+
+/* Nutrition: every endpoint carries the same per-request studio membership gate. */
+studios.get("/:id/ingredients", requireStudio({ param: "id" }), async (req, res) => {
+  res.json(await listIngredients(requireStudioAuth(req).studioId, libraryQuery.parse(req.query)));
+});
+studios.post("/:id/ingredients", requireStudio({ param: "id" }), async (req, res) => {
+  res
+    .status(201)
+    .json(
+      await createIngredient(
+        requireStudioAuth(req).studioId,
+        parseNutritionInput(ingredientInput, req.body),
+      ),
+    );
+});
+studios.get("/:id/ingredients/:ingredientId", requireStudio({ param: "id" }), async (req, res) => {
+  res.json(
+    await getIngredient(
+      requireStudioAuth(req).studioId,
+      z.string().min(1).max(64).parse(req.params.ingredientId),
+    ),
+  );
+});
+studios.patch(
+  "/:id/ingredients/:ingredientId",
+  requireStudio({ param: "id" }),
+  async (req, res) => {
+    res.json(
+      await updateIngredient(
+        requireStudioAuth(req).studioId,
+        z.string().min(1).max(64).parse(req.params.ingredientId),
+        parseNutritionInput(ingredientInput, req.body),
+      ),
+    );
+  },
+);
+studios.delete(
+  "/:id/ingredients/:ingredientId",
+  requireStudio({ param: "id" }),
+  async (req, res) => {
+    await deleteIngredient(
+      requireStudioAuth(req).studioId,
+      z.string().min(1).max(64).parse(req.params.ingredientId),
+    );
+    res.json({ deleted: true });
+  },
+);
+studios.get("/:id/recipes", requireStudio({ param: "id" }), async (req, res) => {
+  res.json(await listRecipes(requireStudioAuth(req).studioId, libraryQuery.parse(req.query)));
+});
+studios.post("/:id/recipes", requireStudio({ param: "id" }), async (req, res) => {
+  const { studioId, membershipId } = requireStudioAuth(req);
+  res
+    .status(201)
+    .json(await saveRecipe(studioId, membershipId, parseNutritionInput(recipeInput, req.body)));
+});
+studios.get("/:id/recipes/:recipeId", requireStudio({ param: "id" }), async (req, res) => {
+  res.json(
+    await getRecipe(
+      requireStudioAuth(req).studioId,
+      z.string().min(1).max(64).parse(req.params.recipeId),
+    ),
+  );
+});
+studios.patch("/:id/recipes/:recipeId", requireStudio({ param: "id" }), async (req, res) => {
+  const { studioId, membershipId } = requireStudioAuth(req);
+  res.json(
+    await saveRecipe(
+      studioId,
+      membershipId,
+      parseNutritionInput(recipeInput, req.body),
+      z.string().min(1).max(64).parse(req.params.recipeId),
+    ),
+  );
+});
+studios.post(
+  "/:id/recipes/:recipeId/duplicate",
+  requireStudio({ param: "id" }),
+  async (req, res) => {
+    const { studioId, membershipId } = requireStudioAuth(req);
+    const { id } = z.object({ id: z.string().uuid() }).parse(req.body);
+    res
+      .status(201)
+      .json(
+        await duplicateRecipe(
+          studioId,
+          membershipId,
+          z.string().min(1).max(64).parse(req.params.recipeId),
+          id,
+        ),
+      );
+  },
+);
+studios.delete("/:id/recipes/:recipeId", requireStudio({ param: "id" }), async (req, res) => {
+  await deleteRecipe(
+    requireStudioAuth(req).studioId,
+    z.string().min(1).max(64).parse(req.params.recipeId),
+  );
+  res.json({ deleted: true });
+});

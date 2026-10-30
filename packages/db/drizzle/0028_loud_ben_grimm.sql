@@ -1,0 +1,2 @@
+DROP INDEX "ingredient_system_name_key";--> statement-breakpoint
+CREATE UNIQUE INDEX "ingredient_system_name_key" ON "ingredient" USING btree ("name","data_source") WHERE "ingredient"."studio_id" is null and "ingredient"."deleted_at" is null;

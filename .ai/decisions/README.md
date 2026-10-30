@@ -59,3 +59,8 @@ overwrite.
 | 0023 | Workouts are templates you assign | accepted · supersedes the workout half of 0004 |
 | 0024 | Workout templates, corrected against the real trainer app | accepted · supersedes 0023's section/item model |
 | 0025 | Nutrition is recipes and meal-plan templates, not AI-generated diet plans | accepted · supersedes the food/nutrition half of 0004 |
+
+- [0026 — One shared Recipes library, including Indian recipes](0026-shared-recipes.md)
+
+- [0027 — DM Sans in the trainer app](0027-coachway-font.md)
+- [0028 — Edit nutrition library items without a manual duplication step](0028-nutrition-inline-editing.md)

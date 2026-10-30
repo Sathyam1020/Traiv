@@ -18,7 +18,8 @@
     "react": "catalog:",
     "react-dom": "catalog:",
     "zustand": "catalog:",
-    "@traiv/phone": "workspace:*"
+    "@traiv/phone": "workspace:*",
+    "@traiv/nutrition": "workspace:*"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "catalog:",

@@ -336,6 +336,9 @@ importers:
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.102.8(react@19.3.0)
+      '@traiv/nutrition':
+        specifier: workspace:*
+        version: link:../../packages/nutrition
       '@traiv/phone':
         specifier: workspace:*
         version: link:../../packages/phone

@@ -1,5 +1,6 @@
 "use client";
 
+import { SolidSidebarIcon } from "@traiv/ui/components/shell/solid-sidebar-icon";
 import { Avatar } from "@traiv/ui/components/avatar";
 import {
   Tooltip,
@@ -128,7 +129,7 @@ export function RailLink({ href, label, icon: Icon }: { href: string; label: str
         collapsed ? RAIL_TILE : "gap-2.5 px-2.5 py-2",
       )}
     >
-      <Icon className="size-4 shrink-0" />
+      <SolidSidebarIcon icon={Icon} className="size-4 shrink-0" />
       {collapsed ? <span className="sr-only">{label}</span> : label}
     </Link>
   );
