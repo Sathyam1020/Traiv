@@ -1,4 +1,10 @@
 import {
+  clientMealPlans,
+  liveMealPlanTemplates,
+  clientPlanCreateSchema,
+  createClientMealPlan,
+} from "./meal-plans.js";
+import {
   archiveMealPlan,
   createMealPlan,
   discardMealPlan,
@@ -799,4 +805,43 @@ studios.post("/:id/mealplans/:planId/archive", requireStudio({ param: "id" }), a
     z.object({ expectedUpdatedAt: z.iso.datetime() }).parse(req.body).expectedUpdatedAt,
   );
   res.json({ archived: true });
+});
+
+studios.get(
+  "/:id/clients/:clientId/mealplans",
+  requireStudio({ param: "id" }),
+  async (req, res) => {
+    res.json(
+      await clientMealPlans(
+        requireStudioAuth(req).studioId,
+        z.string().uuid().parse(req.params.clientId),
+      ),
+    );
+  },
+);
+studios.post(
+  "/:id/clients/:clientId/mealplans",
+  requireStudio({ param: "id" }),
+  async (req, res) => {
+    const auth = requireStudioAuth(req);
+    res
+      .status(201)
+      .json(
+        await createClientMealPlan(
+          auth.studioId,
+          z.string().uuid().parse(req.params.clientId),
+          auth.membershipId,
+          clientPlanCreateSchema.parse(req.body),
+        ),
+      );
+  },
+);
+studios.get("/:id/mealplan-templates/live", requireStudio({ param: "id" }), async (req, res) => {
+  const q = z
+    .object({
+      search: z.string().max(120).default(""),
+      page: z.coerce.number().int().min(1).max(10000).default(1),
+    })
+    .parse(req.query);
+  res.json(await liveMealPlanTemplates(requireStudioAuth(req).studioId, q.search, q.page));
 });

@@ -48,6 +48,7 @@ export type PlanSlot = {
 };
 export type PlanDocument = { settings: PlanSettings; slots: PlanSlot[] };
 export type MealPlan = {
+  clientId: string | null;
   id: string;
   updatedAt: string;
   status: "draft" | "active";

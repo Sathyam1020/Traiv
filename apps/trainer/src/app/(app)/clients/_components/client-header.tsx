@@ -60,7 +60,7 @@ const STATUS_LABEL: Record<ClientProfile["status"], string> = {
 const TABS = [
   { label: "Overview", icon: LayoutGrid, ready: true },
   { label: "Development", icon: BarChart, ready: false },
-  { label: "Nutrition", icon: Apple, ready: false },
+  { label: "Nutrition", icon: Apple, ready: true },
   // ADR 0024: a client's own workout programmes. Flipped on now that the tab has a
   // real screen behind it — see `ClientWorkouts`.
   { label: "Workouts", icon: Dumbbell, ready: true },

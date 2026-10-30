@@ -8,13 +8,14 @@ import { useActiveStudioId } from "@/lib/active-studio";
 import { useCheckIns, useClient, useClientOverview, useTags } from "@/lib/query";
 import { ClientHeader, ClientHeaderSkeleton } from "../_components/client-header";
 import { Overview, OverviewSkeleton } from "../_components/overview/overview";
+import { ClientNutrition } from "../_components/nutrition/client-nutrition";
 import { ClientWorkouts } from "../_components/workouts/client-workouts";
 
 /**
  * One client.
  *
- * Overview and Workouts are real; `ClientHeader` owns the tab row itself, including the
- * five tabs with no screen behind them yet — they stay disabled with a "Not built yet"
+ * Overview, Nutrition and Workouts are real; `ClientHeader` owns the tab row itself, including the
+ * remaining tabs with no screen behind them yet — they stay disabled with a "Not built yet"
  * tooltip rather than being left off the bar, so the real app's shape stays visible.
  * This page only has to say which of the *ready* tabs is open.
  */
@@ -26,8 +27,12 @@ export default function ClientPage() {
   const overview = useClientOverview(studioId, clientId);
   const checkIns = useCheckIns(studioId, clientId);
   const tags = useTags(studioId);
-  const [tab, setTab] = useState<"Overview" | "Workouts">(
-    searchParams.get("tab") === "workouts" ? "Workouts" : "Overview",
+  const [tab, setTab] = useState<"Overview" | "Workouts" | "Nutrition">(
+    searchParams.get("tab") === "nutrition"
+      ? "Nutrition"
+      : searchParams.get("tab") === "workouts"
+        ? "Workouts"
+        : "Overview",
   );
 
   if (client.isPending) {
@@ -58,14 +63,19 @@ export default function ClientPage() {
         client={client.data}
         tags={tags.data ?? []}
         activeTab={tab}
-        // Only Overview and Workouts have a screen behind them; the rest stay disabled
-        // in the header itself, so this can never actually be asked to switch to one.
         onTabChange={(t) => {
-          if (t === "Overview" || t === "Workouts") setTab(t);
+          if (t === "Overview" || t === "Workouts" || t === "Nutrition") setTab(t);
         }}
       />
 
-      {tab === "Workouts" ? (
+      {tab === "Nutrition" ? (
+        <ClientNutrition
+          studioId={studioId}
+          clientId={clientId}
+          name={client.data.name}
+          energy={overview.data?.energy}
+        />
+      ) : tab === "Workouts" ? (
         <ClientWorkouts studioId={studioId} clientId={clientId} />
       ) : overview.isPending ? (
         <OverviewSkeleton />

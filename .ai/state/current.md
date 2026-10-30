@@ -1,7 +1,28 @@
 # Current state
 
 **Updated:** 2026-10-30
-**Phase:** nutrition A + B and Phase C meal plan templates implemented; founder UI acceptance pending; client assignment/logging next
+**Phase:** nutrition A + B and Phase C meal plan templates implemented; founder UI acceptance pending; Phase D client assignment implemented; food logging next
+
+## Client nutrition assignment — Phase D, 2026-10-30
+
+Trainer Client → Nutrition is enabled. Empty state offers a new client-only plan or a
+copy from a published studio template. New plans reuse PlanSettingsSheet and show the
+existing overview calorie recommendation with Apply. Copy uses the source published
+snapshot, a two-step picker, optional calorie/macro overrides and fresh slot/option IDs.
+Both paths create private drafts with clientId set, so they never appear in Mealplans.
+
+The existing builder is extracted into PlanBuilder and embedded in the client tab,
+including recipe sheets, manual quantities/steps, lock, save, publish and discard.
+Client plan selector supports several plans; archive removes a plan from the tab and
+client visibility. Shared library routes retain clientId-null listing, while single-plan
+operations authorize by studio and the client's roster relationship.
+
+Client GET /c/:studioId/mealplans derives clientId from requireClient; only active,
+unarchived published snapshots are returned. Food reveal requires a published snapshot;
+/food offers a read-only plan/recipe/ingredients/steps view. Draft changes stay private
+until Publish. Food logging and barcode features remain Phase E. No schema migration or
+new dependency. No tests/typechecks/browser checks run for this phase; founder UI
+acceptance pending, following the standing code-only instruction.
 
 ## Meal plan recipe sheet — 2026-10-30
 
@@ -33,7 +54,7 @@ scoping, idempotent creation and revision checks. Device draft recovery is inclu
 
 Migrations 0030–0031 applied to development and test databases. No new dependencies or
 branch. No tests, typechecks or browser checks run, as requested; founder UI acceptance
-remains pending. Phase D client assignment and Phase E client logging are not implemented.
+remains pending. Phase D client assignment was subsequently implemented below; Phase E client logging remains pending.
 See ADR 0029 and `features/meal-plan-templates/`.
 
 ## Fixed library headers — 2026-10-30

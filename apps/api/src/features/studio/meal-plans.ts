@@ -135,7 +135,7 @@ export const presetSchema = z
 const visible = (studioId: string, id?: string) =>
   and(
     eq(schema.mealPlanTemplates.studioId, studioId),
-    isNull(schema.mealPlanTemplates.clientId),
+    id ? undefined : isNull(schema.mealPlanTemplates.clientId),
     isNull(schema.mealPlanTemplates.archivedAt),
     id ? eq(schema.mealPlanTemplates.id, id) : undefined,
   );
@@ -144,6 +144,7 @@ function decode(row: typeof schema.mealPlanTemplates.$inferSelect) {
   const published = row.publishedDocument ? planDocumentSchema.parse(row.publishedDocument) : null;
   return {
     id: row.id,
+    clientId: row.clientId,
     updatedAt: row.updatedAt.toISOString(),
     status: row.status,
     document,
@@ -154,6 +155,7 @@ function decode(row: typeof schema.mealPlanTemplates.$inferSelect) {
 export async function getMealPlan(studioId: string, id: string) {
   const [row] = await db.select().from(schema.mealPlanTemplates).where(visible(studioId, id));
   if (!row) throw notFound("Meal plan not found.");
+  if (row.clientId) await requirePlanClient(studioId, row.clientId);
   return decode(row);
 }
 export async function listMealPlans(studioId: string, search: string, page: number) {
@@ -370,6 +372,7 @@ async function persist(
   document: PlanDocument,
   expected?: string,
   create = false,
+  clientId: string | null = null,
 ) {
   await db.transaction(async (tx) => {
     const [existing] = await tx
@@ -378,7 +381,11 @@ async function persist(
       .where(eq(schema.mealPlanTemplates.id, id))
       .for("update");
     if (existing) {
-      if (existing.studioId !== studioId || existing.clientId || existing.archivedAt)
+      if (
+        existing.studioId !== studioId ||
+        existing.archivedAt ||
+        (create && existing.clientId !== clientId)
+      )
         throw notFound("Meal plan not found.");
       if (create) return;
       if (!expected || existing.updatedAt.toISOString() !== expected)
@@ -405,6 +412,7 @@ async function persist(
           ...values,
           id,
           studioId,
+          clientId,
           createdBy: membershipId,
           status: "draft",
           source: "coach",
@@ -550,7 +558,7 @@ export async function duplicateMealPlan(
       options: s.options.map((o) => ({ ...o, id: newId() })),
     })),
   };
-  return persist(studioId, membershipId, copyId, document, undefined, true);
+  return persist(studioId, membershipId, copyId, document, undefined, true, original.clientId);
 }
 export async function archiveMealPlan(studioId: string, id: string, expected: string) {
   const rows = await db
@@ -583,4 +591,133 @@ export async function saveMealPlanPreset(studioId: string, input: z.infer<typeof
 }
 export async function mealPlanRecipeOption(studioId: string, recipeId: string) {
   return snapshot(await getRecipe(studioId, recipeId));
+}
+
+async function requirePlanClient(studioId: string, clientId: string) {
+  const [client] = await db
+    .select()
+    .from(schema.clients)
+    .where(
+      and(
+        eq(schema.clients.id, clientId),
+        eq(schema.clients.studioId, studioId),
+        isNull(schema.clients.deletedAt),
+      ),
+    );
+  if (!client) throw notFound("Client not found.");
+  return client;
+}
+export async function clientMealPlans(studioId: string, clientId: string) {
+  await requirePlanClient(studioId, clientId);
+  const rows = await db
+    .select()
+    .from(schema.mealPlanTemplates)
+    .where(
+      and(
+        eq(schema.mealPlanTemplates.studioId, studioId),
+        eq(schema.mealPlanTemplates.clientId, clientId),
+        isNull(schema.mealPlanTemplates.archivedAt),
+      ),
+    )
+    .orderBy(desc(schema.mealPlanTemplates.updatedAt));
+  return rows.map(decode);
+}
+export async function liveMealPlanTemplates(studioId: string, search: string, page: number) {
+  const t = schema.mealPlanTemplates;
+  const where = and(
+    visible(studioId),
+    eq(t.status, "active"),
+    search ? ilike(t.name, `%${search.replace(/[\\%_]/gu, "\\$&")}%`) : undefined,
+  );
+  const [rows, count] = await Promise.all([
+    db
+      .select()
+      .from(t)
+      .where(where)
+      .orderBy(desc(t.updatedAt), desc(t.id))
+      .limit(25)
+      .offset((page - 1) * 25),
+    db.select({ total: sql<number>`count(*)::int` }).from(t).where(where),
+  ]);
+  return {
+    items: rows
+      .filter((r) => r.publishedDocument)
+      .map((r) => ({ id: r.id, ...planDocumentSchema.parse(r.publishedDocument).settings })),
+    total: count[0]?.total ?? 0,
+    page,
+  };
+}
+export const clientPlanCreateSchema = z
+  .object({
+    id: z.string().uuid(),
+    document: planDocumentSchema.optional(),
+    templateId: z.string().uuid().optional(),
+    name: z.string().trim().min(1).max(40).optional(),
+    targets: z
+      .object({
+        calorieTarget: z.number().int().min(100).max(20000),
+        proteinPct: pct,
+        carbsPct: pct,
+        fatPct: pct,
+      })
+      .optional(),
+  })
+  .refine(
+    (v) => Boolean(v.document) !== Boolean(v.templateId),
+    "Choose a template or create a new plan.",
+  );
+export async function createClientMealPlan(
+  studioId: string,
+  clientId: string,
+  membershipId: string,
+  input: z.infer<typeof clientPlanCreateSchema>,
+) {
+  await requirePlanClient(studioId, clientId);
+  const [prior] = await db
+    .select()
+    .from(schema.mealPlanTemplates)
+    .where(eq(schema.mealPlanTemplates.id, input.id));
+  if (prior) {
+    if (prior.studioId !== studioId || prior.clientId !== clientId || prior.archivedAt)
+      throw notFound("Meal plan not found.");
+    return getMealPlan(studioId, input.id);
+  }
+  let document: PlanDocument;
+  if (input.templateId) {
+    const source = await getMealPlan(studioId, input.templateId);
+    if (source.clientId || !source.published || source.status !== "active")
+      throw badRequest("unpublished_template", "Choose a published studio template.");
+    document = planDocumentSchema.parse({
+      ...source.published,
+      settings: {
+        ...source.published.settings,
+        ...input.targets,
+        name: input.name ?? source.published.settings.name,
+      },
+      slots: source.published.slots.map((slot) => ({
+        ...slot,
+        id: newId(),
+        options: slot.options.map((option) => ({ ...option, id: newId() })),
+      })),
+    });
+    if (input.targets)
+      document = {
+        ...document,
+        slots: document.slots.map((slot) => ({
+          ...slot,
+          options: slot.options.map((option) =>
+            scaleOption(option, document.settings, slot.percentage),
+          ),
+        })),
+      };
+  } else {
+    if (!input.document) throw badRequest("missing_configuration", "Configure the meal plan.");
+    document = await reconcile(
+      studioId,
+      { ...input.document, slots: input.document.slots.map((slot) => ({ ...slot, options: [] })) },
+      null,
+      true,
+    );
+  }
+  return persist(studioId, membershipId, input.id, document, undefined, true, clientId);
 }

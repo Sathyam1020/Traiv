@@ -16,6 +16,26 @@ export type MacroPreset = {
 };
 const base = (studio: string) => `/studios/${studio}`;
 export const mealPlansApi = {
+  clientPlans: async (studio: string, clientId: string) =>
+    (await http.get<MealPlan[]>(`${base(studio)}/clients/${clientId}/mealplans`)).data,
+  liveTemplates: async (studio: string, search: string, page: number) =>
+    (
+      await http.get<{ items: (PlanSettings & { id: string })[]; total: number; page: number }>(
+        `${base(studio)}/mealplan-templates/live`,
+        { params: { search, page } },
+      )
+    ).data,
+  createClient: async (
+    studio: string,
+    clientId: string,
+    input: {
+      id: string;
+      document?: PlanDocument;
+      templateId?: string;
+      name?: string;
+      targets?: Pick<PlanSettings, "calorieTarget" | "proteinPct" | "carbsPct" | "fatPct">;
+    },
+  ) => (await http.post<MealPlan>(`${base(studio)}/clients/${clientId}/mealplans`, input)).data,
   list: async (studio: string, search: string, page: number) =>
     (
       await http.get<{ items: PlanSummary[]; total: number; page: number }>(

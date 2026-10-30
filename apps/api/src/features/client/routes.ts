@@ -1,3 +1,4 @@
+import { publishedMealPlans } from "./meal-plans.js";
 import { newId, schema } from "@traiv/db";
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { Router } from "express";
@@ -501,4 +502,8 @@ clientApp.get("/:studioId/exercises/:exerciseId", requireClient(), async (req, r
   const { clientId } = requireClientAuth(req);
   const { exerciseId } = z.object({ exerciseId: z.string().max(64) }).parse(req.params);
   res.json(await getExerciseDetail(clientId, exerciseId));
+});
+
+clientApp.get("/:studioId/mealplans", requireClient(), async (req, res) => {
+  res.json(await publishedMealPlans(requireClientAuth(req).clientId));
 });

@@ -66,3 +66,5 @@ overwrite.
 - [0028 — Edit nutrition library items without a manual duplication step](0028-nutrition-inline-editing.md)
 
 - [0029 — Meal plan templates, snapshots and publishing](0029-meal-plan-templates.md)
+
+- [0030 — Client nutrition plans are private copies of published templates](0030-client-nutrition-plans.md)

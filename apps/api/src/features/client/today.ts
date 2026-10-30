@@ -145,6 +145,7 @@ export async function getToday(clientId: string, userId: string | null, now: Day
           and(
             eq(schema.mealPlanTemplates.clientId, clientId),
             eq(schema.mealPlanTemplates.status, "active"),
+            isNotNull(schema.mealPlanTemplates.publishedDocument),
             isNull(schema.mealPlanTemplates.archivedAt),
           ),
         )

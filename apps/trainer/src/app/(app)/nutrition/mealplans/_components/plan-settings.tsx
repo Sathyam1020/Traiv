@@ -84,7 +84,11 @@ export function PlanSettingsSheet({
   close,
   submit,
   draft,
+  clientPlan = false,
+  recommendedKcal,
 }: {
+  clientPlan?: boolean;
+  recommendedKcal?: number;
   initial: PlanDocument;
   studioId: string;
   create?: boolean;
@@ -158,7 +162,15 @@ export function PlanSettingsSheet({
         }}
       >
         <SheetHeader className="shrink-0 border-b border-line px-6 py-5">
-          <SheetTitle>{create ? "New meal plan template" : "Edit meal plan template"}</SheetTitle>
+          <SheetTitle>
+            {clientPlan
+              ? create
+                ? "New client meal plan"
+                : "Edit client meal plan"
+              : create
+                ? "New meal plan template"
+                : "Edit meal plan template"}
+          </SheetTitle>
           <SheetDescription>Configure meal options and daily nutrition targets.</SheetDescription>
         </SheetHeader>
         <form
@@ -226,6 +238,19 @@ export function PlanSettingsSheet({
               </div>
               <div className="flex min-w-0 flex-col gap-5">
                 <h3 className="text-body-sm font-semibold">Nutrition targets</h3>
+                {recommendedKcal ? (
+                  <div className="flex flex-wrap items-center justify-between gap-2 rounded-control bg-warning-subtle p-3 text-body-sm text-warning">
+                    <span>{recommendedKcal.toLocaleString()} kcal recommended for this client</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => patch({ calorieTarget: recommendedKcal })}
+                    >
+                      Apply
+                    </Button>
+                  </div>
+                ) : null}
                 <div className="grid grid-cols-2 gap-3">
                   <Stepper
                     label="Calories"
@@ -579,7 +604,13 @@ export function PlanSettingsSheet({
               Cancel
             </Button>
             <Button disabled={busy || !settingsValid(document) || (!create && !changed)}>
-              {busy ? (create ? "Selecting recipes…" : "Updating template…") : "Save template"}
+              {busy
+                ? create
+                  ? "Selecting recipes…"
+                  : "Updating template…"
+                : clientPlan
+                  ? "Save plan"
+                  : "Save template"}
             </Button>
           </footer>
         </form>

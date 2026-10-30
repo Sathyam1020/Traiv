@@ -912,7 +912,7 @@ scale-to-targets recipe-matching logic). Depends on B. Draft/published snapshots
 choice ranges, ingredient fitting and locks are implemented under ADR 0029. Migrations
 0030–0031 applied. Tests/typechecks/browser checks deferred at founder request.
 
-**Phase D — Client assignment flow.** The client profile's Nutrition tab (empty state,
+**Phase D — Client assignment flow (implemented 2026-10-30; founder UI acceptance pending).** The client profile's Nutrition tab (empty state,
 Create new plan, Create from template two-step flow), `reveal.food` cutover. Depends on
 C.
 
