@@ -98,6 +98,8 @@ export type LibraryQuery = z.infer<typeof libraryQuery>;
 const visibleIngredient = (studioId: string) =>
   and(
     isNull(schema.ingredients.deletedAt),
+    isNull(schema.ingredients.clientId),
+    eq(schema.ingredients.baseUnit, "grams"),
     or(isNull(schema.ingredients.studioId), eq(schema.ingredients.studioId, studioId)),
   );
 const visibleRecipe = (studioId: string) =>
@@ -271,7 +273,7 @@ export function ingredientGrams(
 function nutrientRecord(value: unknown): Record<string, number> {
   return z.record(z.string(), z.number()).safeParse(value).data ?? {};
 }
-async function hydrateRecipes(rows: (typeof schema.recipes.$inferSelect)[]) {
+export async function hydrateRecipes(rows: (typeof schema.recipes.$inferSelect)[]) {
   if (!rows.length) return [];
   const ids = rows.map((r) => r.id);
   const [lines, steps] = await Promise.all([

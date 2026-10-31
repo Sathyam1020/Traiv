@@ -1,5 +1,6 @@
 import type { NavGroup } from "@traiv/ui/components/shell/app-shell";
-import { Dumbbell, Home, MessageCircle, Salad, User } from "@traiv/ui/icons";
+import { MessageSquareText, User } from "@traiv/ui/icons";
+import { FoodNavIcon, WorkoutsNavIcon, TodayNavIcon } from "./client-nav-icons";
 import type { Today } from "@/lib/api";
 
 /**
@@ -10,7 +11,8 @@ import type { Today } from "@/lib/api";
  * profile, which is one fewer destination for somebody `personas.md` describes as having
  * "low tolerance for a new app, a new login, or anything they must learn".
  *
- * **A tab only appears once its content exists.** Trainerize hides Goals, Habits and
+ * Chat is a placeholder so the five-tab layout can be previewed.
+ * Other conditional tabs appear once their content exists. Trainerize hides Goals, Habits and
  * Nutrition until the coach has actually assigned one, and
  * `.ai/product/competitor-client-apps.md` calls that "the one idea worth stealing
  * outright" — it is the direct answer to a client who finishes onboarding and lands in
@@ -27,11 +29,11 @@ import type { Today } from "@/lib/api";
  */
 export function navFor(reveal: Today["reveal"] | undefined): readonly NavGroup[] {
   const items = [
-    { href: "/dashboard", label: "Today", icon: Home },
-    ...(reveal?.chat ? [{ href: "/chat", label: "Chat", icon: MessageCircle }] : []),
-    ...(reveal?.food ? [{ href: "/food", label: "Food", icon: Salad }] : []),
-    ...(reveal?.workouts ? [{ href: "/workouts", label: "Workouts", icon: Dumbbell }] : []),
-    { href: "/you", label: "You", icon: User },
+    { href: "/dashboard", label: "Today", icon: TodayNavIcon },
+    { href: "/chat", label: "Chat", icon: MessageSquareText },
+    ...(reveal?.food ? [{ href: "/food", label: "Food", icon: FoodNavIcon }] : []),
+    ...(reveal?.workouts ? [{ href: "/workouts", label: "Workouts", icon: WorkoutsNavIcon }] : []),
+    { href: "/you", label: "Profile", icon: User },
   ];
 
   return [{ items }];

@@ -1,6 +1,6 @@
 import { optionNutrition } from "@traiv/nutrition/meal-plans";
 import { schema } from "@traiv/db";
-import { and, desc, eq, isNull, isNotNull } from "drizzle-orm";
+import { and, desc, eq, isNull, isNotNull, inArray } from "drizzle-orm";
 import { db } from "../../db.js";
 import { planDocumentSchema } from "../studio/meal-plans.js";
 
@@ -18,10 +18,36 @@ export async function publishedMealPlans(clientId: string) {
       ),
     )
     .orderBy(desc(schema.mealPlanTemplates.updatedAt));
-  return rows.map((row) => {
-    const document = planDocumentSchema.parse(row.publishedDocument);
+  const documents = rows.map((row) => ({
+    id: row.id,
+    document: planDocumentSchema.parse(row.publishedDocument),
+  }));
+  const ids = [
+    ...new Set(
+      documents.flatMap(({ document }) =>
+        document.slots.flatMap((slot) => slot.options.map((option) => option.recipeId)),
+      ),
+    ),
+  ];
+  const times = ids.length
+    ? await db
+        .select({
+          id: schema.recipes.id,
+          prep: schema.recipes.prepMinutes,
+          cook: schema.recipes.cookMinutes,
+        })
+        .from(schema.recipes)
+        .where(inArray(schema.recipes.id, ids))
+    : [];
+  const minutes = new Map(
+    times.map((row) => [
+      row.id,
+      row.prep === null && row.cook === null ? null : (row.prep ?? 0) + (row.cook ?? 0),
+    ]),
+  );
+  return documents.map(({ id, document }) => {
     return {
-      id: row.id,
+      id,
       document: {
         ...document,
         slots: document.slots
@@ -31,6 +57,7 @@ export async function publishedMealPlans(clientId: string) {
             options: slot.options.map((option) => ({
               ...option,
               nutrition: optionNutrition(option),
+              minutes: minutes.get(option.recipeId) ?? null,
             })),
           })),
       },

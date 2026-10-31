@@ -57,6 +57,7 @@ Adding a catalog entry means the process above was completed first.
 | uuid | 14.0.2 | db | UUIDv7 |
 | express | 5.2.1 | api | HTTP |
 | zod | 4.6.2 | api | boundary validation |
+| @zxing/browser | 0.2.1 | client, lazy camera chunk | cross-browser 1D barcode decoding |
 | tsx | 4.23.13 | api | TS execution |
 | dotenv | 17.4.2 | api, db | env loading |
 | next | 16.3.4 | trainer | framework |
@@ -202,3 +203,16 @@ Kept as evidence that step 3 is not optional:
 - **Vitest 5** — verify the config shape before writing the first test
 
 Prior knowledge of the previous major of any of these does not apply.
+
+## Client nutrition scanner — 2026-10-31
+
+`@zxing/browser` **0.2.1** (latest stable checked against npm; registry metadata modified
+2026-07-06) is added to the central catalog and used only in the client barcode scanner.
+The browser platform alone does not supply reliable 1D barcode decoding across Safari
+and Chrome. The package's official README and installed browser-reader declarations
+were read before use. It is imported dynamically when the camera opens, keeping decoder
+code out of the initial diary bundle. Cost: a barcode decoder chunk and its existing
+ZXing library dependency; no new server dependency or camera framework. Camera streams
+are explicitly stopped on selection and unmount. Manual barcode entry needs no decoder.
+
+Official reference: https://github.com/zxing-js/browser#readme

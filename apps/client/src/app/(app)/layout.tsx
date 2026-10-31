@@ -113,6 +113,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <BrandTheme color={brand} />
       <AppShell
         nav={navFor(reveal)}
+        mobileGlass
         sidebarBrand={
           <RailBrand name={session.data?.user.name || "You"} sub="Traiv">
             <ThemeToggle tone="rail" />

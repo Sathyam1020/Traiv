@@ -991,3 +991,63 @@ blocking, not because it's optional.
   200,000+ rows including branded/international products, plus the IFCT India layer —
   thousands of real rows from day one, not a token starter set. The Country filter itself
   ships fully functional; it just won't have Nordic-government-sourced rows behind it.
+
+## Expanded Phase E implementation — 2026-10-31
+
+This section supersedes the earlier unknown Photo Log notes and the plan-required Food
+reveal rule. The founder approved all observed client nutrition features except Cookbooks
+following review of the ordered 01:28–01:57 screenshots and static APK evidence.
+
+Implemented surfaces:
+
+- Food diary with date/week navigation, calorie summary, live macro rings, four meal
+  slots, quick add, source logging, edit/move/delete, copy meal/day selections, and add
+  from yesterday. Frozen source nutrition and adjusted plan portions drive all totals.
+- Search, Recent, Favorites, My Recipes and My Foods; a shared serving/gram/ml logger
+  with date/slot controls, image, recipe ingredients, steps and nutrient details.
+- Published plan picker, meal tabs and recipe choices. Draft coach changes stay private.
+- Client recipe CRUD, duplication, optional image upload, ingredient quantities, live
+  per-serving nutrition and instructions; ingredients/recipes remain client-private.
+- Barcode camera/manual lookup, local cache then Open Food Facts, missing-food creation,
+  private food editing and incorrect-food reports visible to the coach.
+- Nutrition-label image transcription via a configurable server-only adapter. Values
+  are editable and never automatically accepted; manual entry works without a provider.
+- Photo Log upload, retry, image viewer, history and coach replies, using the existing
+  signed-upload system. This is not photo calorie estimation.
+- Shopping items with recipe-serving contributions, ingredient aggregation, categories,
+  notes, amount/unit edits, checking and deletion, including custom items.
+- Existing deterministic calorie calculator, original intake health-review flags, daily,
+  weekday and date-specific targets. Personal plans support current/custom/no targets,
+  meal distribution and recipe choices fitted with the existing ingredient optimizer.
+- Coach permission switches for database search, barcode/label scanning, Photo Log,
+  calculator and personal plans, plus coach diary/photo/report access in Nutrition.
+
+### Acceptance checklist for founder UI testing (not executed)
+
+1. Before assignment, Food is available; log a manual meal and a database ingredient.
+   Change date and slot, edit amount, delete, copy, retry a copy and add yesterday.
+2. Log a published option with coach-adjusted portions; compare ingredients and calories
+   with the published plan. Change the original recipe and confirm old diary totals stay.
+3. Favorite and unfavorite a food and recipe; find them regardless of alphabetical rank.
+   Recent shows prior food choices. Search punctuation is treated literally.
+4. Create/edit/duplicate/delete a private recipe. Changing its serving count recalculates
+   live totals. Confirm trainer and another client cannot see private foods or recipes.
+5. Scan and manually enter a known barcode; simulate missing product/provider failure.
+   Create a food from a label or by hand. Check grams versus ml and report incorrect data.
+6. Upload a clear nutrition label with provider configured. Confirm unreadable values are
+   empty, all values editable, and no food is created until Save. Check disabled provider.
+7. Send a Photo Log image/note, retry a failed send, view the image, and reply as coach.
+8. Add two recipes sharing an ingredient to shopping. Confirm aggregation, checked-state
+   reset on new additions, contributions, edits, category groups and custom items.
+9. Calculate targets, including a stored health review case. Set weekly and date overrides
+   and verify date > weekday > default precedence. Create a personal plan without targets
+   and another with targets/recipe choices; confirm both remain outside trainer templates.
+10. Disable each permission as coach and verify both the UI and direct client API refuse
+    restricted tools. A paused relationship can read but cannot write.
+
+Edge cases covered in implementation: missing density, volume labels, unavailable camera,
+network/provider timeouts, missing nutrition, unconfigured uploads/OCR, duplicate requests,
+recipe edit concurrency, stale diary edits, missing/deleted sources and empty meal plans.
+
+Tests/typechecks/browser checks remain intentionally deferred under the founder's
+standing code-only instruction. This checklist records intended verification, not results.

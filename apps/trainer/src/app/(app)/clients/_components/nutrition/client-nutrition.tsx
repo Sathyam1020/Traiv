@@ -1,4 +1,5 @@
 "use client";
+import { ClientFoodTools } from "./client-food-tools";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRef, useState } from "react";
 import { Button } from "@traiv/ui/components/button";
@@ -84,6 +85,7 @@ export function ClientNutrition({
   };
   return (
     <div className="flex min-w-0 flex-1 flex-col">
+      <ClientFoodTools studio={studio} clientId={clientId} />
       {error ? (
         <p role="alert" className="px-6 py-3 text-body-sm text-danger">
           {error}

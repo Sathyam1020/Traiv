@@ -1,0 +1,3 @@
+DROP INDEX "ingredient_barcode_key";--> statement-breakpoint
+CREATE UNIQUE INDEX "ingredient_client_barcode_key" ON "ingredient" USING btree ("client_id","barcode") WHERE "ingredient"."barcode" is not null and "ingredient"."client_id" is not null and "ingredient"."deleted_at" is null;--> statement-breakpoint
+CREATE UNIQUE INDEX "ingredient_barcode_key" ON "ingredient" USING btree ("barcode") WHERE "ingredient"."barcode" is not null and "ingredient"."client_id" is null;

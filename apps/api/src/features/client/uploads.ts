@@ -40,7 +40,10 @@ export type UploadTicket = {
  * caller picked: a predictable id is an invitation to overwrite somebody else's photo,
  * and Cloudinary's upload is an upsert.
  */
-export function signUpload(clientId: string, kind: "check-in" | "avatar"): UploadTicket {
+export function signUpload(
+  clientId: string,
+  kind: "check-in" | "avatar" | "food" | "food-label" | "photo-log",
+): UploadTicket {
   const {
     CLOUDINARY_CLOUD_NAME: cloud,
     CLOUDINARY_API_KEY: key,

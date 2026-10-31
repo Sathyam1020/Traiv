@@ -68,3 +68,5 @@ overwrite.
 - [0029 — Meal plan templates, snapshots and publishing](0029-meal-plan-templates.md)
 
 - [0030 — Client nutrition plans are private copies of published templates](0030-client-nutrition-plans.md)
+
+- [0031 — Client nutrition diary, snapshots, private foods and client tools](0031-client-food-diary.md)

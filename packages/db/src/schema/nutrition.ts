@@ -42,7 +42,7 @@ export const mealPlanRecipeMatching = pgEnum("meal_plan_recipe_matching", ["scal
 /* -------------------------------------------------------------------------- */
 
 /**
- * A food, per 100g. The generic fact every Recipe is built from — same relationship
+ * A food, per 100 g (or per 100 ml for volume-labeled client foods). The generic fact every Recipe is built from — same relationship
  * `exercise` has to `session_exercise`.
  *
  * `studioId` null = shared library (seeded from USDA FoodData Central and IFCT 2017, or
@@ -55,12 +55,14 @@ export const ingredients = pgTable(
     id: text().primaryKey(),
     studioId: text().references(() => studios.id, { onDelete: "cascade" }),
 
+    clientId: text().references(() => clients.id, { onDelete: "cascade" }),
     name: text().notNull(),
     /** "fdc" | "ifct" | "openfoodfacts" | "coach" | "client" — provenance, for support
      *  and re-import. Never shown directly; the Type filter is studioId null-vs-set. */
     dataSource: text(),
-    /** Set only for barcode-cache rows. Unique where present. */
+    /** Shared barcode cache or private client food. Unique within its ownership scope. */
     barcode: text(),
+    brand: text(),
 
     /** Free text, not a pgEnum — same reasoning as `exercise.category`/`location`: the
      *  list keeps growing and isn't part of any external dataset's fixed shape. */
@@ -78,6 +80,7 @@ export const ingredients = pgTable(
 
     /** What a typed quantity resolves to — e.g. "tsp" + 5 means 5g per tsp, the same job
      *  `exercise.defaultFields` does for a session_exercise. */
+    baseUnit: text().notNull().default("grams"),
     nutrientType: text(),
     defaultUnit: text(),
     gramsPerUnit: real(),
@@ -99,13 +102,29 @@ export const ingredients = pgTable(
     deletedAt: timestamp({ withTimezone: true }),
   },
   (t) => [
-    uniqueIndex("ingredient_name_key").on(t.name, t.studioId).where(sql`${t.deletedAt} is null`),
+    uniqueIndex("ingredient_name_key")
+      .on(t.name, t.studioId)
+      .where(sql`${t.deletedAt} is null and ${t.clientId} is null`),
     uniqueIndex("ingredient_system_name_key")
       .on(t.name, t.dataSource)
-      .where(sql`${t.studioId} is null and ${t.deletedAt} is null`),
-    uniqueIndex("ingredient_barcode_key").on(t.barcode).where(sql`${t.barcode} is not null`),
+      .where(
+        sql`${t.studioId} is null and ${t.clientId} is null and ${t.barcode} is null and ${t.deletedAt} is null`,
+      ),
+    uniqueIndex("ingredient_barcode_key")
+      .on(t.barcode)
+      .where(sql`${t.barcode} is not null and ${t.clientId} is null`),
+    uniqueIndex("ingredient_client_barcode_key")
+      .on(t.clientId, t.barcode)
+      .where(
+        sql`${t.barcode} is not null and ${t.clientId} is not null and ${t.deletedAt} is null`,
+      ),
+    uniqueIndex("ingredient_client_name_key")
+      .on(t.clientId, t.name)
+      .where(sql`${t.deletedAt} is null`),
+    index("ingredient_client_idx").on(t.clientId),
     index("ingredient_studio_idx").on(t.studioId),
     index("ingredient_category_idx").on(t.category),
+    check("ingredient_base_unit_sane", sql`${t.baseUnit} in ('grams', 'ml')`),
     check("ingredient_kcal_sane", sql`${t.kcal} between 0 and 2000`),
   ],
 );
@@ -374,6 +393,36 @@ export const mealPlanPresets = pgTable(
  * All nutrition is **frozen at log time** — editing a recipe later must not rewrite what
  * somebody's Tuesday said they ate.
  */
+export type FoodSnapshot = {
+  id: string;
+  kind: "food" | "recipe" | "plan" | "manual" | "personal";
+  planId?: string;
+  recipeId?: string;
+  servingLabel?: string;
+  name: string;
+  imageUrl: string | null;
+  kcal: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  micronutrients: Record<string, number>;
+  baseGrams: number | null;
+  baseUnit?: "grams" | "ml";
+  owned: boolean;
+  steps: string[];
+  ingredients: {
+    id: string;
+    name: string;
+    grams: number;
+    nutrition?: {
+      kcal: number;
+      proteinG: number;
+      carbsG: number;
+      fatG: number;
+      micronutrients?: Record<string, number>;
+    };
+  }[];
+};
 export const foodLogEntries = pgTable(
   "food_log_entry",
   {
@@ -403,6 +452,8 @@ export const foodLogEntries = pgTable(
     carbsG: real().notNull(),
     fatG: real().notNull(),
 
+    snapshot: jsonb().$type<FoodSnapshot>(),
+    revision: integer().notNull().default(1),
     loggedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
@@ -423,3 +474,122 @@ export type MealPlanTemplate = typeof mealPlanTemplates.$inferSelect;
 export type MealPlanSlot = typeof mealPlanSlots.$inferSelect;
 export type MealPlanRecipe = typeof mealPlanRecipes.$inferSelect;
 export type FoodLogEntry = typeof foodLogEntries.$inferSelect;
+
+/** Client food tooling is relationship-scoped, never user-wide or studio-public. */
+export const nutritionPermissions = pgTable("nutrition_permission", {
+  clientId: text()
+    .primaryKey()
+    .references(() => clients.id, { onDelete: "cascade" }),
+  search: integer().notNull().default(1),
+  barcode: integer().notNull().default(1),
+  photoLog: integer().notNull().default(1),
+  calculator: integer().notNull().default(1),
+  personalPlans: integer().notNull().default(1),
+});
+export const foodFavorites = pgTable(
+  "food_favorite",
+  {
+    id: text().primaryKey(),
+    clientId: text()
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    kind: text().notNull(),
+    resourceId: text().notNull(),
+  },
+  (t) => [uniqueIndex("food_favorite_client_resource_key").on(t.clientId, t.kind, t.resourceId)],
+);
+export const foodGoals = pgTable(
+  "food_goal",
+  {
+    id: text().primaryKey(),
+    clientId: text()
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    /** default, weekday:0..6, or YYYY-MM-DD. Exact dates override recurring targets. */
+    day: text().notNull(),
+    kcal: integer().notNull(),
+    proteinG: real().notNull(),
+    carbsG: real().notNull(),
+    fatG: real().notNull(),
+  },
+  (t) => [uniqueIndex("food_goal_client_day_key").on(t.clientId, t.day)],
+);
+export const foodPhotoMessages = pgTable(
+  "food_photo_message",
+  {
+    id: text().primaryKey(),
+    clientId: text()
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    author: text().notNull(),
+    imageUrl: text(),
+    note: text(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("food_photo_client_idx").on(t.clientId, t.createdAt)],
+);
+export const foodReports = pgTable("food_report", {
+  id: text().primaryKey(),
+  clientId: text()
+    .notNull()
+    .references(() => clients.id, { onDelete: "cascade" }),
+  ingredientId: text()
+    .notNull()
+    .references(() => ingredients.id, { onDelete: "cascade" }),
+  note: text().notNull(),
+  createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+});
+export const foodShoppingItems = pgTable(
+  "food_shopping_item",
+  {
+    id: text().primaryKey(),
+    clientId: text()
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    ingredientId: text().references(() => ingredients.id, { onDelete: "set null" }),
+    name: text().notNull(),
+    amount: real().notNull(),
+    unit: text().notNull(),
+    category: text().notNull().default("Other"),
+    note: text(),
+    checked: integer().notNull().default(0),
+    /** Contributions are explanatory snapshots; quantities remain normalized columns. */
+    contributions: jsonb().$type<{ name: string; amount: number }[]>().notNull().default([]),
+  },
+  (t) => [
+    index("food_shopping_client_idx").on(t.clientId),
+    uniqueIndex("food_shopping_ingredient_key")
+      .on(t.clientId, t.ingredientId)
+      .where(sql`${t.ingredientId} is not null`),
+  ],
+);
+export const foodPersonalPlans = pgTable(
+  "food_personal_plan",
+  {
+    id: text().primaryKey(),
+    clientId: text()
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    name: text().notNull(),
+    targets: jsonb().$type<{ kcal: number; proteinG: number; carbsG: number; fatG: number }>(),
+    meals: jsonb()
+      .$type<{ name: string; percentage: number; options: FoodSnapshot[] }[]>()
+      .notNull(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("food_personal_plan_client_idx").on(t.clientId)],
+);
+
+/** Persistent retry guards and external label-read quotas, keyed by the relationship. */
+export const foodOperations = pgTable(
+  "food_operation",
+  {
+    id: text().primaryKey(),
+    clientId: text()
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    kind: text().notNull(),
+    createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("food_operation_client_kind_idx").on(t.clientId, t.kind, t.createdAt)],
+);

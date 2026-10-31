@@ -1,7 +1,46 @@
 # Current state
 
-**Updated:** 2026-10-30
-**Phase:** nutrition A + B and Phase C meal plan templates implemented; founder UI acceptance pending; Phase D client assignment implemented; food logging next
+**Updated:** 2026-10-31
+**Phase:** nutrition A–D implemented; expanded Phase E client food diary and tools implemented; founder UI acceptance pending
+
+## Published plan detail page — 2026-10-31
+
+The Food plan card now navigates to `/food/plans/[planId]` rather than opening a sheet.
+The page uses a purple theme hero, back navigation, calorie/macro pill, rounded content
+panel, underline meal tabs, and a two-column recipe grid. Cards show real calories and
+protein; time badges use available recipe prep/cook metadata. Recipe logging continues
+using the published adjusted option snapshot. The selected diary date travels through
+navigation and back to Food. UI testing remains with the founder as requested.
+
+## Food layout correction — 2026-10-31
+
+Food now owns a full-height frame: its header and floating logging actions sit outside
+an independently scrolling diary. This removes sticky-header travel and footer movement
+at the end of content. The header follows the supplied Coachway reference: shopping icon,
+centered date, calendar popover, and seven circular-date pills in Sunday–Saturday order.
+Horizontal snapping pages complete weeks; tapping a date keeps the same week in place.
+Quick add and barcode use circular icon buttons around a theme-primary Log food pill, anchored
+above the existing mobile navigation. Selected dates use the app signal color; controls
+use the existing primary/surface/foreground theme tokens. Other client pages and app navigation are unchanged.
+No tests/typechecks/browser checks run, following the founder's code-only instruction.
+
+## Client Food — expanded Phase E, 2026-10-31
+
+Food now includes a daily diary, frozen recipe/food/plan logging, serving/gram/ml quantities,
+quick add, edits/moves/copies/yesterday, date selection and calorie/macro summaries. Published
+plans retain server-owned adjusted portions. Added private client foods/recipes, favorites,
+recent results, barcode camera/manual lookup and Open Food Facts cache, label transcription
+with confirmation, Photo Log conversation and coach replies, shopping lists with aggregation,
+calorie/weekly/date goals, and private personal plans with recipe choices. Cookbooks excluded.
+
+Trainer Client → Nutrition includes diary/photo/report access and five enforced client
+permission switches. Read/mutation status rules remain shared with existing client auth.
+Migrations 0032–0034 are applied to the configured development database. The client Food tab
+now reveals without requiring an assigned plan. Label OCR needs
+FOOD_LABEL_API_KEY; optional model FOOD_LABEL_MODEL. Uploads reuse Cloudinary configuration.
+No deployment or LAN configuration changed. ADR 0031 records boundaries and data ownership.
+Tests/typechecks/browser checks not run under the founder's code-only instruction; UI
+acceptance remains pending. See the expanded Phase E checklist in the feature spec.
 
 ## Client nutrition assignment — Phase D, 2026-10-30
 

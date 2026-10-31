@@ -225,6 +225,34 @@
       "when": 1793357473826,
       "tag": "0031_perfect_lyja",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1793385321263,
+      "tag": "0032_watery_siren",
+      "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1793386487868,
+      "tag": "0033_striped_madame_web",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1793387517890,
+      "tag": "0034_foamy_thing",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1793469343492,
+      "tag": "0035_clear_shard",
+      "breakpoints": true
     }
   ]
 }

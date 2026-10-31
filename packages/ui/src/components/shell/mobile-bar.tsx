@@ -6,8 +6,9 @@ import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-/** `ease.spring` from spacing.md — spring(mass 1, stiffness 90, damping 14). */
+/** Default shell spring; the client glass selection uses a quicker response. */
 const SPRING = { type: "spring", mass: 1, stiffness: 90, damping: 14 } as const;
+const GLASS_SPRING = { type: "spring", mass: 0.55, stiffness: 500, damping: 32 } as const;
 
 /**
  * Navigation below `lg` — a floating glass capsule, the iOS 26 tab bar.
@@ -28,7 +29,7 @@ const SPRING = { type: "spring", mass: 1, stiffness: 90, damping: 14 } as const;
  * `style` rather than a class, or Motion can't correct the capsule's distortion as it
  * stretches, and the spring lives on the element being animated *to*.
  */
-export function MobileBar({ nav }: { nav: readonly NavItem[] }) {
+export function MobileBar({ nav, glass = false }: { nav: readonly NavItem[]; glass?: boolean }) {
   const pathname = usePathname();
   const current = useNavOverride() ?? pathname;
   // Motion does not read prefers-reduced-motion on its own — the CSS reset in
@@ -40,7 +41,24 @@ export function MobileBar({ nav }: { nav: readonly NavItem[] }) {
       // Lifts clear of the iPhone home indicator; resolves to a plain 16px elsewhere.
       className="fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 flex justify-center px-4 lg:hidden"
     >
-      <div className="flex items-center gap-1 rounded-full border border-line bg-raised/70 p-1 shadow-float backdrop-blur-2xl backdrop-saturate-150">
+      <div
+        className={
+          glass
+            ? "relative isolate flex w-full max-w-md items-center gap-0.5 rounded-full border border-white/25 p-1.5 backdrop-blur-2xl backdrop-saturate-150 before:pointer-events-none before:absolute before:inset-0 before:rounded-full before:bg-gradient-to-b before:from-white/15 before:via-white/0 before:to-white/5 dark:border-white/15"
+            : "flex max-w-full items-center gap-1 rounded-full border border-line bg-raised/70 p-1 shadow-float backdrop-blur-2xl backdrop-saturate-150"
+        }
+        style={
+          glass
+            ? {
+                backgroundColor: "color-mix(in srgb, var(--raised) 60%, transparent)",
+                boxShadow:
+                  "inset 0 1px 1px rgb(255 255 255 / 0.35), inset 0 -1px 1px rgb(255 255 255 / 0.06), 0 8px 32px rgb(0 0 0 / 0.14)",
+                WebkitBackdropFilter: "blur(24px) saturate(170%)",
+                backdropFilter: "blur(24px) saturate(170%)",
+              }
+            : undefined
+        }
+      >
         {nav.map(({ href, label, icon: Icon }) => {
           const active = current.startsWith(href);
           return (
@@ -49,20 +67,27 @@ export function MobileBar({ nav }: { nav: readonly NavItem[] }) {
               href={href}
               aria-label={label}
               aria-current={active ? "page" : undefined}
-              className={`relative flex h-11 cursor-pointer items-center justify-center rounded-full px-8 transition-colors duration-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-focus ${
+              className={`relative flex min-w-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-focus ${
                 active ? "text-signal-text" : "text-fg-muted"
-              }`}
+              } ${glass ? "h-14 flex-1 flex-col gap-1 px-1" : nav.length >= 5 ? "h-11 px-5 sm:px-8" : "h-11 px-8"}`}
             >
               {active && (
                 <motion.span
                   layoutId="mobile-tab-chip"
                   // Must be style, not a class — Motion corrects the radius mid-travel.
                   style={{ borderRadius: 9999 }}
-                  transition={reduce ? { duration: 0 } : SPRING}
-                  className="absolute inset-0 bg-selected"
+                  transition={reduce ? { duration: 0 } : glass ? GLASS_SPRING : SPRING}
+                  className={
+                    glass
+                      ? "absolute inset-0 border border-white/10 bg-fg/10 shadow-sm"
+                      : "absolute inset-0 bg-selected"
+                  }
                 />
               )}
-              <Icon className="relative size-5 shrink-0" />
+              <Icon className={glass ? "relative size-6 shrink-0" : "relative size-5 shrink-0"} />
+              {glass ? (
+                <span className="relative text-[11px] font-medium leading-none">{label}</span>
+              ) : null}
             </Link>
           );
         })}

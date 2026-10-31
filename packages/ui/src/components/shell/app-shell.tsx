@@ -64,6 +64,7 @@ export function AppShell({
   sidebarFooter,
   sidebarAccount,
   header,
+  mobileGlass = false,
   children,
 }: {
   nav: readonly NavGroup[];
@@ -75,6 +76,7 @@ export function AppShell({
   sidebarAccount: ReactNode;
   /** Shown below `lg` only; above it everything lives in the rail. */
   header: ReactNode;
+  mobileGlass?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -86,6 +88,7 @@ export function AppShell({
           sidebarFooter={sidebarFooter}
           sidebarAccount={sidebarAccount}
           header={header}
+          mobileGlass={mobileGlass}
         >
           {children}
         </Shell>
@@ -100,6 +103,7 @@ function Shell({
   sidebarFooter,
   sidebarAccount,
   header,
+  mobileGlass = false,
   children,
 }: {
   nav: readonly NavGroup[];
@@ -107,6 +111,7 @@ function Shell({
   sidebarFooter?: ReactNode;
   sidebarAccount: ReactNode;
   header: ReactNode;
+  mobileGlass?: boolean;
   children: ReactNode;
 }) {
   const sidebar = useSidebar();
@@ -170,7 +175,7 @@ function Shell({
         </main>
       </div>
 
-      <MobileBar nav={flat} />
+      <MobileBar nav={flat} glass={mobileGlass} />
     </div>
   );
 }

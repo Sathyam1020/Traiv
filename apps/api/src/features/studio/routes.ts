@@ -1,3 +1,4 @@
+import { clientFoodRouter } from "./client-food.js";
 import {
   clientMealPlans,
   liveMealPlanTemplates,
@@ -845,3 +846,5 @@ studios.get("/:id/mealplan-templates/live", requireStudio({ param: "id" }), asyn
     .parse(req.query);
   res.json(await liveMealPlanTemplates(requireStudioAuth(req).studioId, q.search, q.page));
 });
+
+studios.use("/:id/clients/:clientId/food", clientFoodRouter);

@@ -30,7 +30,7 @@ export async function getToday(clientId: string, userId: string | null, now: Day
   // never runs dry because a scheduled job was quietly failing.
   await ensureCheckIns(clientId, now);
 
-  const [client, due, weights, measurements, sessions, workoutPlan, mealPlan, goal, first] =
+  const [client, due, weights, measurements, sessions, workoutPlan, goal, first] =
     await Promise.all([
       db
         .select({ name: schema.clients.name, goal: schema.clients.goal })
@@ -136,21 +136,6 @@ export async function getToday(clientId: string, userId: string | null, now: Day
         )
         .limit(1),
 
-      // Same shape as the workout check above: a meal plan template that is this
-      // client's own copy (`clientId` set) and published (`status = 'active'`).
-      db
-        .select({ id: schema.mealPlanTemplates.id })
-        .from(schema.mealPlanTemplates)
-        .where(
-          and(
-            eq(schema.mealPlanTemplates.clientId, clientId),
-            eq(schema.mealPlanTemplates.status, "active"),
-            isNotNull(schema.mealPlanTemplates.publishedDocument),
-            isNull(schema.mealPlanTemplates.archivedAt),
-          ),
-        )
-        .limit(1),
-
       // The goal weight they set during onboarding. It is what turns a number into
       // progress — Coachway's weight card is a Start-to-Goal bar, and without a goal there
       // is nothing to be a fraction of.
@@ -232,8 +217,8 @@ export async function getToday(clientId: string, userId: string | null, now: Day
      */
     reveal: {
       workouts: workoutPlan.length > 0,
-      food: mealPlan.length > 0,
-      // No messages table yet. One line changes here the day there is one.
+      food: true,
+      // General chat is not implemented. Nutrition Photo Log has its own conversation.
       chat: false,
     },
   };

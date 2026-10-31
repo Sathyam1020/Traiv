@@ -1,3 +1,8 @@
+import FlashIcon from "@hugeicons/core-free-icons/FlashIcon";
+import ShoppingBasket01Icon from "@hugeicons/core-free-icons/ShoppingBasket01Icon";
+import BarcodeScanIcon from "@hugeicons/core-free-icons/BarcodeScanIcon";
+import Camera01Icon from "@hugeicons/core-free-icons/Camera01Icon";
+import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
 import Activity01Icon from "@hugeicons/core-free-icons/Activity01Icon";
 import Alert02Icon from "@hugeicons/core-free-icons/Alert02Icon";
 import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
@@ -145,6 +150,11 @@ export const ChevronUp = icon(ArrowUp01Icon, "ChevronUp");
 export const ChevronsUpDown = icon(UnfoldMoreIcon, "ChevronsUpDown");
 
 // Actions
+export const Zap = icon(FlashIcon, "Zap");
+export const ShoppingBasket = icon(ShoppingBasket01Icon, "ShoppingBasket");
+export const Barcode = icon(BarcodeScanIcon, "Barcode");
+export const Camera = icon(Camera01Icon, "Camera");
+export const Minus = icon(MinusSignIcon, "Minus");
 export const Plus = icon(PlusSignIcon, "Plus");
 export const Pencil = icon(PencilEdit02Icon, "Pencil");
 export const Trash = icon(Delete02Icon, "Trash");

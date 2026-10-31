@@ -15,6 +15,8 @@ config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env")
  */
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  FOOD_LABEL_API_KEY: z.string().optional(),
+  FOOD_LABEL_MODEL: z.string().default("gpt-4.1-mini"),
   API_PORT: z.coerce.number().int().positive().default(4000),
 
   DATABASE_URL: z.string().url(),

@@ -10,14 +10,15 @@
   },
   "dependencies": {
     "@tanstack/react-query": "catalog:",
+    "@traiv/phone": "workspace:*",
     "@traiv/ui": "workspace:*",
+    "@zxing/browser": "catalog:",
     "axios": "catalog:",
     "motion": "catalog:",
     "next": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "zustand": "catalog:",
-    "@traiv/phone": "workspace:*"
+    "zustand": "catalog:"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "catalog:",

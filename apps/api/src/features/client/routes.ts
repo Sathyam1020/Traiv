@@ -1,3 +1,5 @@
+import { allow as allowFoodTool } from "./food.js";
+import { foodRouter } from "./food-routes.js";
 import { publishedMealPlans } from "./meal-plans.js";
 import { newId, schema } from "@traiv/db";
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
@@ -294,8 +296,13 @@ clientApp.post(
 clientApp.post("/:studioId/uploads/sign", requireClient({ write: true }), async (req, res) => {
   const { clientId } = requireClientAuth(req);
   const { kind } = z
-    .object({ kind: z.enum(["check-in", "avatar"]).default("check-in") })
+    .object({
+      kind: z.enum(["check-in", "avatar", "food", "food-label", "photo-log"]).default("check-in"),
+    })
     .parse(req.body ?? {});
+  if (kind === "photo-log") await allowFoodTool(clientId, "photoLog");
+  if (kind === "food-label") await allowFoodTool(clientId, "barcode");
+  if (kind === "food") await allowFoodTool(clientId, "search");
   res.json(signUpload(clientId, kind));
 });
 
@@ -507,3 +514,5 @@ clientApp.get("/:studioId/exercises/:exerciseId", requireClient(), async (req, r
 clientApp.get("/:studioId/mealplans", requireClient(), async (req, res) => {
   res.json(await publishedMealPlans(requireClientAuth(req).clientId));
 });
+
+clientApp.use("/:studioId/food", foodRouter);

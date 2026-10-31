@@ -1,6 +1,7 @@
 "use client";
 
 import { Page } from "@traiv/ui/components/shell/page";
+import { Button } from "@traiv/ui/components/button";
 import { Skeleton } from "@traiv/ui/components/skeleton";
 import { Clock, Pause, Snowflake } from "@traiv/ui/icons";
 import { useState } from "react";
@@ -45,6 +46,25 @@ export default function TodayPage() {
           {data?.firstName ? `Hey ${data.firstName}!` : "Hey!"}
         </h1>
       </header>
+
+      {today.isError ? (
+        <section
+          role="alert"
+          className="flex flex-col items-start gap-3 rounded-surface border border-line bg-surface p-4"
+        >
+          <h2 className="text-body font-semibold">Couldn't load your dashboard</h2>
+          <p className="text-body-sm text-fg-muted">
+            Your check-in and progress couldn't be loaded. Try again.
+          </p>
+          <Button
+            variant="outline"
+            disabled={today.isFetching}
+            onClick={() => void today.refetch()}
+          >
+            {today.isFetching ? "Retrying…" : "Try again"}
+          </Button>
+        </section>
+      ) : null}
 
       {today.isPending ? (
         <Skeleton className="h-[11rem] w-full rounded-surface" />

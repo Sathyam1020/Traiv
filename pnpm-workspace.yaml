@@ -18,6 +18,7 @@ allowBuilds:
 # Packages reference these with "catalog:" — never a literal version.
 # Adding an entry here requires .ai/engineering/dependencies.md to have been followed.
 catalog:
+  "@zxing/browser": ^0.2.1
   # tooling
   typescript: ^7.0.2
   "@biomejs/biome": ^2.5.13
