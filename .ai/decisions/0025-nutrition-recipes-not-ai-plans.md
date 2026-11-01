@@ -74,8 +74,10 @@ plan's creation form and needed no change.
 
 ### `reveal.food`
 
-Changed from `dietPlan.length > 0` to the `mealPlanTemplates` equivalent of the workout
-check already in `today.ts` — same shape, new source table, behaviour-neutral.
+The initial cutover used an assigned-plan existence check. ADR 0031 supersedes that
+rule: Food is available for an authorized coaching relationship even without an assigned
+meal plan. The diary, private foods and recipes work independently; only published,
+client-owned plan snapshots are exposed as assigned plans. Draft changes stay private.
 
 ## Consequences
 
@@ -91,8 +93,23 @@ check already in `today.ts` — same shape, new source table, behaviour-neutral.
   base rather than inventing numbers, if and when it's built — nothing here forecloses
   that, it just isn't what v1 ships.
 
-## What we did not take
+## Seeded recipes and media
 
-Recipe-video hosting for seeded/System recipes — moot, there are no seeded recipes;
-unlike exercises, a recipe is always coach- or client-authored, so there's no equivalent
-of the `free-exercise-db` video-URL deferral to track.
+The later approved catalogue imports include System recipes with source image URLs.
+See `docs/nutrition-data.md` for the Coachway export and Indian recipe imports. Uploaded
+client recipe covers use the existing signed media-upload flow. Recipe media is not a
+reason to retain the old diet-plan model.
+
+## Phase F closeout — 2026-11-01
+
+Repository audit found no runtime references to the retired tables, schema exports,
+old food seed, or AI diet-plan routes. Migration 0024 already drops `food`,
+`food_request`, `diet_plan`, `meal`, `meal_item`, `meal_log` and their obsolete enums.
+A read-only query of the configured database confirmed those tables (and `foods`)
+are absent; `ingredient`, `recipe`, `meal_plan_template` and `food_log_entry` are present.
+There is no remaining legacy table data to migrate in that database.
+
+Historical migrations and their snapshots remain intact so existing installations and
+fresh databases retain the same ordered migration history. No new destructive migration,
+database write, deployment, or seed was needed for Phase F. Functional acceptance remains
+pending under the founder's instruction to perform UI testing personally.

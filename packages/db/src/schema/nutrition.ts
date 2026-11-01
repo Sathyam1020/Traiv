@@ -18,7 +18,7 @@ import { memberships, studios } from "./studio.js";
  * Nutrition, modelled on Coachway's trainer app screen for screen, same discipline ADR
  * 0024 used for workouts. See `.ai/features/nutrition/spec.md` and ADR 0025, which
  * supersedes the food/nutrition half of ADR 0004: this replaces `food`/`food_request`
- * (library.ts) and `diet_plan`/`meal`/`meal_item`/`meal_log` (plan.ts) entirely. Those
+ * and `diet_plan`/`meal`/`meal_item`/`meal_log` entirely (retired in migration 0024). Those
  * modelled an AI generating one plan per client; Coachway's real app — and what this
  * product ships — is a coach-curated Recipe library built from an Ingredient database,
  * assembled into Meal Plan Templates, duplicated onto a client the same way a workout

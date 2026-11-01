@@ -1,0 +1,1235 @@
+@import "tailwindcss";
+
+/* Every shadcn component's open/close transition is written with `animate-in`,
+   `fade-in-0`, `zoom-in-95` and `slide-in-from-*`. Those utilities are not in Tailwind —
+   they come from here. Without this import every dialog, dropdown, sheet and tooltip in
+   the product appeared and vanished with no transition at all, and nothing warned us:
+   an unknown utility class is simply not emitted. */
+@import "tw-animate-css";
+
+/* Tailwind scans relative to this file. Both the component package and every app that
+   consumes it must be scanned, or classes used in apps get tree-shaken away. */
+@source "../../src";
+@source "../../../../apps";
+
+/* Dark mode is class-driven so a user's explicit choice beats their OS setting.
+   See .ai/design/design-system.md */
+@custom-variant dark (&:is(.dark *));
+
+/* ---------------------------------------------------------------------------
+   TIER 1 — PRIMITIVES
+   Raw values. Never referenced by a component, never generate a utility.
+   They exist only to be pointed at by the semantic tier below.
+   Defined on :root (not @theme) precisely so Tailwind does NOT make
+   `bg-grey-500`-style utilities out of them.
+   --------------------------------------------------------------------------- */
+:root {
+  /* Featurebase's dark stage (ADR 0022): four near-black layers that step up by a few
+     points of blue-grey each, a hairline edge, and slate text in three strengths. */
+  --void: #050608; /* page canvas */
+  --ink-surface: #0a0b0f; /* inset regions, wells */
+  --charcoal: #0f1219; /* panels and cards — also the text on a white button */
+  --steel: #151822; /* raised controls, selected rows */
+  --slate-edge: #1f1e2a; /* the one-pixel border between dark panes */
+  --slate-edge-strong: #33374a; /* control outlines — see colors.md on why it is not slate-edge */
+
+  --cloud: #ffffff;
+  --cloud-soft: #f8f9fc; /* headings and primary text: a softened white, never pure */
+  --frost: #dee1ea;
+  --misted-slate: #b2b8cd;
+  --quiet-slate: #8f94a6;
+
+  /* The one hue. Violet is a signal — selected states, the mark, the glow around a
+     product frame — and never a fill behind text: white on it is 4.38:1. */
+  --violet: #7064f2;
+  --violet-light: #9182f8; /* violet as text on dark, 6.0:1 on charcoal */
+  --violet-deep: #5b4fd9; /* violet as text on light, 5.9:1 on white */
+
+  /* light counterpart — the same structure inverted, slate-tinted to stay in key */
+  --paper: #ffffff;
+  --paper-sunken: #f6f7fa;
+  --paper-selected: #f0f1f5;
+  --paper-line: #e4e6ee;
+  --paper-line-strong: #d3d6df;
+  --slate-600: #5d6478;
+  --slate-500: #7a8095;
+
+  /* Semantic hues, and the 50-step from each one's own family so the tints stay in key */
+  --red-50: #fef2f2;
+  --red-500: #ef4444;
+  --amber-50: #fffbeb;
+  --amber-500: #f59e0b;
+  --green-50: #ecfdf5;
+  --green-500: #10b981;
+}
+
+/* ---------------------------------------------------------------------------
+   TIER 2 — SEMANTIC
+   Dark is the default theme (ADR 0022). `:root` carries the light values only so a
+   `.dark`-less tree — an email preview, a test render — is still readable; every app
+   puts `dark` on <html> at render time.
+   --------------------------------------------------------------------------- */
+:root {
+  --canvas: var(--paper);
+  /* The app shell's working frame. Its own token so every card inside it can sit one
+     step above it — a card the same colour as the panel under it is how the whole
+     screen collapses into one flat black sheet. */
+  --panel: var(--paper);
+  --surface: var(--paper);
+  --sunken: var(--paper-sunken);
+  --raised: var(--paper);
+  --hover: rgb(15 18 25 / 0.04);
+  --active: rgb(15 18 25 / 0.07);
+  --selected: var(--paper-selected);
+
+  --fg: var(--charcoal);
+  --fg-muted: var(--slate-600);
+  --fg-subtle: var(--slate-500);
+
+  --line: var(--paper-line);
+  --line-strong: var(--paper-line-strong);
+  --line-focus: var(--violet-deep);
+
+  /* The primary action. On dark it is a white fill with charcoal text; on light it
+     inverts to a charcoal fill with white text, so it keeps its weight either way. It
+     is never violet — "no bright coloured filled buttons" is the rule this system is
+     built on. */
+  --accent: var(--charcoal);
+  --accent-hover: var(--steel);
+  --accent-subtle: var(--paper-selected);
+  --fg-on-accent: var(--cloud);
+  --accent-text: var(--charcoal);
+
+  /* The signal. What a coach's brand colour overrides in the client app — never the
+     action, never text, surface or border (design-system.md › Theming). */
+  --signal: var(--violet);
+  --signal-text: var(--violet-deep);
+  --signal-subtle: rgb(112 100 242 / 0.1);
+  /* Readable foreground for a surface *filled* with the signal. A coach's brand colour
+     is an arbitrary hex, so this is computed from its relative luminance at runtime and
+     is only ever white or near-black — which is what keeps "a coach picking a bad brand
+     colour must not be able to make the app unreadable" true once signal can be a fill. */
+  --signal-fg: var(--cloud);
+
+  /* A surface that is dark in BOTH themes, with its own fixed foreground. The action
+     colour inverts between themes, so it cannot be reused for a decorative dark panel.
+     Always pair `bg-contrast` with `text-contrast-fg`; never with `text-fg`. */
+  --contrast: var(--charcoal);
+  --contrast-fg: var(--cloud);
+
+  --macro-protein: #f28a50;
+  --macro-carbs: #2c7a62;
+  --macro-fat: #c49a26;
+  --danger: var(--red-500);
+  --danger-subtle: var(--red-50);
+  --warning: var(--amber-500);
+  --warning-subtle: var(--amber-50);
+  --success: var(--green-500);
+  --success-subtle: var(--green-50);
+
+  /* Featurebase's two washes: violet light around a product frame, and a slate haze
+     rising behind contained visuals. Decoration, so they are spent rarely. */
+  --glow-violet: linear-gradient(
+    to right,
+    rgb(145 130 248 / 0.1),
+    rgb(192 132 252 / 0.1),
+    rgb(145 130 248 / 0.1)
+  );
+  --glow-lift: linear-gradient(
+    to top,
+    rgb(93 104 144 / 0.15),
+    rgb(93 104 144 / 0.1),
+    rgb(0 0 0 / 0)
+  );
+}
+
+.dark {
+  --macro-protein: #f5a373;
+  --macro-carbs: #74b89e;
+  --macro-fat: #e6c65c;
+  /* Four steps, each a layer: the page, the frame on it, the cards in the frame, and
+     wells sunk into a card. */
+  --canvas: var(--void);
+  --panel: var(--charcoal);
+  --surface: var(--steel);
+  --sunken: var(--ink-surface);
+  --raised: var(--steel);
+  --hover: rgb(255 255 255 / 0.04);
+  --active: rgb(255 255 255 / 0.07);
+  /* A tint, not a surface: a selected row lives inside a card, which is already Steel. */
+  --selected: rgb(255 255 255 / 0.06);
+
+  --fg: var(--cloud-soft);
+  --fg-muted: var(--misted-slate);
+  --fg-subtle: var(--quiet-slate);
+
+  --line: var(--slate-edge);
+  --line-strong: var(--slate-edge-strong);
+  --line-focus: var(--violet-light);
+
+  /* Featurebase's conversion button: white at 92% over the page, charcoal text. */
+  --accent: rgb(255 255 255 / 0.92);
+  --accent-hover: var(--cloud);
+  --accent-subtle: var(--steel);
+  --fg-on-accent: var(--charcoal);
+  --accent-text: var(--cloud-soft);
+
+  --signal: var(--violet);
+  --signal-text: var(--violet-light);
+  --signal-subtle: rgb(112 100 242 / 0.16);
+  --signal-fg: var(--cloud);
+
+  /* Still dark, now the darkest thing there is: in the dark theme the rail and the
+     ground it sits on are the Void canvas, and the working panel is the lit Charcoal
+     frame rising out of it — Featurebase's product workspace. */
+  --contrast: var(--void);
+  --contrast-fg: var(--cloud);
+
+  --danger-subtle: rgb(239 68 68 / 0.16);
+  --warning-subtle: rgb(245 158 11 / 0.16);
+  --success-subtle: rgb(16 185 129 / 0.16);
+}
+
+/* ---------------------------------------------------------------------------
+   TIER 2 → utilities
+   `inline` keeps the var reference live, so `bg-surface` follows the theme
+   instead of baking in whichever value was current at build time.
+   --------------------------------------------------------------------------- */
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-panel: var(--panel);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-raised: var(--raised);
+  --color-hover: var(--hover);
+  --color-active: var(--active);
+  --color-selected: var(--selected);
+
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-brand-fg: var(--fg-on-accent);
+  --color-brand-text: var(--accent-text);
+
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-line-focus: var(--line-focus);
+
+  --color-contrast: var(--contrast);
+  --color-contrast-fg: var(--contrast-fg);
+
+  --color-brand: var(--accent);
+  --color-brand-hover: var(--accent-hover);
+  --color-brand-subtle: var(--accent-subtle);
+
+  --color-signal: var(--signal);
+  --color-signal-text: var(--signal-text);
+  --color-signal-subtle: var(--signal-subtle);
+  --color-signal-fg: var(--signal-fg);
+
+  --color-danger: var(--danger);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-macro-protein: var(--macro-protein);
+  --color-macro-carbs: var(--macro-carbs);
+  --color-macro-fat: var(--macro-fat);
+  --color-warning: var(--warning);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-success: var(--success);
+  --color-success-subtle: var(--success-subtle);
+}
+
+/* Type, radius, motion. Matches .ai/design/typography.md and spacing.md. */
+@theme {
+  /* Inter, self-hosted by next/font and exposed as --font-inter by each app's layout.
+     The stack behind it is the system fallback, so a failed font load degrades to what
+     the OS already has rather than to Times. */
+  --font-sans:
+    var(--font-app-sans, var(--font-inter)), -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica,
+    "Apple Color Emoji", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* Headlines on the marketing site only. The product apps never set --font-display, so
+     `font-display` there falls through to the same Inter stack as everything else — one
+     token, no second type system to keep in sync. */
+  --font-display: var(--font-display-family, var(--font-app-sans, var(--font-inter))), -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+
+  /* Featurebase's scale (ADR 0022). Headings are weight 500, never 600 — the quiet
+     weight is what keeps a 48px title composed rather than shouting. */
+  --text-caption: 0.8125rem; /* 13 */
+  --text-caption--line-height: 1.5;
+  --text-body-sm: 0.875rem; /* 14 */
+  --text-body-sm--line-height: 1.43;
+  --text-label: 0.875rem; /* 14 — nav, buttons, form labels */
+  --text-label--line-height: 1.43;
+  --text-body: 1rem; /* 16 */
+  --text-body--line-height: 1.5;
+  --text-subheading: 1.125rem; /* 18 — feature and card titles, weight 600 */
+  --text-subheading--line-height: 1.56;
+  --text-lead: 1.4375rem; /* 23 — lead paragraphs, large numbers */
+  --text-lead--line-height: 1.5;
+
+  /* The two display sizes are fluid so a 360px phone gets a title that fits on one
+     line: 36 → 28 and 48 → 32 below roughly 600px of viewport. */
+  --text-heading: clamp(1.75rem, 1.2rem + 1.6vw, 2.25rem); /* 36 — section heading */
+  --text-heading--line-height: 1.11;
+  --text-heading--letter-spacing: -0.02em; /* -0.72px at 36 */
+  --text-display: clamp(2rem, 1.2rem + 2.4vw, 3rem); /* 48 — the page title */
+  --text-display--line-height: 1.2;
+  --text-display--letter-spacing: -0.02em; /* -0.96px at 48 */
+
+  /* Marketing aliases. The public site set these first; they now resolve to the same
+     two sizes as the product so there is one scale, not two. */
+  --text-hero: var(--text-display);
+  --text-hero--line-height: 1.2;
+  --text-hero--letter-spacing: -0.02em;
+  --text-hero-sm: var(--text-heading);
+  --text-hero-sm--line-height: 1.11;
+  --text-hero-sm--letter-spacing: -0.02em;
+
+  /* Featurebase's ladder: 12 for buttons, inputs and links, 16 for every card and
+     panel. Nothing in product UI is more rounded than 16 except a pill. */
+  --radius-control: 12px;
+  --radius-surface: 16px;
+  --radius-panel: 16px;
+
+  /* Shadow means floating. These are Featurebase's black stacks — on a near-black page
+     a shadow barely reads, so the border in the `float` stack does most of the work. */
+  --shadow-inset: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  --shadow-float:
+    0 0 0 1px rgb(0 0 0 / 0.4), 0 20px 25px -5px rgb(0 0 0 / 0.3), 0 8px 10px -6px rgb(0 0 0 / 0.3);
+  --shadow-raised: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+  /* The restrained violet light around a product frame. Only the frame gets it. */
+  --shadow-glow: 0 0 0 1px rgb(112 100 242 / 0.14), 0 24px 80px -24px rgb(112 100 242 / 0.35);
+
+  /* Apple-style: entrances decelerate, exits accelerate */
+  --ease-standard: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-soft: cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* ---------------------------------------------------------------------------
+   shadcn/ui BRIDGE
+   shadcn components reference their own variable names. Rather than let a second
+   palette into the product, those names are aliased onto our semantic tier — so a
+   shadcn component is on our tokens the moment it is added, with no restyling.
+   Note: shadcn's `--accent` means "hover fill", not our brand accent. Their
+   `--primary` is the brand colour.
+   --------------------------------------------------------------------------- */
+@theme inline {
+  --color-background: var(--canvas);
+  --color-foreground: var(--fg);
+
+  --color-card: var(--surface);
+  --color-card-foreground: var(--fg);
+  /* A popover floats, so it sits one layer up from the panel it opens over. */
+  --color-popover: var(--raised);
+  --color-popover-foreground: var(--fg);
+
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--fg-on-accent);
+
+  --color-secondary: var(--sunken);
+  --color-secondary-foreground: var(--fg);
+
+  --color-muted: var(--sunken);
+  --color-muted-foreground: var(--fg-muted);
+
+  /* shadcn's `accent` means hover fill, not a brand colour. Ours lives under `brand-*`
+     so the two can never collide again — see .ai/design/colors.md */
+  --color-accent: var(--hover);
+  --color-accent-foreground: var(--fg);
+
+  --color-destructive: var(--danger);
+  --color-destructive-foreground: var(--fg-on-accent);
+
+  --color-border: var(--line);
+  --color-input: var(--line-strong);
+  --color-ring: var(--line-focus);
+
+  --radius: var(--radius-control);
+  --radius-sm: var(--radius-control);
+  --radius-md: var(--radius-control);
+  --radius-lg: var(--radius-surface);
+  --radius-xl: var(--radius-surface);
+}
+
+@layer base {
+  /* Tailwind v4 changed the default border colour from a grey to `currentColor`.
+     shadcn components use a bare `border`, which without this renders as near-black
+     text colour. Restores the v3 behaviour our tokens assume. */
+  *,
+  ::before,
+  ::after {
+    border-color: var(--color-line);
+  }
+
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+
+  /* Inter at 500 is the voice of every heading; 600 is reserved for compact titles. */
+  h1,
+  h2,
+  h3 {
+    font-weight: 500;
+  }
+
+  body {
+    background-color: var(--color-canvas);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    font-size: var(--text-body);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Digits line up wherever they're compared */
+  table,
+  [data-numeric] {
+    font-variant-numeric: tabular-nums;
+  }
+
+  ::selection {
+    background-color: var(--color-signal-subtle);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-line-focus);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* The two Featurebase washes as utilities. Backgrounds, not colours, so they cannot be
+   made with `bg-*` from the colour tier. */
+@utility bg-glow-violet {
+  background-image: var(--glow-violet);
+}
+@utility bg-glow-lift {
+  background-image: var(--glow-lift);
+}
+
+/* ── Wensity Base Tokens — generated by the Wensity CLI.
+      Edit these values to retheme your app; re-running `wensity init --preset`
+      replaces this block. ── */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-muted: var(--surface-muted);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+}
+:root {
+  --background: #fafafa;
+  --foreground: #0a0a0a;
+  --surface: #ffffff;
+  --surface-muted: #f4f4f5;
+  --muted: #f4f4f5;
+  --muted-foreground: #52525b;
+  --border: rgba(10, 10, 10, 0.08);
+  --border-strong: rgba(10, 10, 10, 0.16);
+}
+.dark {
+  --background: #0a0a0b;
+  --foreground: #f5f5f6;
+  --surface: #111113;
+  --surface-muted: #18181b;
+  --muted: #1c1c1f;
+  --muted-foreground: #a1a1aa;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-strong: rgba(255, 255, 255, 0.14);
+}
+/* ── End Wensity Base Tokens ── */
+
+/* ── Wensity Primitive Tokens — generated by the Wensity CLI.
+      Edit these values to retheme your components; re-running
+      `wensity init --preset` replaces this block. ── */
+@theme inline {
+  --color-primitive-surface-elevated: var(--primitive-surface-elevated);
+  --color-primitive-surface-overlay: var(--primitive-surface-overlay);
+  --color-primitive-surface-hover: var(--primitive-surface-hover);
+  --color-primitive-surface-active: var(--primitive-surface-active);
+  --color-primitive-surface-selected: var(--primitive-surface-selected);
+  --color-primitive-border-subtle: var(--primitive-border-subtle);
+  --color-primitive-ring: var(--primitive-ring);
+  --color-primitive-text-secondary: var(--primitive-text-secondary);
+  --color-primitive-text-placeholder: var(--primitive-text-placeholder);
+  --color-primitive-text-inverse: var(--primitive-text-inverse);
+  --color-primitive-destructive: var(--primitive-destructive);
+  --color-primitive-destructive-hover: var(--primitive-destructive-hover);
+  --color-primitive-destructive-active: var(--primitive-destructive-active);
+  --color-primitive-destructive-foreground: var(--primitive-destructive-foreground);
+  --color-primitive-destructive-surface: var(--primitive-destructive-surface);
+  --color-primitive-destructive-border: var(--primitive-destructive-border);
+  --color-primitive-success: var(--primitive-success);
+  --color-primitive-warning: var(--primitive-warning);
+  --color-primitive-info: var(--primitive-info);
+  --color-primitive-control-solid: var(--primitive-control-solid);
+  --color-primitive-control-solid-hover: var(--primitive-control-solid-hover);
+  --color-primitive-control-solid-active: var(--primitive-control-solid-active);
+  --color-primitive-control-solid-foreground: var(--primitive-control-solid-foreground);
+  --color-primitive-chart-1: var(--primitive-chart-1);
+  --color-primitive-chart-2: var(--primitive-chart-2);
+  --color-primitive-chart-3: var(--primitive-chart-3);
+  --color-primitive-chart-4: var(--primitive-chart-4);
+  --color-primitive-chart-5: var(--primitive-chart-5);
+  --color-primitive-chart-6: var(--primitive-chart-6);
+  --radius-primitive: var(--primitive-radius);
+  --radius-primitive-control: var(--primitive-radius-control);
+  --radius-primitive-control-sm: var(--primitive-radius-control-sm);
+  --radius-primitive-surface: var(--primitive-radius-surface);
+  --radius-primitive-popup: var(--primitive-radius-popup);
+  --radius-primitive-item: var(--primitive-radius-item);
+  --font-primitive-sans: var(--primitive-font-sans);
+  --font-primitive-display: var(--primitive-font-display);
+  --font-primitive-mono: var(--primitive-font-mono);
+  --spacing-primitive-control-height-sm: var(--primitive-control-height-sm);
+  --spacing-primitive-control-height-md: var(--primitive-control-height-md);
+  --spacing-primitive-control-height-lg: var(--primitive-control-height-lg);
+}
+:root {
+  --primitive-surface-elevated: #ffffff;
+  --primitive-surface-overlay: #ffffff;
+  --primitive-surface-hover: color-mix(in srgb, var(--foreground) 4%, transparent);
+  --primitive-surface-active: color-mix(in srgb, var(--foreground) 7%, transparent);
+  --primitive-surface-selected: color-mix(in srgb, var(--foreground) 6%, transparent);
+  --primitive-border-subtle: color-mix(in srgb, var(--border) 60%, transparent);
+  --primitive-ring: color-mix(in srgb, var(--foreground) 45%, transparent);
+  --primitive-text-secondary: color-mix(in srgb, var(--foreground) 72%, transparent);
+  --primitive-text-placeholder: color-mix(in srgb, var(--muted-foreground) 85%, transparent);
+  --primitive-radius: 0.375rem;
+  --primitive-font-sans: var(--font-sans);
+  --primitive-font-display: var(--font-display);
+  --primitive-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --primitive-control-solid: #24292d;
+  --primitive-control-solid-hover: #2c3237;
+  --primitive-control-solid-active: #1e2326;
+  --primitive-control-solid-foreground: #ffffff;
+  --primitive-chart-1: #2a78d6;
+  --primitive-chart-2: #1baf7a;
+  --primitive-chart-3: #eda100;
+  --primitive-chart-4: #008300;
+  --primitive-chart-5: #4a3aa7;
+  --primitive-chart-6: #e34948;
+  --primitive-text-inverse: #ffffff;
+  --primitive-text-hint: 0.6875rem;
+  --primitive-destructive: #dc2626;
+  --primitive-destructive-hover: #b91c1c;
+  --primitive-destructive-active: #991b1b;
+  --primitive-destructive-foreground: #ffffff;
+  --primitive-destructive-surface: rgba(220, 38, 38, 0.10);
+  --primitive-destructive-border: rgba(220, 38, 38, 0.45);
+  --primitive-success: #047857;
+  --primitive-success-surface: rgba(4, 120, 87, 0.10);
+  --primitive-success-border: rgba(4, 120, 87, 0.45);
+  --primitive-warning: #b45309;
+  --primitive-warning-surface: rgba(180, 83, 9, 0.10);
+  --primitive-warning-border: rgba(180, 83, 9, 0.45);
+  --primitive-info: #0369a1;
+  --primitive-info-surface: rgba(3, 105, 161, 0.10);
+  --primitive-info-border: rgba(3, 105, 161, 0.45);
+  --primitive-radius-control: var(--primitive-radius);
+  --primitive-radius-control-sm: min(calc(var(--primitive-radius) * 0.8), 12px);
+  --primitive-radius-surface: calc(var(--primitive-radius) * 1.4);
+  --primitive-radius-popup: var(--primitive-radius);
+  --primitive-radius-item: calc(var(--primitive-radius) * 0.8);
+  --primitive-control-height-sm: 2rem;
+  --primitive-control-height-md: 2.25rem;
+  --primitive-control-height-lg: 2.5rem;
+  --primitive-shadow-raised: 0 1px 1px -0.5px rgba(10, 10, 10, 0.08), 0 2px 6px -2px rgba(10, 10, 10, 0.08);
+  --primitive-shadow-overlay: 0 2px 4px -1px rgba(10, 10, 10, 0.06), 0 8px 16px -4px rgba(10, 10, 10, 0.08), 0 16px 32px -8px rgba(10, 10, 10, 0.14);
+  --primitive-shadow-modal: 0 4px 8px -2px rgba(10, 10, 10, 0.06), 0 16px 32px -8px rgba(10, 10, 10, 0.12), 0 32px 64px -16px rgba(10, 10, 10, 0.2);
+  --primitive-edge: rgba(10, 10, 10, 0.1);
+  --primitive-catchlight: rgba(10, 10, 10, 0.06);
+  --primitive-groove-shadow: rgba(10, 10, 10, 0.08);
+  --primitive-groove-highlight: rgba(255, 255, 255, 0.85);
+  --primitive-shadow-drop: 0 1px 1px -0.5px rgba(10, 10, 10, 0.1), 0 2px 4px -1px rgba(10, 10, 10, 0.06);
+  --primitive-shadow-recess: inset 0 2px 3px -1px rgba(10, 10, 10, 0.1);
+  --primitive-control-face: var(--primitive-surface-elevated);
+  --primitive-field-face: var(--primitive-surface-elevated);
+  --primitive-well: rgba(10, 10, 10, 0.045);
+  --primitive-shadow-well: inset 0 1px 2px 0 rgba(10, 10, 10, 0.06);
+  --primitive-tint-hover: rgba(10, 10, 10, 0.045);
+  --primitive-tint-press: rgba(10, 10, 10, 0.06);
+  --primitive-footer: color-mix(in srgb, var(--primitive-surface-elevated) 97%, black);
+  --primitive-overlay-face: var(--primitive-surface-overlay);
+  --primitive-frame-face: color-mix(in srgb, var(--primitive-surface-elevated) 97%, black);
+  --primitive-z-overlay: 100;
+  --primitive-z-popover: 130;
+  --primitive-z-toast: 140;
+  --primitive-backdrop: rgba(0, 0, 0, 0.6);
+  --primitive-motion-fast: 80ms;
+  --primitive-motion-fast-exit: 60ms;
+  --primitive-motion-moderate: 160ms;
+  --primitive-motion-moderate-exit: 120ms;
+  --primitive-motion-slow: 240ms;
+  --primitive-motion-slow-exit: 160ms;
+  --primitive-ease: cubic-bezier(0.23, 1, 0.32, 1);
+}
+.dark {
+  --primitive-surface-elevated: #0f0f10;
+  --primitive-surface-overlay: #141415;
+  --primitive-surface-hover: color-mix(in srgb, var(--foreground) 5%, transparent);
+  --primitive-surface-active: color-mix(in srgb, var(--foreground) 10%, transparent);
+  --primitive-surface-selected: color-mix(in srgb, var(--foreground) 8%, transparent);
+  --primitive-border-subtle: color-mix(in srgb, var(--border) 60%, transparent);
+  --primitive-ring: color-mix(in srgb, var(--foreground) 45%, transparent);
+  --primitive-text-secondary: color-mix(in srgb, var(--foreground) 72%, transparent);
+  --primitive-text-placeholder: color-mix(in srgb, var(--muted-foreground) 85%, transparent);
+  --primitive-radius: 0.375rem;
+  --primitive-font-sans: var(--font-sans);
+  --primitive-font-display: var(--font-display);
+  --primitive-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --primitive-control-solid: #f5f3ee;
+  --primitive-control-solid-hover: #ffffff;
+  --primitive-control-solid-active: #e8e4da;
+  --primitive-control-solid-foreground: #151719;
+  --primitive-chart-1: #3987e5;
+  --primitive-chart-2: #199e70;
+  --primitive-chart-3: #c98500;
+  --primitive-chart-4: #008300;
+  --primitive-chart-5: #9085e9;
+  --primitive-chart-6: #e66767;
+  --primitive-text-inverse: #151719;
+  --primitive-text-hint: 0.6875rem;
+  --primitive-destructive: #e11d2e;
+  --primitive-destructive-hover: #c1121f;
+  --primitive-destructive-active: #a4161a;
+  --primitive-destructive-foreground: #ffffff;
+  --primitive-destructive-surface: rgba(225, 29, 46, 0.12);
+  --primitive-destructive-border: rgba(225, 29, 46, 0.52);
+  --primitive-success: #34d399;
+  --primitive-success-surface: rgba(52, 211, 153, 0.12);
+  --primitive-success-border: rgba(52, 211, 153, 0.45);
+  --primitive-warning: #fbbf24;
+  --primitive-warning-surface: rgba(251, 191, 36, 0.12);
+  --primitive-warning-border: rgba(251, 191, 36, 0.45);
+  --primitive-info: #38bdf8;
+  --primitive-info-surface: rgba(56, 189, 248, 0.12);
+  --primitive-info-border: rgba(56, 189, 248, 0.45);
+  --primitive-radius-control: var(--primitive-radius);
+  --primitive-radius-control-sm: min(calc(var(--primitive-radius) * 0.8), 12px);
+  --primitive-radius-surface: calc(var(--primitive-radius) * 1.4);
+  --primitive-radius-popup: var(--primitive-radius);
+  --primitive-radius-item: calc(var(--primitive-radius) * 0.8);
+  --primitive-control-height-sm: 2rem;
+  --primitive-control-height-md: 2.25rem;
+  --primitive-control-height-lg: 2.5rem;
+  --primitive-shadow-raised: inset 0 1px 0 0 rgba(255, 255, 255, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.6), 0 2px 6px -2px rgba(0, 0, 0, 0.5);
+  --primitive-shadow-overlay: inset 0 1px 0 0 rgba(255, 255, 255, 0.06), 0 2px 4px -1px rgba(0, 0, 0, 0.4), 0 8px 16px -4px rgba(0, 0, 0, 0.45), 0 16px 32px -8px rgba(0, 0, 0, 0.65);
+  --primitive-shadow-modal: inset 0 1px 0 0 rgba(255, 255, 255, 0.06), 0 4px 8px -2px rgba(0, 0, 0, 0.4), 0 16px 32px -8px rgba(0, 0, 0, 0.55), 0 32px 64px -16px rgba(0, 0, 0, 0.75);
+  --primitive-edge: rgba(255, 255, 255, 0.09);
+  --primitive-catchlight: rgba(255, 255, 255, 0.16);
+  --primitive-groove-shadow: rgba(0, 0, 0, 0.55);
+  --primitive-groove-highlight: rgba(255, 255, 255, 0.05);
+  --primitive-shadow-drop: 0 1px 1px -0.5px rgba(0, 0, 0, 0.6), 0 2px 4px -1px rgba(0, 0, 0, 0.4);
+  --primitive-shadow-recess: inset 0 2px 3px -1px rgba(0, 0, 0, 0.5);
+  --primitive-control-face: var(--primitive-frame-face);
+  --primitive-field-face: var(--primitive-frame-face);
+  --primitive-well: rgba(0, 0, 0, 0.35);
+  --primitive-shadow-well: inset 0 1px 2px 0 rgba(0, 0, 0, 0.45);
+  --primitive-tint-hover: rgba(255, 255, 255, 0.06);
+  --primitive-tint-press: rgba(0, 0, 0, 0.2);
+  --primitive-footer: color-mix(in srgb, var(--primitive-surface-elevated) 97%, white);
+  --primitive-overlay-face: color-mix(in srgb, var(--primitive-surface-overlay) 94%, white);
+  --primitive-frame-face: color-mix(in srgb, var(--primitive-surface-elevated) 97%, white);
+  --primitive-z-overlay: 100;
+  --primitive-z-popover: 130;
+  --primitive-z-toast: 140;
+  --primitive-backdrop: rgba(0, 0, 0, 0.6);
+  --primitive-motion-fast: 80ms;
+  --primitive-motion-fast-exit: 60ms;
+  --primitive-motion-moderate: 160ms;
+  --primitive-motion-moderate-exit: 120ms;
+  --primitive-motion-slow: 240ms;
+  --primitive-motion-slow-exit: 160ms;
+  --primitive-ease: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@layer base {
+  :where([data-wensity-primitive]) {
+    font-family: var(--primitive-font-sans);
+  }
+}
+
+/* Surface roles. An element opts in with data-surface="<role>"
+   (control, field, fill, flat, toggle, well, frame, panel, overlay, modal, footer);
+   override one part with a --surface-* variable. */
+@layer components {
+  [data-surface] {
+    --surface-tint: transparent;
+    border-width: 1px;
+    border-style: solid;
+    border-color: var(--surface-rim);
+    border-top-color: var(--surface-rim-top);
+    background-color: var(--surface-face);
+    background-image: linear-gradient(var(--surface-tint), var(--surface-tint));
+    --tw-shadow: var(--surface-depth);
+    box-shadow: var(--tw-inset-shadow, 0 0 #0000), var(--tw-inset-ring-shadow, 0 0 #0000), var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+  }
+  [data-surface="control"] {
+    --surface-face: var(--primitive-control-face);
+    --surface-rim: var(--primitive-edge);
+    --surface-rim-top: var(--primitive-catchlight);
+    --surface-depth: var(--primitive-shadow-drop);
+  }
+  [data-surface="field"] {
+    --surface-face: var(--primitive-field-face);
+    --surface-rim: var(--primitive-edge);
+    --surface-rim-top: var(--primitive-catchlight);
+    --surface-depth: var(--primitive-shadow-drop);
+  }
+  [data-surface="fill"] {
+    --surface-face: var(--primitive-control-solid);
+    --surface-rim: color-mix(in srgb, var(--surface-face) 88%, black);
+    --surface-rim-top: color-mix(in srgb, var(--surface-face) 80%, white);
+    --surface-depth: var(--primitive-shadow-drop);
+  }
+  [data-surface="flat"], [data-surface="toggle"], [data-surface="toggle-fill"] {
+    --surface-face: transparent;
+    --surface-rim: transparent;
+    --surface-rim-top: transparent;
+    --surface-depth: 0 0 #0000;
+  }
+  [data-surface="toggle"]:is([data-pressed]:not([data-pressed="false"]), [aria-pressed="true"]) {
+    --surface-face: var(--primitive-control-face);
+    --surface-rim: var(--primitive-edge);
+    --surface-rim-top: var(--primitive-catchlight);
+    --surface-depth: var(--primitive-shadow-drop);
+  }
+  [data-surface="toggle-fill"]:is([data-pressed]:not([data-pressed="false"]), [aria-pressed="true"]) {
+    --surface-face: var(--primitive-control-solid);
+    --surface-rim: color-mix(in srgb, var(--surface-face) 88%, black);
+    --surface-rim-top: color-mix(in srgb, var(--surface-face) 80%, white);
+    --surface-depth: var(--primitive-shadow-drop);
+  }
+  [data-surface="well"] {
+    --surface-face: var(--primitive-well);
+    --surface-rim: transparent;
+    --surface-rim-top: transparent;
+    --surface-depth: var(--primitive-shadow-well);
+  }
+  [data-surface="frame"] {
+    --surface-face: var(--primitive-frame-face);
+    --surface-rim: var(--primitive-edge);
+    --surface-rim-top: var(--primitive-catchlight);
+    --surface-depth: 0 0 #0000;
+  }
+  [data-surface="panel"] {
+    --surface-face: var(--primitive-surface-elevated);
+    --surface-rim: var(--primitive-edge);
+    --surface-rim-top: var(--primitive-edge);
+    --surface-depth: var(--primitive-shadow-raised);
+  }
+  [data-surface="overlay"] {
+    --surface-face: var(--primitive-overlay-face);
+    --surface-rim: var(--primitive-edge);
+    --surface-rim-top: var(--primitive-edge);
+    --surface-depth: var(--primitive-shadow-overlay);
+  }
+  [data-surface="modal"] {
+    --surface-face: var(--primitive-surface-elevated);
+    --surface-rim: var(--primitive-edge);
+    --surface-rim-top: var(--primitive-edge);
+    --surface-depth: var(--primitive-shadow-modal);
+  }
+  [data-surface="footer"] {
+    --surface-face: var(--primitive-footer);
+    --surface-rim: transparent;
+    --surface-rim-top: transparent;
+    --surface-depth: 0 0 #0000;
+    border-width: 0;
+    background-image: linear-gradient(to bottom, var(--primitive-groove-shadow) 0 1px, var(--primitive-groove-highlight) 1px 2px);
+    background-size: 100% 2px;
+    background-repeat: no-repeat;
+    background-position: top;
+  }
+  @media (hover: hover) {
+    [data-surface]:where(button, a[href], summary, label, [role="button"], [role="tab"], [role="combobox"], [role="option"], [role="menuitem"]):where(:not(:disabled, [data-disabled], [aria-disabled="true"])):hover {
+      --surface-tint: var(--primitive-tint-hover);
+    }
+    :is([data-surface="control"], [data-surface="field"]):is([data-pressed]:not([data-pressed="false"]), [aria-pressed="true"]):where(:not(:disabled, [data-disabled], [aria-disabled="true"])):hover {
+      --surface-tint: var(--primitive-tint-hover);
+    }
+  }
+  :is([data-surface="control"], [data-surface="field"]):is([data-pressed]:not([data-pressed="false"]), [aria-pressed="true"]) {
+    --surface-tint: var(--primitive-tint-press);
+    --surface-rim-top: var(--surface-rim);
+    --surface-depth: var(--primitive-shadow-recess);
+  }
+  :is([data-surface="control"], [data-surface="field"], [data-surface="fill"], [data-surface="toggle"], [data-surface="toggle-fill"]):is([aria-expanded="true"], [data-popup-open]):not(input, textarea) {
+    --surface-tint: var(--primitive-tint-press);
+    --surface-rim-top: var(--surface-rim);
+    --surface-depth: var(--primitive-shadow-recess);
+  }
+  :is([data-surface="control"], [data-surface="field"], [data-surface="fill"], [data-surface="toggle"], [data-surface="toggle-fill"]):where(button, a[href], summary, [role="button"], [role="tab"]):where(:not(:disabled, [data-disabled], [aria-disabled="true"])):active {
+    --surface-tint: var(--primitive-tint-press);
+    --surface-rim-top: var(--surface-rim);
+    --surface-depth: var(--primitive-shadow-recess);
+  }
+  [data-surface="flat"]:where(button, a[href], summary, [role="button"], [role="tab"]):where(:not(:disabled, [data-disabled], [aria-disabled="true"])):active {
+    --surface-tint: var(--primitive-tint-press);
+  }
+  [data-surface]:is([aria-invalid="true"], :has(> :is(input, textarea)[aria-invalid="true"])) {
+    --surface-rim: var(--primitive-destructive-border);
+    --surface-rim-top: var(--primitive-destructive-border);
+  }
+  [data-surface][data-surface]:is(:disabled, [data-disabled], [aria-disabled="true"]) {
+    --surface-tint: transparent;
+    --surface-rim-top: var(--surface-rim);
+    --surface-depth: 0 0 #0000;
+  }
+  [data-groove] {
+    flex-shrink: 0;
+    border-width: 0;
+    background-image: linear-gradient(var(--groove-direction, to bottom), var(--primitive-groove-shadow) 0 1px, var(--primitive-groove-highlight) 1px 2px);
+  }
+  [data-groove="horizontal"] {
+    height: 2px;
+  }
+  [data-groove="vertical"] {
+    --groove-direction: to right;
+    width: 2px;
+    align-self: stretch;
+  }
+  [data-carve] {
+    background-image: linear-gradient(to bottom, var(--primitive-groove-shadow) 0 1px, var(--primitive-groove-highlight) 1px 2px);
+    background-repeat: no-repeat;
+    background-size: 100% 2px;
+  }
+  [data-carve="top"] {
+    background-position: top;
+  }
+  [data-carve="bottom"] {
+    background-position: bottom;
+  }
+}
+/* Base UI unnamed checkbox/radio/switch inputs use position:fixed;top:0;left:0.
+   Activating the control focuses that input and scrolls the page to the viewport
+   origin (create-preset preview "layout jump"). Keep the input near the control. */
+input[type="checkbox"][aria-hidden="true"][tabindex="-1"],
+input[type="radio"][aria-hidden="true"][tabindex="-1"] {
+  position: absolute !important;
+  top: auto !important;
+  left: auto !important;
+}
+
+/* Switch control-glide */
+[data-slot="switch-control"] {
+  transition:
+    background-color var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+    border-color var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+    box-shadow var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+    color var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+    opacity var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+[data-slot="switch-knob"] {
+  transform: translate3d(0, 0, 0);
+  transition:
+    transform var(--primitive-motion-moderate) cubic-bezier(0.32, 0.72, 0, 1),
+    box-shadow var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+    opacity var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+[data-slot="switch-control"][data-checked] [data-slot="switch-knob"][data-size="sm"] {
+  transform: translate3d(16px, 0, 0);
+  transition-duration: var(--primitive-motion-moderate);
+}
+
+[data-slot="switch-control"][data-checked] [data-slot="switch-knob"][data-size="md"] {
+  transform: translate3d(20px, 0, 0);
+  transition-duration: var(--primitive-motion-moderate);
+}
+
+[data-slot="switch-control"][data-checked] [data-slot="switch-knob"][data-size="lg"] {
+  transform: translate3d(24px, 0, 0);
+  transition-duration: var(--primitive-motion-moderate);
+}
+
+[data-slot="switch-control"][data-unchecked] [data-slot="switch-knob"] {
+  transition-duration: var(--primitive-motion-moderate-exit);
+}
+
+[data-slot="switch-segment-indicator"] {
+  transform: translate3d(0, 0, 0);
+  transition: transform var(--primitive-motion-moderate) cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+[data-slot="switch-control"][data-checked] [data-slot="switch-segment-indicator"] {
+  transform: translate3d(100%, 0, 0);
+  transition-duration: var(--primitive-motion-moderate);
+}
+
+[data-slot="switch-control"][data-unchecked] [data-slot="switch-segment-indicator"] {
+  transition-duration: var(--primitive-motion-moderate-exit);
+}
+
+[data-slot="switch-segment-label"] {
+  transition: color var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+[data-slot="switch-power-icon"] {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: scale(0.92);
+  transition:
+    opacity var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+    transform var(--primitive-motion-moderate) cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+[data-slot="switch-power-icon"][data-active="true"] {
+  opacity: 1;
+  transform: scale(1);
+  transition-duration: var(--primitive-motion-moderate);
+}
+
+[data-slot="switch-power-check"] path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+[data-slot="switch-control"][data-checked] [data-slot="switch-power-check"] path {
+  stroke-dashoffset: 0;
+  transition-duration: var(--primitive-motion-moderate);
+  transition-delay: 0ms;
+}
+
+[data-slot="switch-control"][data-unchecked] [data-slot="switch-power-check"] path {
+  stroke-dashoffset: 1;
+  transition-duration: var(--primitive-motion-fast-exit);
+  transition-delay: 0ms;
+}
+
+[data-slot="switch-card-trailing"] {
+  transition:
+    border-color var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+    color var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+    opacity var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+[data-slot="switch-card-trailing"][data-swapping="true"] {
+  opacity: 0.72;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="switch-control"],
+  [data-slot="switch-knob"],
+  [data-slot="switch-segment-indicator"],
+  [data-slot="switch-segment-label"],
+  [data-slot="switch-power-icon"],
+  [data-slot="switch-card-trailing"] {
+    transition-duration: 0ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  [data-slot="switch-control"][data-checked] [data-slot="switch-knob"][data-size="sm"] {
+    transform: translate3d(16px, 0, 0);
+  }
+
+  [data-slot="switch-control"][data-checked] [data-slot="switch-knob"][data-size="md"] {
+    transform: translate3d(20px, 0, 0);
+  }
+
+  [data-slot="switch-control"][data-checked] [data-slot="switch-knob"][data-size="lg"] {
+    transform: translate3d(24px, 0, 0);
+  }
+
+  [data-slot="switch-control"][data-checked] [data-slot="switch-segment-indicator"] {
+    transform: translate3d(100%, 0, 0);
+  }
+
+  [data-slot="switch-power-icon"][data-active="true"] {
+    opacity: 1;
+    transform: none;
+  }
+
+  [data-slot="switch-power-icon"][data-active="false"] {
+    opacity: 0;
+  }
+
+  [data-slot="switch-control"][data-checked] [data-slot="switch-power-check"] path {
+    stroke-dashoffset: 0;
+  }
+
+  [data-slot="switch-card-trailing"][data-swapping="true"] {
+    opacity: 1;
+  }
+}
+
+/* Slider bubble / thumb presence (Base UI data-dragging + keyboard focus-visible).
+ *
+ * Base UI positions the thumb with CSS translate (translate: -50% -50%).
+ * Never add transform: translate(...) on the thumb — it double-offsets.
+ *
+ * Bubble only while dragging (or keyboard focus-visible). Do not use
+ * :focus-within — mouse drag leaves focus on the thumb and would keep the
+ * value number stuck after pointer-up. */
+[data-slot="wensity-slider-bubble"] {
+  opacity: 0;
+  transform: translateY(calc(-100% - 6px)) scale(0.94);
+  transition:
+    opacity var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.23, 1, 0.32, 1)),
+    transform var(--primitive-motion-moderate) var(--primitive-ease, cubic-bezier(0.23, 1, 0.32, 1));
+  pointer-events: none;
+}
+[data-slot="wensity-slider-thumb"][data-dragging] [data-slot="wensity-slider-bubble"],
+[data-slot="wensity-slider-thumb"]:has(:focus-visible) [data-slot="wensity-slider-bubble"] {
+  opacity: 1;
+  transform: translateY(calc(-100% - 10px)) scale(1);
+}
+[data-slot="wensity-slider-thumb"] {
+  transition:
+    scale var(--primitive-motion-moderate) var(--primitive-ease, cubic-bezier(0.23, 1, 0.32, 1)),
+    box-shadow var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.23, 1, 0.32, 1));
+}
+[data-slot="wensity-slider-thumb"]:active,
+[data-slot="wensity-slider-thumb"][data-dragging] {
+  scale: 0.92;
+  box-shadow:
+    0 0 0 4px color-mix(in srgb, var(--primitive-ring, var(--foreground)) 28%, transparent),
+    0 2px 10px rgba(0, 0, 0, 0.4);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="wensity-slider-thumb"],
+  [data-slot="wensity-slider-bubble"] {
+    transition-duration: 0ms !important;
+  }
+  [data-slot="wensity-slider-thumb"]:active,
+  [data-slot="wensity-slider-thumb"][data-dragging] {
+    scale: 1;
+  }
+}
+
+/* RadioGroup indicator glide */
+[data-slot="radio-orb-shell"] {
+  transition:
+    border-color var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+    box-shadow var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+[data-slot="radio-command-shell"] {
+  transition:
+    border-color var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+    box-shadow var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+    background-color var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+[data-slot="radio-command-check"] {
+  transform: scale(0.92);
+  opacity: 0;
+  transition:
+    transform var(--primitive-motion-moderate) cubic-bezier(0.32, 0.72, 0, 1),
+    opacity var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+[data-radio-mark][data-checked] [data-slot="radio-command-check"] {
+  transform: scale(1);
+  opacity: 1;
+  transition-duration: var(--primitive-motion-moderate), var(--primitive-motion-fast);
+}
+
+[data-radio-mark][data-indeterminate] [data-slot="radio-command-check"] {
+  transform: scale(1);
+  opacity: 1;
+  transition-duration: var(--primitive-motion-moderate), var(--primitive-motion-fast);
+}
+
+[data-radio-mark][data-unchecked] [data-slot="radio-command-check"] {
+  transform: scale(0.92);
+  opacity: 0;
+  transition-duration: var(--primitive-motion-fast-exit), var(--primitive-motion-fast-exit);
+}
+
+[data-slot="radio-command-check-path"] {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+[data-radio-mark][data-checked] [data-slot="radio-command-check-path"] {
+  stroke-dashoffset: 0;
+  transition-duration: var(--primitive-motion-moderate);
+  transition-delay: 0ms;
+}
+
+[data-radio-mark][data-indeterminate] [data-slot="radio-command-check-path"] {
+  stroke-dashoffset: 0;
+  transition-duration: var(--primitive-motion-moderate);
+  transition-delay: 0ms;
+}
+
+[data-radio-mark][data-unchecked] [data-slot="radio-command-check-path"] {
+  stroke-dashoffset: 1;
+  transition-duration: var(--primitive-motion-fast-exit);
+  transition-delay: 0ms;
+}
+
+[data-slot="radio-segment-indicator"] {
+  transition: transform var(--primitive-motion-moderate) cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+[data-slot="radio-segment-indicator"][data-orientation="vertical"] {
+  transition-duration: var(--primitive-motion-moderate);
+}
+
+[data-slot="radio-segment-label"] {
+  transition: color var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+[data-slot="radio-card-shell"] {
+  transition:
+    border-color var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+    box-shadow var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+[data-slot="radio-card-check-shell"] {
+  transition:
+    border-color var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+    background-color var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+[data-slot="radio-card-check"] {
+  opacity: 0;
+  transform: scale(0.92);
+  transition:
+    opacity var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1)),
+    transform var(--primitive-motion-moderate) cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+[data-radio-card][data-checked] [data-slot="radio-card-check"] {
+  opacity: 1;
+  transform: scale(1);
+  transition-duration: var(--primitive-motion-fast), var(--primitive-motion-moderate);
+}
+
+[data-radio-card][data-unchecked] [data-slot="radio-card-check"] {
+  opacity: 0;
+  transform: scale(0.92);
+  transition-duration: var(--primitive-motion-fast-exit), var(--primitive-motion-fast-exit);
+}
+
+[data-slot="radio-card-check-path"] {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition: stroke-dashoffset var(--primitive-motion-fast) var(--primitive-ease, cubic-bezier(0.16, 1, 0.3, 1));
+}
+
+[data-radio-card][data-checked] [data-slot="radio-card-check-path"] {
+  stroke-dashoffset: 0;
+  transition-duration: var(--primitive-motion-moderate);
+  transition-delay: 0ms;
+}
+
+[data-radio-card][data-unchecked] [data-slot="radio-card-check-path"] {
+  stroke-dashoffset: 1;
+  transition-duration: var(--primitive-motion-fast-exit);
+  transition-delay: 0ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="radio-orb-shell"],
+  [data-slot="radio-command-shell"],
+  [data-slot="radio-command-check"],
+  [data-slot="radio-command-check-path"],
+  [data-slot="radio-segment-indicator"],
+  [data-slot="radio-segment-label"],
+  [data-slot="radio-card-shell"],
+  [data-slot="radio-card-check-shell"],
+  [data-slot="radio-card-check"],
+  [data-slot="radio-card-check-path"] {
+    transition-duration: 0ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  [data-radio-mark][data-checked] [data-slot="radio-command-check"],
+  [data-radio-mark][data-indeterminate] [data-slot="radio-command-check"],
+  [data-radio-card][data-checked] [data-slot="radio-card-check"] {
+    opacity: 1;
+    transform: none;
+  }
+
+  [data-radio-mark][data-unchecked] [data-slot="radio-command-check"],
+  [data-radio-card][data-unchecked] [data-slot="radio-card-check"] {
+    opacity: 0;
+    transform: none;
+  }
+
+  [data-radio-mark][data-checked] [data-slot="radio-command-check-path"],
+  [data-radio-mark][data-indeterminate] [data-slot="radio-command-check-path"],
+  [data-radio-card][data-checked] [data-slot="radio-card-check-path"] {
+    stroke-dashoffset: 0;
+  }
+
+  [data-radio-mark][data-unchecked] [data-slot="radio-command-check-path"],
+  [data-radio-card][data-unchecked] [data-slot="radio-card-check-path"] {
+    stroke-dashoffset: 1;
+  }
+}
+/* ── End Wensity Primitive Tokens ── */
+
+/* Traiv bindings for the official Wensity surface system. Kept outside the
+   CLI-managed block so upstream refreshes cannot replace product theme tokens. */
+:root, .dark {
+  --background: var(--canvas);
+  --foreground: var(--fg);
+  --muted: var(--sunken);
+  --muted-foreground: var(--fg-muted);
+  --border: var(--line);
+  --input: var(--line-strong);
+  --ring: var(--line-focus);
+
+  --primitive-surface-elevated: var(--surface);
+  --primitive-surface-overlay: var(--raised);
+  --primitive-control-face: var(--sunken);
+  --primitive-control-face-hover: var(--hover);
+  --primitive-control-solid: var(--signal);
+  --primitive-control-solid-hover: color-mix(in srgb, var(--signal) 88%, var(--foreground));
+  --primitive-control-solid-active: color-mix(in srgb, var(--signal) 80%, var(--foreground));
+  --primitive-control-solid-foreground: var(--signal-fg);
+  --primitive-ring: var(--line-focus);
+  --primitive-surface-selected: var(--selected);
+  --primitive-radius: var(--radius-control);
+  --primitive-radius-surface: var(--radius-surface);
+  --primitive-radius-popup: var(--radius-control);
+  --primitive-font-sans: var(--font-sans);
+  --primitive-font-display: var(--font-sans);
+}
+@media (pointer: coarse) {
+  :root, .dark { --primitive-control-height-sm: 2.5rem; --primitive-control-height-md: 2.75rem; --primitive-control-height-lg: 3rem; }
+}
+
+/* Shared edge-sheet motion also covers sheets mounted already open. */
+@keyframes traiv-sheet-enter-right { from { translate: 100% 0; } to { translate: 0 0; } }
+@keyframes traiv-sheet-enter-left { from { translate: -100% 0; } to { translate: 0 0; } }
+[data-slot="sheet-content"][data-side="right"][data-open] {
+  animation: traiv-sheet-enter-right 300ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+[data-slot="sheet-content"][data-side="left"][data-open] {
+  animation: traiv-sheet-enter-left 300ms cubic-bezier(0.23, 1, 0.32, 1) both;
+}
+[data-slot="sheet-content"][data-ending-style] { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  [data-slot="sheet-content"] { animation: none !important; transition: none !important; }
+}

@@ -1,57 +1,21 @@
 "use client";
-
-import { cn } from "@traiv/ui/lib/cn";
-import { Slider as SliderPrimitive } from "radix-ui";
-import * as React from "react";
-
-function Slider({
-  className,
-  defaultValue,
+import { Slider as WensitySlider, type SliderProps } from "./wensity/slider";
+export function Slider({
   value,
-  min = 0,
-  max = 100,
+  defaultValue,
+  onValueChange,
   ...props
-}: React.ComponentProps<typeof SliderPrimitive.Root>) {
-  const _values = React.useMemo(
-    () => (Array.isArray(value) ? value : Array.isArray(defaultValue) ? defaultValue : [min, max]),
-    [value, defaultValue, min, max],
-  );
-
+}: Omit<SliderProps, "value" | "defaultValue" | "onValueChange"> & {
+  value?: number[];
+  defaultValue?: number[];
+  onValueChange?: (value: number[]) => void;
+}) {
   return (
-    <SliderPrimitive.Root
-      data-slot="slider"
-      defaultValue={defaultValue}
-      value={value}
-      min={min}
-      max={max}
-      className={cn(
-        "relative flex w-full touch-none items-center select-none data-[disabled]:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col",
-        className,
-      )}
+    <WensitySlider
       {...props}
-    >
-      <SliderPrimitive.Track
-        data-slot="slider-track"
-        className={cn(
-          "relative grow overflow-hidden rounded-full bg-muted data-[orientation=horizontal]:h-1.5 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5",
-        )}
-      >
-        <SliderPrimitive.Range
-          data-slot="slider-range"
-          className={cn(
-            "absolute bg-signal data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full",
-          )}
-        />
-      </SliderPrimitive.Track>
-      {Array.from({ length: _values.length }, (_, index) => (
-        <SliderPrimitive.Thumb
-          data-slot="slider-thumb"
-          key={index}
-          className="block size-4 shrink-0 rounded-full border border-signal bg-white shadow-sm ring-ring/50 transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
-        />
-      ))}
-    </SliderPrimitive.Root>
+      value={value?.[0]}
+      defaultValue={defaultValue?.[0]}
+      onValueChange={(n) => onValueChange?.([n])}
+    />
   );
 }
-
-export { Slider };

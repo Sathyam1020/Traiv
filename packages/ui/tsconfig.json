@@ -6,7 +6,11 @@
     "module": "esnext",
     "moduleResolution": "bundler",
     "jsx": "react-jsx",
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "@traiv/ui/components/wensity/*": ["./src/components/wensity/*"],
+      "@traiv/ui/lib/cn": ["./src/lib/cn.ts"]
+    }
   },
   "include": ["src/**/*"]
 }

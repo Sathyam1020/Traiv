@@ -1,0 +1,191 @@
+/* Traiv stone / forest appearance.
+ * Isolated experiment: remove its import to restore the previous appearance.
+ * Doubled root selectors intentionally outrank registry-generated token defaults.
+ */
+:root:root {
+  color-scheme: light;
+  --canvas: #e6e9e5;
+  --panel: #f3f4f1;
+  --surface: #ffffff;
+  --sunken: #e9ede8;
+  --raised: #ffffff;
+  --hover: rgb(45 79 57 / 0.055);
+  --active: rgb(45 79 57 / 0.095);
+  --selected: #deeee6;
+  --fg: #252b28;
+  --fg-muted: #59645d;
+  --fg-subtle: #657168;
+  --line: #d9dfd8;
+  --line-strong: #aebbb0;
+  --line-focus: #21775d;
+  --accent: #244638;
+  --accent-hover: #345d49;
+  --accent-subtle: #e3ece5;
+  --accent-text: #245b45;
+  --fg-on-accent: #ffffff;
+  --signal: #206b51;
+  --signal-text: #205f48;
+  --signal-subtle: rgb(32 107 81 / 0.09);
+  --signal-fg: #ffffff;
+  --contrast: #183c30;
+  --contrast-fg: #eef6ef;
+  --macro-protein: #b95335;
+  --macro-carbs: #28745e;
+  --macro-fat: #92700b;
+  --danger: #ba3b50;
+  --danger-subtle: #fbe9ed;
+  --warning: #91620f;
+  --warning-subtle: #faf0d9;
+  --success: #24755e;
+  --success-subtle: #e3f3ec;
+  --primitive-edge: rgb(48 66 51 / 0.13);
+  --primitive-catchlight: rgb(255 255 255 / 0.92);
+  --primitive-field-face: #fafcf8;
+  --primitive-control-face: #ffffff;
+  --primitive-frame-face: #e9eee8;
+  --primitive-footer: #eff3ed;
+  --primitive-overlay-face: #fafcf8;
+  --primitive-well: #e9ede8;
+  --primitive-backdrop: rgb(28 33 58 / 0.32);
+  --primitive-shadow-drop: 0 1px 2px rgb(35 41 71 / 0.05);
+  --primitive-shadow-raised:
+    0 2px 4px -2px rgb(35 41 71 / 0.08), 0 8px 24px -16px rgb(49 47 100 / 0.14);
+  --primitive-shadow-overlay:
+    0 0 0 1px rgb(41 46 76 / 0.035), 0 8px 16px -8px rgb(35 41 71 / 0.12),
+    0 24px 64px -20px rgb(35 41 71 / 0.24);
+  --primitive-shadow-modal:
+    -8px 0 48px -20px rgb(35 41 71 / 0.2), 0 24px 80px -24px rgb(35 41 71 / 0.22);
+  --primitive-shadow-recess: inset 0 1px 2px rgb(35 41 71 / 0.045);
+  --primitive-shadow-well: inset 0 1px 2px rgb(35 41 71 / 0.035);
+}
+
+.dark.dark {
+  color-scheme: dark;
+  --canvas: #151716;
+  --panel: #1d201e;
+  --surface: #292d2a;
+  --sunken: #171a18;
+  --raised: #363d37;
+  --hover: rgb(183 213 190 / 0.075);
+  --active: rgb(183 213 190 / 0.12);
+  --selected: #29483a;
+  --fg: #edf0e9;
+  --fg-muted: #c1c9bf;
+  --fg-subtle: #a4b1a3;
+  --line: #3b443d;
+  --line-strong: #647467;
+  --line-focus: #91d2ad;
+  --accent: #dce7db;
+  --accent-hover: #eff5eb;
+  --accent-subtle: #303f33;
+  --accent-text: #c8e2cb;
+  --fg-on-accent: #24263a;
+  --signal: #91cfad;
+  --signal-text: #a3dbba;
+  --signal-subtle: rgb(145 207 173 / 0.14);
+  --signal-fg: #12291e;
+  --contrast: #102e24;
+  --contrast-fg: #eaf4ec;
+  --macro-protein: #f4a083;
+  --macro-carbs: #82c9b0;
+  --macro-fat: #e8ca78;
+  --danger: #f59ba9;
+  --danger-subtle: #482e3e;
+  --warning: #e9c77e;
+  --warning-subtle: #443c2e;
+  --success: #8ad3b5;
+  --success-subtle: #293f3d;
+  --primitive-edge: rgb(193 211 193 / 0.14);
+  --primitive-catchlight: rgb(219 224 255 / 0.14);
+  --primitive-field-face: #323a33;
+  --primitive-control-face: #363d37;
+  --primitive-frame-face: #323a33;
+  --primitive-footer: #272f29;
+  --primitive-overlay-face: #363d37;
+  --primitive-well: #171d18;
+  --primitive-backdrop: rgb(12 15 29 / 0.5);
+  --primitive-shadow-drop: inset 0 1px 0 rgb(231 229 255 / 0.04), 0 2px 4px rgb(10 13 25 / 0.15);
+  --primitive-shadow-raised:
+    inset 0 1px 0 rgb(231 229 255 / 0.035), 0 4px 16px -8px rgb(10 13 25 / 0.32);
+  --primitive-shadow-overlay:
+    inset 0 1px 0 rgb(231 229 255 / 0.06), 0 12px 28px -12px rgb(7 10 22 / 0.42),
+    0 32px 72px -24px rgb(7 10 22 / 0.48);
+  --primitive-shadow-modal:
+    inset 1px 0 0 rgb(231 229 255 / 0.055), -16px 0 64px -24px rgb(7 10 22 / 0.5);
+  --primitive-shadow-recess: inset 0 1px 3px rgb(10 13 25 / 0.2);
+  --primitive-shadow-well: inset 0 1px 2px rgb(10 13 25 / 0.16);
+}
+
+/* Keep registry semantic colors in the same family as application status colors. */
+:root:root,
+.dark.dark {
+  --primitive-success: var(--success);
+  --primitive-success-surface: var(--success-subtle);
+  --primitive-warning: var(--warning);
+  --primitive-warning-surface: var(--warning-subtle);
+  --primitive-destructive: var(--danger);
+  --primitive-destructive-surface: var(--danger-subtle);
+  --primitive-text-placeholder: var(--fg-subtle);
+  --primitive-surface-hover: var(--hover);
+  --primitive-surface-active: var(--active);
+  --primitive-surface-selected: var(--selected);
+}
+
+/* Materials belong to floating navigation and overlays, not behind dense data. */
+[data-slot="sheet-content"],
+[data-slot="dropdown-menu-content"] {
+  --surface-rim-top: var(--primitive-catchlight);
+}
+@media (prefers-contrast: more) {
+  :root:root,
+  .dark.dark {
+    --line: var(--line-strong);
+    --fg-subtle: var(--fg-muted);
+  }
+}
+
+/* The navigation rail gets a quiet mint selection, with a readable fixed
+ * foreground in both appearances. It remains distinct from the work canvas. */
+aside a[aria-current="page"] {
+  background-color: rgb(139 211 168 / 0.16);
+  box-shadow: inset 0 0 0 1px rgb(176 227 192 / 0.1);
+}
+aside a[aria-current="page"] svg {
+  color: #a7e0bb;
+}
+
+/* Role separation, independent of the general card color. Tables are work
+ * surfaces, their headings are a distinct navigation band, and fields are controls. */
+:root:root {
+  --workspace-header: #fafbf8;
+  --table-body: #ffffff;
+  --table-heading: #e8eee7;
+  --table-heading-fg: #3c5141;
+}
+.dark.dark {
+  --workspace-header: #252c26;
+  --table-body: #202622;
+  --table-heading: #303c32;
+  --table-heading-fg: #d2dfcf;
+}
+[data-slot="table"] {
+  --surface-face: var(--table-body);
+  --surface-depth: none;
+}
+[data-slot="table"] thead {
+  background-color: var(--table-heading);
+  color: var(--table-heading-fg);
+}
+[data-slot="table"] thead th {
+  color: var(--table-heading-fg);
+}
+/* Use the same neutral selection semantics in Wensity and application tables. */
+[data-slot="table"] tbody tr:hover {
+  background-color: var(--hover);
+}
+[data-slot="table"] tbody tr[aria-selected="true"] {
+  background-color: var(--selected);
+}
+[data-traiv-page-header] {
+  background-color: var(--workspace-header);
+}

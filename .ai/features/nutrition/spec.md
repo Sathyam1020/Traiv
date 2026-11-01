@@ -622,15 +622,10 @@ GET    /c/:studioId/barcode/:code             (checks our `ingredient` table fir
                                                  Open Food Facts live, caches the result, § Decision #2c)
 ```
 
-**`reveal.food`** (`apps/api/src/features/client/today.ts`) changes from
-`dietPlan.length > 0` to checking `mealPlanTemplates` with `clientId = this client` and
-`status = 'active'` — same shape the check already has, new source table. **This is a
-behaviour-neutral rename, not a new rule**: a client still only sees the Food tab once
-something real exists for them to see — except the food-logging flows (quick-add,
-barcode, My Recipes) are available with **no plan assigned at all**, per the empty-state
-screenshots, so `reveal.food` should gate the tab becoming visible in nav the same way it
-always has, while the tab's own content (not the nav) already branches on whether a plan
-exists.
+**`reveal.food`** (`apps/api/src/features/client/today.ts`) is true for an authorized
+coaching relationship, independently of assignment (ADR 0031). The Food screen branches
+on whether a published meal plan exists, while logging remains available without one.
+Paused relationships retain the existing read/mutation gates.
 
 ---
 
@@ -923,10 +918,12 @@ assigned-plan banner) — but logging itself works with **no plan assigned**, pe
 empty-state screenshots, so this phase delivers real value even before D ships if
 sequencing needs to flex.
 
-**Phase F — ADR 0025 + cleanup.** Write the ADR, drop `diet_plan`/`meal`/`meal_item`/
-`meal_log`/`foods`/`food_request` and their migration remnants, update `.ai/state/current.md`.
-Could run any time after Decision #1 is confirmed — listed last only because it's not
-blocking, not because it's optional.
+**Phase F — ADR 0025 + cleanup (implemented 2026-11-01).** Retired schema and
+runtime references were already removed under migration 0024. A read-only database audit
+confirmed all legacy nutrition tables absent. Updated ADR 0025, corrected Food visibility
+and seeded-recipe notes, and added `docs/nutrition-acceptance.md`. Keep historical
+migrations/snapshots; no additional drop migration is necessary. Founder acceptance remains
+pending; implementation completion is not a claim of verified behavior.
 
 ---
 
@@ -966,8 +963,8 @@ blocking, not because it's optional.
    from the local `ingredient` table.
 7. A `food_log_entry`'s macros survive a later edit to the recipe or ingredient it was
    logged from.
-8. `reveal.food` turns true the moment a client has an active meal plan — not before, and
-   never because they have logged food without one.
+8. `reveal.food` is true with an authorized coaching relationship even before plan assignment;
+   only published assigned plans are visible to the client.
 9. The IFCT import is pinned to `@ifct2017/compositions@2.0.8`; its version, MIT license metadata and actual `LICENSE` text are verified before database writes (§ Decision #2, ADR 0026).
 
 ## Deliberately not in v1
@@ -1003,8 +1000,11 @@ Implemented surfaces:
 - Food diary with date/week navigation, calorie summary, live macro rings, four meal
   slots, quick add, source logging, edit/move/delete, copy meal/day selections, and add
   from yesterday. Frozen source nutrition and adjusted plan portions drive all totals.
-- Search, Recent, Favorites, My Recipes and My Foods; a shared serving/gram/ml logger
-  with date/slot controls, image, recipe ingredients, steps and nutrient details.
+- Dedicated Log food page with Recent/Favorites, barcode, Photo Log and Quick add; no
+  general search field on that page. My Recipes/My Foods open dedicated library pages.
+  Recipe details show ingredients and steps; a separate serving/gram/ml logging sheet
+  provides quantity, meal and shadcn calendar date controls. Ingredient search remains
+  available inside recipe creation.
 - Published plan picker, meal tabs and recipe choices. Draft coach changes stay private.
 - Client recipe CRUD, duplication, optional image upload, ingredient quantities, live
   per-serving nutrition and instructions; ingredients/recipes remain client-private.

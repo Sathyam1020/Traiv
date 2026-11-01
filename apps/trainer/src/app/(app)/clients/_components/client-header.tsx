@@ -51,11 +51,9 @@ const STATUS_LABEL: Record<ClientProfile["status"], string> = {
 /**
  * The views of one client.
  *
- * Only Overview exists. The rest are here because they are the shape of the screen and
- * each names something real — `workout_plan`, `diet_plan`, `body_metric`, `vault`,
- * payments, automations — rather than a wishlist. They read as not-yet rather than as
- * clickable and empty: a tab that opens onto nothing is what makes a product feel
- * hollow, a tab that says "not built" does not.
+ * Overview, development, nutrition and workouts use their own client-scoped data.
+ * Nutrition and workouts edit client-owned copies of templates. Remaining tabs retain
+ * their existing availability rules.
  */
 const TABS = [
   { label: "Overview", icon: LayoutGrid, ready: true },

@@ -20,32 +20,18 @@ export type UiStore = UiState & UiActions;
 
 const THEME_KEY = "traiv.theme";
 
-/**
- * Read once on the client. On the server there is no preference to read.
- *
- * Dark unless the person has chosen light (ADR 0022). The OS setting is deliberately not
- * consulted: dark is the product's own appearance, and light is the alternative a person
- * picks — on a phone in direct sun, say — rather than the one they are handed.
- */
+/** Light is the only product appearance; ignore older saved preferences. */
 function storedTheme(): Theme {
-  if (typeof window === "undefined") return "dark";
-  try {
-    const saved = window.localStorage.getItem(THEME_KEY);
-    if (saved === "light" || saved === "dark") return saved;
-    return "dark";
-  } catch {
-    // Private windows and blocked site data both throw here.
-    return "dark";
-  }
+  return "light";
 }
 
-function persist(theme: Theme) {
+function persist() {
   try {
-    window.localStorage.setItem(THEME_KEY, theme);
+    window.localStorage.setItem(THEME_KEY, "light");
   } catch {
-    // A remembered theme is a convenience, not a requirement.
+    // Blocked storage must not prevent the light appearance.
   }
-  document.documentElement.classList.toggle("dark", theme === "dark");
+  document.documentElement.classList.remove("dark");
 }
 
 /**
@@ -54,15 +40,16 @@ function persist(theme: Theme) {
  * A global store on the server is shared across concurrent requests, so one user's state
  * can leak into another's response. The provider creates one instance per render tree.
  */
-export const createUiStore = (init: UiState = { theme: "dark", studioId: null }) =>
+export const createUiStore = (init: UiState = { theme: "light", studioId: null }) =>
   createStore<UiStore>()((set, get) => ({
     ...init,
-    setTheme: (theme) => {
-      persist(theme);
-      set({ theme });
+    theme: "light",
+    setTheme: () => {
+      persist();
+      set({ theme: "light" });
     },
     setStudioId: (studioId) => set({ studioId }),
-    toggleTheme: () => get().setTheme(get().theme === "dark" ? "light" : "dark"),
+    toggleTheme: () => get().setTheme("light"),
   }));
 
 export { storedTheme };

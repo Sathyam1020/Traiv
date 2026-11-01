@@ -1,173 +1,140 @@
 "use client";
 
-import { Check, ChevronDown, ChevronUp } from "@traiv/ui/icons";
-import { cn } from "@traiv/ui/lib/cn";
-import { Select as SelectPrimitive } from "radix-ui";
-import type * as React from "react";
+import * as React from "react";
+import {
+  Select as WensitySelect,
+  type SelectProps as WensityProps,
+  type SelectOption,
+  type SelectGroup as WensityGroup,
+} from "./wensity/select";
 
-function Select({ ...props }: React.ComponentProps<typeof SelectPrimitive.Root>) {
-  return <SelectPrimitive.Root data-slot="select" {...props} />;
-}
-
-function SelectGroup({ ...props }: React.ComponentProps<typeof SelectPrimitive.Group>) {
-  return <SelectPrimitive.Group data-slot="select-group" {...props} />;
-}
-
-function SelectValue({ ...props }: React.ComponentProps<typeof SelectPrimitive.Value>) {
-  return <SelectPrimitive.Value data-slot="select-value" {...props} />;
-}
-
-function SelectTrigger({
-  className,
-  size = "default",
-  children,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Trigger> & {
+type PartProps = {
+  children?: React.ReactNode;
+  className?: string;
+  value?: string;
+  disabled?: boolean;
+  placeholder?: React.ReactNode;
   size?: "sm" | "default";
-}) {
-  return (
-    <SelectPrimitive.Trigger
-      data-slot="select-trigger"
-      data-size={size}
-      className={cn(
-        "flex w-fit items-center justify-between gap-2 rounded-control border border-input bg-sunken px-3 py-2 text-sm whitespace-nowrap transition-[color,box-shadow] outline-none focus-visible:border-line-focus disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive data-[placeholder]:text-muted-foreground data-[size=default]:h-9 data-[size=sm]:h-8 pointer-coarse:data-[size=default]:h-11 pointer-coarse:data-[size=sm]:h-10 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-      <SelectPrimitive.Icon asChild>
-        <ChevronDown className="size-4 opacity-50" />
-      </SelectPrimitive.Icon>
-    </SelectPrimitive.Trigger>
-  );
-}
-
-function SelectContent({
-  className,
-  children,
-  position = "popper",
-  align = "start",
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Content>) {
-  return (
-    <SelectPrimitive.Portal>
-      <SelectPrimitive.Content
-        data-slot="select-content"
-        className={cn(
-          "relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] origin-(--radix-select-content-transform-origin) overflow-x-hidden overflow-y-auto rounded-control border border-line bg-raised text-fg shadow-float data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=closed]:zoom-out-95 data-[state=open]:animate-in data-[state=open]:fade-in-0 data-[state=open]:zoom-in-95",
-          position === "popper" &&
-            "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
-          className,
-        )}
-        position={position}
-        align={align}
-        {...props}
-      >
-        <SelectScrollUpButton />
-        <SelectPrimitive.Viewport
-          className={cn(
-            "p-1.5",
-            position === "popper" && "w-full min-w-[var(--radix-select-trigger-width)] scroll-my-1",
-          )}
-        >
-          {children}
-        </SelectPrimitive.Viewport>
-        <SelectScrollDownButton />
-      </SelectPrimitive.Content>
-    </SelectPrimitive.Portal>
-  );
-}
-
-function SelectLabel({ className, ...props }: React.ComponentProps<typeof SelectPrimitive.Label>) {
-  return (
-    <SelectPrimitive.Label
-      data-slot="select-label"
-      className={cn("px-2 py-1.5 text-caption text-muted-foreground", className)}
-      {...props}
-    />
-  );
-}
-
-function SelectItem({
-  className,
-  children,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Item>) {
-  return (
-    <SelectPrimitive.Item
-      data-slot="select-item"
-      className={cn(
-        "relative flex w-full cursor-pointer items-center gap-2 rounded-control py-2 pr-8 pl-3 text-body-sm outline-hidden select-none focus:bg-selected focus:text-fg data-[disabled]:pointer-events-none data-[disabled]:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4 [&_svg:not([class*='text-'])]:text-muted-foreground *:[span]:last:flex *:[span]:last:items-center *:[span]:last:gap-2",
-        className,
-      )}
-      {...props}
-    >
-      <span
-        data-slot="select-item-indicator"
-        className="absolute right-2 flex size-3.5 items-center justify-center"
-      >
-        <SelectPrimitive.ItemIndicator>
-          <Check className="size-4" />
-        </SelectPrimitive.ItemIndicator>
-      </span>
-      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
-    </SelectPrimitive.Item>
-  );
-}
-
-function SelectSeparator({
-  className,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.Separator>) {
-  return (
-    <SelectPrimitive.Separator
-      data-slot="select-separator"
-      className={cn("pointer-events-none -mx-1 my-1 h-px bg-border", className)}
-      {...props}
-    />
-  );
-}
-
-function SelectScrollUpButton({
-  className,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.ScrollUpButton>) {
-  return (
-    <SelectPrimitive.ScrollUpButton
-      data-slot="select-scroll-up-button"
-      className={cn("flex cursor-default items-center justify-center py-1", className)}
-      {...props}
-    >
-      <ChevronUp className="size-4" />
-    </SelectPrimitive.ScrollUpButton>
-  );
-}
-
-function SelectScrollDownButton({
-  className,
-  ...props
-}: React.ComponentProps<typeof SelectPrimitive.ScrollDownButton>) {
-  return (
-    <SelectPrimitive.ScrollDownButton
-      data-slot="select-scroll-down-button"
-      className={cn("flex cursor-default items-center justify-center py-1", className)}
-      {...props}
-    >
-      <ChevronDown className="size-4" />
-    </SelectPrimitive.ScrollDownButton>
-  );
-}
-
-export {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectLabel,
-  SelectScrollDownButton,
-  SelectScrollUpButton,
-  SelectSeparator,
-  SelectTrigger,
-  SelectValue,
+  id?: string;
+  "aria-label"?: string;
+  "aria-labelledby"?: string;
+  "aria-describedby"?: string;
+  "aria-invalid"?: boolean | "true" | "false";
 };
+export function SelectItem(_props: PartProps & { value: string }) {
+  return null;
+}
+export function SelectTrigger(_props: PartProps) {
+  return null;
+}
+export function SelectValue(_props: PartProps) {
+  return null;
+}
+export function SelectContent(
+  _props: PartProps & {
+    align?: "start" | "end" | "center";
+    position?: "popper" | "item-aligned";
+    side?: "top" | "bottom" | "left" | "right";
+    sideOffset?: number;
+    onCloseAutoFocus?: (event: Event) => void;
+  },
+) {
+  return null;
+}
+export function SelectGroup(_props: PartProps) {
+  return null;
+}
+export function SelectLabel(_props: PartProps) {
+  return null;
+}
+export function SelectSeparator(_props: PartProps) {
+  return null;
+}
+function find(children: React.ReactNode, type: unknown): PartProps | undefined {
+  for (const child of React.Children.toArray(children)) {
+    if (!React.isValidElement<PartProps>(child)) continue;
+    if (child.type === type) return child.props;
+    const nested = find(child.props.children, type);
+    if (nested) return nested;
+  }
+  return undefined;
+}
+function options(children: React.ReactNode): SelectOption[] {
+  return React.Children.toArray(children).flatMap((child) => {
+    if (!React.isValidElement<PartProps>(child)) return [];
+    if (child.type === SelectItem && child.props.value !== undefined)
+      return [
+        { value: child.props.value, label: child.props.children, disabled: child.props.disabled },
+      ];
+    return options(child.props.children);
+  });
+}
+export function Select({
+  children,
+  ...props
+}: Omit<WensityProps, "options"> & { children?: React.ReactNode }) {
+  const trigger = find(children, SelectTrigger);
+  const content = find(children, SelectContent);
+  const display = find(children, SelectValue);
+  const triggerChildren = React.Children.toArray(trigger?.children).filter(
+    (child) => React.isValidElement(child) && child.type !== SelectValue,
+  );
+  const leadingIcon = triggerChildren.find(
+    (child) => React.isValidElement(child) && child.type !== "span",
+  );
+  const displayLabel = triggerChildren.find(
+    (child) => React.isValidElement(child) && child.type === "span",
+  );
+  const groups: WensityGroup[] = [];
+  function collect(nodes: React.ReactNode) {
+    for (const child of React.Children.toArray(nodes)) {
+      if (!React.isValidElement<PartProps>(child)) continue;
+      if (child.type === SelectGroup)
+        groups.push({
+          label: find(child.props.children, SelectLabel)?.children,
+          options: options(child.props.children),
+        });
+      else collect(child.props.children);
+    }
+  }
+  collect(children);
+  const all = options(children);
+  const groupedValues = new Set(
+    groups.flatMap((group) => group.options.map((option) => option.value)),
+  );
+  const ungrouped = all.filter((option) => !groupedValues.has(option.value));
+  return (
+    <WensitySelect
+      {...props}
+      fullWidth={props.fullWidth ?? false}
+      containerClassName={[
+        "inline-flex min-w-0 shrink-0 align-middle",
+        trigger?.className
+          ?.split(/\s+/)
+          .filter((name) =>
+            /^(?:(?:sm|md|lg|xl|2xl):)*(?:w-|min-w-|max-w-|flex-|shrink-|grow|basis-|self-|col-|mx-|ml-|mr-)/.test(
+              name,
+            ),
+          )
+          .join(" "),
+        props.containerClassName,
+      ]
+        .filter(Boolean)
+        .join(" ")}
+      options={
+        groups.length ? [...(ungrouped.length ? [{ options: ungrouped }] : []), ...groups] : all
+      }
+      id={props.id ?? trigger?.id}
+      placeholder={props.placeholder ?? display?.placeholder}
+      aria-label={props["aria-label"] ?? trigger?.["aria-label"]}
+      aria-labelledby={props["aria-labelledby"] ?? trigger?.["aria-labelledby"]}
+      aria-describedby={props["aria-describedby"] ?? trigger?.["aria-describedby"]}
+      aria-invalid={props["aria-invalid"] ?? trigger?.["aria-invalid"]}
+      leadingIcon={props.leadingIcon ?? leadingIcon}
+      displayLabel={displayLabel}
+      triggerClassName={trigger?.className}
+      contentClassName={content?.className}
+      selectSize={trigger?.size === "sm" ? "sm" : "md"}
+    />
+  );
+}

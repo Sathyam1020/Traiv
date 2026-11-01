@@ -22,7 +22,9 @@
     "motion": "catalog:",
     "radix-ui": "catalog:",
     "react-day-picker": "catalog:",
-    "sonner": "catalog:"
+    "sonner": "catalog:",
+    "@base-ui/react": "catalog:",
+    "@tabler/icons-react": "catalog:"
   },
   "devDependencies": {
     "@types/react": "catalog:",

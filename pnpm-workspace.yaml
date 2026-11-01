@@ -18,6 +18,8 @@ allowBuilds:
 # Packages reference these with "catalog:" — never a literal version.
 # Adding an entry here requires .ai/engineering/dependencies.md to have been followed.
 catalog:
+  "@base-ui/react": ^1.9.0
+  "@tabler/icons-react": ^3.50.0
   "@zxing/browser": ^0.2.1
   # tooling
   typescript: ^7.0.2

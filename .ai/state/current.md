@@ -1,7 +1,35 @@
 # Current state
 
-**Updated:** 2026-10-31
-**Phase:** nutrition A–D implemented; expanded Phase E client food diary and tools implemented; founder UI acceptance pending
+**Updated:** 2026-11-01
+**Phase:** nutrition A–F implemented; founder functional/UI acceptance pending
+
+## Wensity shared UI migration — 2026-11-01
+
+Shared primitives now use official Wensity registry source via Base UI and Tabler,
+with compatibility adapters at the existing public imports. Traiv purple/light/dark
+tokens and product layouts remain. CLI configuration and update instructions:
+`docs/wensity-ui.md`. Dependency installation and source review completed; tests,
+typechecks, builds and browser checks were not run per user instruction. Manual
+acceptance is pending; do not describe this migration as release-verified.
+
+## Nutrition Phase F closeout — 2026-11-01
+
+Legacy schema/code removal was already complete under migration 0024. Repository searches
+found no remaining runtime dependencies; a read-only schema query confirmed `food`, `foods`,
+`food_request`, `diet_plan`, `meal`, `meal_item`, `meal_log` absent in the configured database.
+No new destructive migration or data transfer was required. Historical migrations and
+snapshots are retained. ADR 0025 and the nutrition spec now agree with ADR 0031: Food is
+available before plan assignment, and imported System recipes exist.
+
+Client routes now include `/food/log`, `/food/recipes`, `/food/recipes/[recipeId]`,
+`/food/foods`, `/food/plans/[planId]`, and published option detail pages. Recipe library
+cards open details; Edit/Duplicate/Delete are explicit actions. Diary-origin library
+navigation preserves its return destination. Private food brand support is migration
+0035 (applied). Client mobile navigation uses the opt-in labelled glass style; Chat is
+still a placeholder, not implemented messaging. Cookbooks remain excluded.
+
+Handoff: `docs/nutrition-acceptance.md`. No tests, typechecks, builds or browser checks
+were run. Functional acceptance and provider/device-dependent checks remain pending.
 
 ## Published plan detail page — 2026-10-31
 

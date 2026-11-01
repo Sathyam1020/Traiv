@@ -1,81 +1,47 @@
 "use client";
-
-import { toggleVariants } from "@traiv/ui/components/toggle";
+import {
+  ToggleGroup as Group,
+  ToggleGroupItem as Item,
+  type ToggleGroupProps,
+  type ToggleGroupItemProps,
+} from "./wensity/toggle";
 import { cn } from "@traiv/ui/lib/cn";
-import type { VariantProps } from "class-variance-authority";
-import { ToggleGroup as ToggleGroupPrimitive } from "radix-ui";
-import * as React from "react";
-
-const ToggleGroupContext = React.createContext<
-  VariantProps<typeof toggleVariants> & {
-    spacing?: number;
-  }
->({
-  size: "default",
-  variant: "default",
-  spacing: 0,
-});
-
-function ToggleGroup({
+type Size = "default" | "sm" | "lg";
+type Props = Omit<ToggleGroupProps, "size" | "onValueChange"> & {
+  size?: Size;
+  spacing?: number;
+  onValueChange?: ((value: string) => void) | ((value: string[]) => void);
+};
+export function ToggleGroup({
+  size = "default",
+  spacing,
   className,
-  variant,
-  size,
-  spacing = 0,
-  children,
+  onValueChange,
+  type = "single",
   ...props
-}: React.ComponentProps<typeof ToggleGroupPrimitive.Root> &
-  VariantProps<typeof toggleVariants> & {
-    spacing?: number;
-  }) {
+}: Props) {
   return (
-    <ToggleGroupPrimitive.Root
-      data-slot="toggle-group"
-      data-variant={variant}
-      data-size={size}
-      data-spacing={spacing}
-      style={{ "--gap": spacing } as React.CSSProperties}
-      className={cn(
-        "group/toggle-group flex w-fit items-center gap-[--spacing(var(--gap))] rounded-md",
-        className,
-      )}
+    <Group
       {...props}
-    >
-      <ToggleGroupContext.Provider value={{ variant, size, spacing }}>
-        {children}
-      </ToggleGroupContext.Provider>
-    </ToggleGroupPrimitive.Root>
+      type={type}
+      size={size === "default" ? "md" : size}
+      className={cn(spacing ? "gap-2" : undefined, className)}
+      onValueChange={(value) => {
+        if (type === "multiple")
+          (onValueChange as ((v: string[]) => void) | undefined)?.(
+            Array.isArray(value) ? value : [value],
+          );
+        else
+          (onValueChange as ((v: string) => void) | undefined)?.(
+            Array.isArray(value) ? (value[0] ?? "") : value,
+          );
+      }}
+    />
   );
 }
-
-function ToggleGroupItem({
-  className,
-  children,
-  variant,
-  size,
+export function ToggleGroupItem({
+  size = "default",
   ...props
-}: React.ComponentProps<typeof ToggleGroupPrimitive.Item> & VariantProps<typeof toggleVariants>) {
-  const context = React.useContext(ToggleGroupContext);
-
-  return (
-    <ToggleGroupPrimitive.Item
-      data-slot="toggle-group-item"
-      data-variant={context.variant || variant}
-      data-size={context.size || size}
-      data-spacing={context.spacing}
-      className={cn(
-        toggleVariants({
-          variant: context.variant || variant,
-          size: context.size || size,
-        }),
-        "w-auto min-w-0 shrink-0 px-3 focus:z-10 focus-visible:z-10",
-        "data-[spacing=0]:rounded-none data-[spacing=0]:shadow-none data-[spacing=0]:first:rounded-l-md data-[spacing=0]:last:rounded-r-md data-[spacing=0]:data-[variant=outline]:border-l-0 data-[spacing=0]:data-[variant=outline]:first:border-l",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </ToggleGroupPrimitive.Item>
-  );
+}: Omit<ToggleGroupItemProps, "size"> & { size?: Size }) {
+  return <Item {...props} size={size === "default" ? "md" : size} />;
 }
-
-export { ToggleGroup, ToggleGroupItem };

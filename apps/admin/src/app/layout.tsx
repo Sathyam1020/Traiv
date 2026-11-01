@@ -20,7 +20,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     // pull-to-refresh, which would throw away unsaved work in a form. The marketing
     // site deliberately does not do this — there, both behaviours are what a reader
     // expects from a web page.
-    <html lang="en" className={`${inter.variable} dark overscroll-none`}>
+    <html lang="en" className={`${inter.variable} overscroll-none`}>
       <body>
         <Providers>{children}</Providers>
       </body>

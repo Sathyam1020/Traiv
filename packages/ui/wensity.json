@@ -1,0 +1,23 @@
+{
+  "$schema": "https://ui.wensity.com/schema/wensity.json",
+  "version": 1,
+  "registry": "https://ui.wensity.com/api/registry",
+  "components": "src/components/wensity",
+  "utils": "src/lib/cn",
+  "tailwind": {
+    "css": "src/styles/globals.css"
+  },
+  "aliases": {
+    "components": "@traiv/ui/components/wensity",
+    "utils": "@traiv/ui/lib/cn"
+  },
+  "style": {
+    "iconLibrary": "tabler",
+    "radius": "medium",
+    "fonts": {
+      "sans": "site",
+      "display": "site",
+      "mono": "system-mono"
+    }
+  }
+}
