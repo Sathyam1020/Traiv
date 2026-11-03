@@ -1,12 +1,16 @@
 "use client";
-import { Calendar as WensityCalendar, type CalendarProps } from "./wensity/calendar";
 import type { Matcher } from "react-day-picker";
+import { type CalendarProps, Calendar as WensityCalendar } from "./wensity/calendar";
+
 function matches(date: Date, matcher: Matcher): boolean {
   if (typeof matcher === "boolean") return matcher;
   if (typeof matcher === "function") return matcher(date);
   if (matcher instanceof Date) return date.toDateString() === matcher.toDateString();
   if (Array.isArray(matcher)) return matcher.some((d) => d.toDateString() === date.toDateString());
-  if ("dayOfWeek" in matcher) return matcher.dayOfWeek.includes(date.getDay());
+  if ("dayOfWeek" in matcher)
+    return Array.isArray(matcher.dayOfWeek)
+      ? matcher.dayOfWeek.includes(date.getDay())
+      : matcher.dayOfWeek === date.getDay();
   const day = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
   if ("before" in matcher && "after" in matcher)
     return day < matcher.before.getTime() && day > matcher.after.getTime();

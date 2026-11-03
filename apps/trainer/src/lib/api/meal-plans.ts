@@ -1,5 +1,7 @@
 import type { MealPlan, PlanDocument, PlanOption, PlanSettings } from "@traiv/nutrition/meal-plans";
+import { withActionFeedback } from "@traiv/ui/lib/action-feedback";
 import { http } from "./client";
+
 export type { MealPlan, PlanDocument, PlanOption, PlanSettings };
 export type PlanSummary = PlanSettings & {
   id: string;
@@ -35,7 +37,15 @@ export const mealPlansApi = {
       name?: string;
       targets?: Pick<PlanSettings, "calorieTarget" | "proteinPct" | "carbsPct" | "fatPct">;
     },
-  ) => (await http.post<MealPlan>(`${base(studio)}/clients/${clientId}/mealplans`, input)).data,
+  ) =>
+    withActionFeedback(
+      async () =>
+        (await http.post<MealPlan>(`${base(studio)}/clients/${clientId}/mealplans`, input)).data,
+      {
+        success: "Nutrition plan added to client",
+        error: "Couldn't complete this meal-plan action. Try again.",
+      },
+    ),
   list: async (studio: string, search: string, page: number) =>
     (
       await http.get<{ items: PlanSummary[]; total: number; page: number }>(
@@ -46,7 +56,13 @@ export const mealPlansApi = {
   get: async (studio: string, id: string) =>
     (await http.get<MealPlan>(`${base(studio)}/mealplans/${id}`)).data,
   create: async (studio: string, id: string, document: PlanDocument) =>
-    (await http.post<MealPlan>(`${base(studio)}/mealplans`, { id, document })).data,
+    withActionFeedback(
+      async () => (await http.post<MealPlan>(`${base(studio)}/mealplans`, { id, document })).data,
+      {
+        success: "Meal plan created",
+        error: "Couldn't complete this meal-plan action. Try again.",
+      },
+    ),
   save: async (
     studio: string,
     id: string,
@@ -62,19 +78,60 @@ export const mealPlansApi = {
       })
     ).data,
   publish: async (studio: string, id: string, expectedUpdatedAt: string) =>
-    (await http.post<MealPlan>(`${base(studio)}/mealplans/${id}/publish`, { expectedUpdatedAt }))
-      .data,
+    withActionFeedback(
+      async () =>
+        (
+          await http.post<MealPlan>(`${base(studio)}/mealplans/${id}/publish`, {
+            expectedUpdatedAt,
+          })
+        ).data,
+      {
+        success: "Meal plan published",
+        error: "Couldn't complete this meal-plan action. Try again.",
+      },
+    ),
   discard: async (studio: string, id: string, expectedUpdatedAt: string) =>
-    (await http.post<MealPlan>(`${base(studio)}/mealplans/${id}/discard`, { expectedUpdatedAt }))
-      .data,
+    withActionFeedback(
+      async () =>
+        (
+          await http.post<MealPlan>(`${base(studio)}/mealplans/${id}/discard`, {
+            expectedUpdatedAt,
+          })
+        ).data,
+      {
+        success: "Published version restored",
+        error: "Couldn't complete this meal-plan action. Try again.",
+      },
+    ),
   duplicate: async (studio: string, id: string, copyId: string) =>
-    (await http.post<MealPlan>(`${base(studio)}/mealplans/${id}/duplicate`, { id: copyId })).data,
+    withActionFeedback(
+      async () =>
+        (await http.post<MealPlan>(`${base(studio)}/mealplans/${id}/duplicate`, { id: copyId }))
+          .data,
+      {
+        success: "Meal plan duplicated",
+        error: "Couldn't complete this meal-plan action. Try again.",
+      },
+    ),
   archive: async (studio: string, id: string, expectedUpdatedAt: string) =>
-    (await http.post(`${base(studio)}/mealplans/${id}/archive`, { expectedUpdatedAt })).data,
+    withActionFeedback(
+      async () =>
+        (await http.post(`${base(studio)}/mealplans/${id}/archive`, { expectedUpdatedAt })).data,
+      {
+        success: "Meal plan archived",
+        error: "Couldn't complete this meal-plan action. Try again.",
+      },
+    ),
   presets: async (studio: string) =>
     (await http.get<MacroPreset[]>(`${base(studio)}/mealplan-presets`)).data,
   savePreset: async (studio: string, preset: MacroPreset) =>
-    (await http.post<MacroPreset[]>(`${base(studio)}/mealplan-presets`, preset)).data,
+    withActionFeedback(
+      async () => (await http.post<MacroPreset[]>(`${base(studio)}/mealplan-presets`, preset)).data,
+      {
+        success: "Macro preset saved",
+        error: "Couldn't complete this meal-plan action. Try again.",
+      },
+    ),
   option: async (studio: string, recipeId: string) =>
     (await http.get<PlanOption>(`${base(studio)}/mealplan-recipes/${recipeId}`)).data,
 };

@@ -250,7 +250,7 @@ export default function ClientsPage() {
           </span>
 
           <span className="hidden text-fg-subtle lg:inline">
-            Messages and plans are not built yet
+            Open a client to view their plans and conversation
           </span>
         </TableFooter>
       </TableCard>
@@ -370,19 +370,9 @@ function StatusBadge({ status }: { status: RosterStatus }) {
  * There is no messages table. Rather than an empty column that looks broken, the cell
  * shows the one real fact it has — when they last logged a session — and says what it is.
  */
-function LastMessage({ client }: { client: RosterClient }) {
-  if (!client.lastSessionAt) {
-    return <span className="text-body-sm text-fg-subtle">Nothing yet</span>;
-  }
-
-  return (
-    <span className="flex max-w-[15rem] flex-col gap-0.5 rounded-control bg-sunken px-3 py-1.5">
-      <span className="truncate text-body-sm font-medium">Logged a session</span>
-      <span className="text-caption text-fg-subtle">
-        {shortDate(new Date(client.lastSessionAt))}
-      </span>
-    </span>
-  );
+function LastMessage({client}:{client:RosterClient}) {
+ const m=client.lastMessage;
+ return m ? <Link href={`/inbox?client=${client.id}`} onClick={e=>e.stopPropagation()} className="flex max-w-[15rem] flex-col gap-1 py-2"><span className="truncate text-body-sm">{m.kind==="workout"?"Completed a workout":m.kind==="check-in"?"Submitted a check-in":m.body||"Sent an attachment"}</span><span className="text-caption text-fg-subtle">{shortDate(new Date(m.createdAt))}</span></Link> : <span className="text-body-sm text-fg-subtle">No messages yet</span>;
 }
 
 /** Sample content — there is no plan generator yet, so both icons are dimmed. */

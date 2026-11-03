@@ -24,7 +24,7 @@ import type { AnswerInput } from "@/lib/api";
  */
 
 const KEY = "traiv.check-in.draft";
-const VERSION = 1;
+const VERSION = 2;
 
 export type Draft = {
   version: number;
@@ -51,6 +51,7 @@ function read(): Draft | null {
     const raw = localStorage.getItem(KEY);
     if (!raw) return null;
     const draft = JSON.parse(raw) as Draft;
+    if (draft.version === 1) return { ...draft, version: VERSION, stepIndex: 0 };
     return draft.version === VERSION ? draft : null;
   } catch {
     return null;

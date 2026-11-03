@@ -18,7 +18,8 @@ export const joinApi = {
 };
 
 export const clientApi = {
-  coaches: async () => (await http.get<{ coaches: Coach[] }>("/c")).data.coaches,
+  coaches: async () =>
+    (await http.get<{ coaches: Coach[] }>("/c", { timeout: 15000 })).data.coaches,
 
   me: async (studioId: string) => (await http.get<ClientMe>(`/c/${studioId}/me`)).data,
 

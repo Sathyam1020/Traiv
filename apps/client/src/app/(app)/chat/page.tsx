@@ -1,19 +1,46 @@
-import { Page } from "@traiv/ui/components/shell/page";
-import { MessageCircle } from "@traiv/ui/icons";
-
+"use client";
+import { ChatConversation, type ChatTransport } from "@traiv/ui/components/chat";
+import { useMemo } from "react";
+import { API_BASE, http } from "@/lib/api/client";
+import { useActiveStudio, useSession } from "@/lib/query";
 export default function ChatPage() {
-  return (
-    <Page className="flex-1 pb-28">
-      <h1 className="text-heading font-semibold">Chat</h1>
-      <div className="flex flex-1 flex-col items-center justify-center gap-3 py-20 text-center">
-        <span className="flex size-16 items-center justify-center rounded-full bg-selected text-signal-text">
-          <MessageCircle className="size-7" />
-        </span>
-        <h2 className="text-body font-semibold">Your coach conversations</h2>
-        <p className="max-w-xs text-body-sm text-fg-muted">
-          Chat preview. Messaging isn't available yet.
-        </p>
+  const userId = useSession().data?.user.id ?? "loading";
+  const { studioId, isPending, error } = useActiveStudio();
+  const base = `/c/${studioId}/chat`;
+  const transport = useMemo<ChatTransport>(
+    () => ({
+      draftKey: `${userId}:${base}`,
+      get: async (path) => (await http.get(base + path, { timeout: 15000 })).data,
+      post: async (path, body) => (await http.post(base + path, body)).data,
+      events: `${API_BASE}${base}/events`,
+      media: (id) => `${API_BASE}${base}/media/${id}`,
+    }),
+    [base, userId],
+  );
+  if (!studioId)
+    return (
+      <div className="p-6 text-fg-muted">
+        {isPending ? (
+          "Loading your conversation…"
+        ) : error ? (
+          <>
+            <p>Couldn't load your coach.</p>
+            <button
+              type="button"
+              className="mt-3 text-signal-text"
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </button>
+          </>
+        ) : (
+          "Chat will be available when you're connected with a coach."
+        )}
       </div>
-    </Page>
+    );
+  return (
+    <div className="flex min-h-0 flex-1 flex-col pb-[calc(6.5rem+env(safe-area-inset-bottom))] lg:pb-0">
+      <ChatConversation key={studioId} transport={transport} name="Your coach" />
+    </div>
   );
 }

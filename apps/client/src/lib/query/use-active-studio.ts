@@ -31,5 +31,6 @@ export function useActiveStudio() {
     stalled: coaches.data?.length ? (running ? null : coaches.data[0]) : null,
     isPending: session.isPending || coaches.isPending,
     signedIn,
+    error: session.error ?? coaches.error,
   };
 }

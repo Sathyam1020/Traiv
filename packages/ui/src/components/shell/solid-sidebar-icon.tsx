@@ -1,96 +1,127 @@
 import {
+  IconAppleFilled,
+  IconBarbellFilled,
+  IconBookFilled,
+  IconBowlSpoonFilled,
+  IconChartAreaFilled,
+  IconClipboardListFilled,
+  IconCreditCardFilled,
+  IconFileTextFilled,
+  IconHomeFilled,
+  IconLayoutGridFilled,
+  IconMessageFilled,
+  IconMoonFilled,
+  IconSettingsFilled,
+  IconSparklesFilled,
+  IconSunFilled,
+  IconToolsKitchen2Filled,
+  IconUserFilled,
+} from "@tabler/icons-react";
+import {
+  Apple,
   BookOpen,
+  ChartArea,
   ClipboardList,
+  CreditCard,
   Dumbbell,
+  FileText,
+  Home,
+  type Icon,
+  Inbox,
   LayoutGrid,
-  LogOut,
+  MessageSquareText,
   Moon,
   Salad,
   Settings,
+  Sparkles,
   Sun,
+  User,
   Users,
-  type Icon,
+  Utensils,
 } from "@traiv/ui/icons";
+import { cn } from "../../lib/utils";
 
-/** Solid silhouettes are confined to the desktop rail; content/mobile icons stay outlined. */
+/**
+ * Every outline glyph this app has a library-drawn solid counterpart for.
+ *
+ * Not every icon has one — Tabler ships no filled `ChartBar`, for one — so a lookup
+ * miss is expected and handled by each caller, not an error.
+ */
+function filledVariant(Outline: Icon) {
+  switch (Outline) {
+    case Inbox:
+      return IconMessageFilled;
+    case Users:
+    case User:
+      return IconUserFilled;
+    case Dumbbell:
+      return IconBarbellFilled;
+    case LayoutGrid:
+      return IconLayoutGridFilled;
+    case ClipboardList:
+      return IconClipboardListFilled;
+    case BookOpen:
+      return IconBookFilled;
+    case Salad:
+      return IconBowlSpoonFilled;
+    case Apple:
+      return IconAppleFilled;
+    case CreditCard:
+      return IconCreditCardFilled;
+    case FileText:
+      return IconFileTextFilled;
+    case Sparkles:
+      return IconSparklesFilled;
+    case Settings:
+      return IconSettingsFilled;
+    case ChartArea:
+      return IconChartAreaFilled;
+    case Moon:
+      return IconMoonFilled;
+    case Sun:
+      return IconSunFilled;
+    case Home:
+      return IconHomeFilled;
+    case MessageSquareText:
+      return IconMessageFilled;
+    case Utensils:
+      return IconToolsKitchen2Filled;
+    default:
+      return null;
+  }
+}
+
+/** Library-drawn solids only in the desktop sidebar; mobile/content icons retain their style. */
 export function SolidSidebarIcon({ icon: Outline, className }: { icon: Icon; className?: string }) {
-  let shape;
-  if (Outline === Users)
-    shape = (
-      <>
-        <circle cx="9" cy="7" r="4" />
-        <circle cx="18" cy="8" r="3" />
-        <path d="M1 21v-3a8 8 0 0 1 16 0v3zm17-6a9 9 0 0 1 1 4v2h4v-3a6 6 0 0 0-5-6z" />
-      </>
-    );
-  else if (Outline === Dumbbell)
-    shape = (
-      <g transform="rotate(-35 12 12)">
-        <rect x="1" y="7" width="4" height="10" rx="1" />
-        <rect x="5" y="4" width="4" height="16" rx="1" />
-        <rect x="9" y="10" width="6" height="4" />
-        <rect x="15" y="4" width="4" height="16" rx="1" />
-        <rect x="19" y="7" width="4" height="10" rx="1" />
-      </g>
-    );
-  else if (Outline === LayoutGrid)
-    shape = (
-      <>
-        <rect x="2" y="2" width="9" height="9" rx="2" />
-        <rect x="13" y="2" width="9" height="9" rx="2" />
-        <rect x="2" y="13" width="9" height="9" rx="2" />
-        <rect x="13" y="13" width="9" height="9" rx="2" />
-      </>
-    );
-  else if (Outline === ClipboardList)
-    shape = (
-      <path
-        fillRule="evenodd"
-        d="M8 2h8v3H8zm-3 1h1v4h12V3h1a3 3 0 0 1 3 3v15a3 3 0 0 1-3 3H5a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3zm1 7v2h2v-2zm4 0v2h8v-2zm-4 5v2h2v-2zm4 0v2h8v-2zm-4 5v2h2v-2zm4 0v2h8v-2z"
-      />
-    );
-  else if (Outline === BookOpen)
-    shape = <path d="M2 3c4-1 7 0 9 2v17c-3-2-6-3-10-2V4zm20 0c-4-1-7 0-9 2v17c3-2 6-3 10-2V4z" />;
-  else if (Outline === Salad)
-    shape = (
-      <>
-        <path d="M2 12h20c0 6-4 10-10 10S2 18 2 12zM4 10C0 4 7 0 10 7l1 3zm7 0C7 2 15-1 16 5c6-4 9 3 3 5z" />
-      </>
-    );
-  else if (Outline === Settings)
-    shape = (
-      <path
-        fillRule="evenodd"
-        d="m10 1-1 3-3 1-3-1-2 4 2 2v4l-2 2 2 4 3-1 3 1 1 3h4l1-3 3-1 3 1 2-4-2-2v-4l2-2-2-4-3 1-3-1-1-3zm2 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8"
-      />
-    );
-  else if (Outline === Moon)
-    shape = <path d="M21 15.4A9.5 9.5 0 0 1 8.6 3a10 10 0 1 0 12.4 12.4Z" />;
-  else if (Outline === Sun)
-    shape = (
-      <>
-        <circle cx="12" cy="12" r="5" />
-        <path d="M11 0h2v4h-2zm0 20h2v4h-2zM0 11h4v2H0zm20 0h4v2h-4zM3 2l3 3-1 2-3-3zm15 15 4 4-1 1-4-4zM2 21l4-4 1 1-4 4zM17 6l4-4 1 1-4 4z" />
-      </>
-    );
-  else if (Outline === LogOut)
-    shape = (
-      <>
-        <path d="M3 2h9v4H7v12h5v4H3a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2Z" />
-        <path d="m16 5 7 7-7 7v-5H9v-4h7Z" />
-      </>
-    );
-  else return <Outline className={className} />;
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      width="24"
-      height="24"
-      fill="currentColor"
-      className={className}
-    >
-      {shape}
-    </svg>
+  const Filled = filledVariant(Outline);
+  const style = cn("sidebar-solid-icon", className);
+  return Filled ? (
+    <Filled aria-hidden="true" className={style} />
+  ) : (
+    <Outline aria-hidden="true" className={style} />
   );
+}
+
+/**
+ * Outline at rest, the same icon's library-drawn solid once active — a client's
+ * Overview/Development/Nutrition… tab row, not the sidebar (which is always solid, see
+ * `SolidSidebarIcon` above). Falls back to the outline icon, active or not, if a future
+ * caller passes one with no filled counterpart in the lookup above — rendering nothing
+ * rather than a visually different glyph when the tab opens is the wrong trade. Where no
+ * matched pair existed (Development's `BarChart`), the outline itself was swapped for
+ * one that does, rather than mixing an unrelated glyph in for just the active state —
+ * see `ChartArea`.
+ */
+export function ActiveStateIcon({
+  icon: Outline,
+  active,
+  className,
+}: {
+  icon: Icon;
+  active: boolean;
+  className?: string;
+}) {
+  const Filled = active ? filledVariant(Outline) : null;
+  const Glyph = Filled ?? Outline;
+  return <Glyph aria-hidden="true" className={className} />;
 }

@@ -32,6 +32,12 @@ export function useNutritionActions(studioId: string) {
   const invalidate = () => qc.invalidateQueries({ queryKey: ["nutrition", studioId] });
   return {
     saveIngredient: useMutation({
+      meta: {
+        feedback: {
+          success: "Ingredient saved",
+          error: "Couldn't complete this action. Try again.",
+        },
+      },
       mutationFn: ({ id, input }: { id?: string; input: IngredientWrite }) =>
         id
           ? nutritionApi.ingredients.update(studioId, id, input)
@@ -39,10 +45,19 @@ export function useNutritionActions(studioId: string) {
       onSuccess: invalidate,
     }),
     deleteIngredient: useMutation({
+      meta: {
+        feedback: {
+          success: "Ingredient deleted",
+          error: "Couldn't complete this action. Try again.",
+        },
+      },
       mutationFn: (id: string) => nutritionApi.ingredients.delete(studioId, id),
       onSuccess: invalidate,
     }),
     saveRecipe: useMutation({
+      meta: {
+        feedback: { success: "Recipe saved", error: "Couldn't complete this action. Try again." },
+      },
       mutationFn: ({ id, input }: { id?: string; input: RecipeWrite }) =>
         id
           ? nutritionApi.recipes.update(studioId, id, input)
@@ -50,11 +65,20 @@ export function useNutritionActions(studioId: string) {
       onSuccess: () => qc.invalidateQueries({ queryKey: ["nutrition", studioId, "recipes"] }),
     }),
     duplicateRecipe: useMutation({
+      meta: {
+        feedback: {
+          success: "Recipe duplicated",
+          error: "Couldn't complete this action. Try again.",
+        },
+      },
       mutationFn: ({ id, copyId }: { id: string; copyId: string }) =>
         nutritionApi.recipes.duplicate(studioId, id, copyId),
       onSuccess: invalidate,
     }),
     deleteRecipe: useMutation({
+      meta: {
+        feedback: { success: "Recipe deleted", error: "Couldn't complete this action. Try again." },
+      },
       mutationFn: (id: string) => nutritionApi.recipes.delete(studioId, id),
       onSuccess: invalidate,
     }),

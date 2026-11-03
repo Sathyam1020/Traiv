@@ -5,7 +5,9 @@ import { Skeleton } from "@traiv/ui/components/skeleton";
 import { Activity, ArrowLeft, ChevronRight, Clock, Dumbbell, Play } from "@traiv/ui/icons";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { QueryError } from "@/components/common/query-state";
 import { useActiveStudio, useStartSession, useWorkoutSession } from "@/lib/query";
+import { useWorkoutPrefetch } from "@/lib/query/use-workout-prefetch";
 import { formatSetSummary } from "../../_components/set-summary";
 
 export default function SessionPreviewPage() {
@@ -18,6 +20,7 @@ export default function SessionPreviewPage() {
   const { studioId } = useActiveStudio();
 
   const session = useWorkoutSession(studioId, templateId, sessionId);
+  const prefetch = useWorkoutPrefetch(studioId);
   const start = useStartSession(studioId ?? "", templateId, sessionId);
 
   if (session.isPending) return <Loading />;
@@ -25,7 +28,11 @@ export default function SessionPreviewPage() {
   if (session.error || !session.data) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-20 text-center">
-        <p className="text-body text-fg-muted">We couldn&apos;t find that workout.</p>
+        <QueryError
+          title="Couldn't load this workout."
+          busy={session.isFetching}
+          onRetry={() => void session.refetch()}
+        />
         <Button asChild variant="secondary" size="sm">
           <Link href="/workouts">All workouts</Link>
         </Button>
@@ -36,14 +43,18 @@ export default function SessionPreviewPage() {
   const { session: s, live, exercises } = session.data;
 
   async function begin() {
-    await start.mutateAsync();
-    router.push(`/workouts/${templateId}/${sessionId}/active`);
+    try {
+      await start.mutateAsync();
+      router.push(`/workouts/${templateId}/${sessionId}/active`);
+    } catch {
+      /* Rendered by the mutation recovery state below. */
+    }
   }
 
   return (
     <div className="flex flex-1 flex-col">
       {/* Existing workout header */}
-      <div className="flex flex-col gap-3 bg-brand px-4 pt-4 pb-6 text-brand-fg sm:px-6">
+      <div className="client-workout-header flex flex-col gap-3 bg-brand px-4 pt-4 pb-6 text-brand-fg sm:px-6">
         <Link
           href="/workouts"
           aria-label="Back to workouts"
@@ -81,7 +92,10 @@ export default function SessionPreviewPage() {
               <li key={e.id}>
                 <Link
                   href={`/workouts/${templateId}/${sessionId}/exercises/${e.exerciseId}`}
-                  className="flex items-center gap-3 rounded-surface border border-line bg-surface px-2.5 py-2 transition-colors hover:bg-hover"
+                  onPointerEnter={() => prefetch.exercise(e.exerciseId)}
+                  onFocus={() => prefetch.exercise(e.exerciseId)}
+                  onPointerDown={() => prefetch.exercise(e.exerciseId)}
+                  className="client-tappable flex items-center gap-3 rounded-surface border border-line bg-surface px-2.5 py-2 transition-colors hover:bg-hover"
                 >
                   {/* Thumbnail */}
                   {e.imageUrl ? (
@@ -139,14 +153,20 @@ export default function SessionPreviewPage() {
           })}
         </ul>
 
+        {start.isError ? (
+          <p role="alert" className="text-body-sm text-danger">
+            Couldn't start your workout. Try again.
+          </p>
+        ) : null}
         <Button
+          aria-busy={start.isPending}
           size="lg"
           className="w-full"
           onClick={() => void begin()}
           disabled={start.isPending}
         >
           <Play className="size-4" />
-          {start.isPending ? "Starting…" : live ? "Resume Workout" : "Start Workout"}
+          {start.isPending ? "Starting…" : live ? "Resume workout" : "Start workout"}
         </Button>
       </div>
     </div>

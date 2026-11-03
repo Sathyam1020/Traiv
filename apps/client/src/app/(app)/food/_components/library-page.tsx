@@ -1,18 +1,20 @@
 "use client";
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@traiv/ui/components/button";
 import { Input } from "@traiv/ui/components/input";
-import { ArrowLeft, Plus, Search, Salad, Trash } from "@traiv/ui/icons";
-import { foodApi, localDay, slots, type FoodItem, type Slot } from "@/lib/api/food";
+import { ArrowLeft, Plus, Salad, Search, Trash } from "@traiv/ui/icons";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { QueryError } from "@/components/common/query-state";
+import { type FoodItem, foodApi, localDay, type Slot, slots } from "@/lib/api/food";
 import { useActiveStudio } from "@/lib/query";
+import { useAction } from "./actions";
 import { ErrorText } from "./common";
+import { FoodSkeleton } from "./food-skeleton";
 import { RecipeEditor } from "./library";
 import { Logger } from "./logger";
 import { PersonalFoodEditor } from "./personal-food-editor";
-import { useAction } from "./actions";
 
 export function LibraryPage({ kind }: { kind: "food" | "recipe" }) {
   const router = useRouter();
@@ -89,8 +91,15 @@ export function LibraryPage({ kind }: { kind: "food" | "recipe" }) {
         </div>
       ) : null}
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-44">
-        <ErrorText error={query.error ?? action.error} />
-        {query.isPending ? <p className="py-8 text-center text-fg-muted">Loading…</p> : null}
+        <ErrorText error={action.error} />
+        {query.isError ? (
+          <QueryError
+            title={`Couldn't load your ${kind === "recipe" ? "recipes" : "foods"}.`}
+            busy={query.isFetching}
+            onRetry={() => void query.refetch()}
+          />
+        ) : null}
+        {query.isPending ? <FoodSkeleton /> : null}
         <div className={kind === "recipe" ? "grid grid-cols-2 gap-3" : "space-y-3"}>
           {items.map((item) => (
             <article
@@ -98,6 +107,7 @@ export function LibraryPage({ kind }: { kind: "food" | "recipe" }) {
               className="overflow-hidden rounded-3xl border border-line bg-surface p-2"
             >
               <button
+                type="button"
                 className="w-full text-left"
                 disabled={Boolean(stalled)}
                 onClick={() => {

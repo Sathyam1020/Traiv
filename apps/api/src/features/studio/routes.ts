@@ -1,17 +1,39 @@
+import { trainingRouter } from "./training.js";
+import { measurementsRouter } from "./measurements.js";
+import { schema } from "@traiv/db";
+import { Router } from "express";
+import { z } from "zod";
+import { requireStudio, requireStudioAuth } from "../../middleware/authorize.js";
+import { requireSession } from "../../middleware/session.js";
+import { stepsDate as developmentDay, stepsPeriod } from "../client/steps-validation.js";
+import { trainerMessaging } from "../messaging/routes.js";
+import {
+  checkInTrend,
+  createMetric,
+  ensureCheckIns,
+  getCheckIn,
+  listMetrics,
+  submitCheckIn,
+} from "./check-ins.js";
 import { clientFoodRouter } from "./client-food.js";
 import {
-  clientMealPlans,
-  liveMealPlanTemplates,
-  clientPlanCreateSchema,
-  createClientMealPlan,
-} from "./meal-plans.js";
+  development,
+  developmentClient,
+  readSteps,
+  reviewDevelopment,
+  saveStepGoal,
+} from "./development.js";
 import {
   archiveMealPlan,
+  clientMealPlans,
+  clientPlanCreateSchema,
+  createClientMealPlan,
   createMealPlan,
   discardMealPlan,
   duplicateMealPlan,
   getMealPlan,
   listMealPlans,
+  liveMealPlanTemplates,
   mealPlanPresets,
   mealPlanRecipeOption,
   planDocumentSchema,
@@ -21,19 +43,6 @@ import {
   saveMealPlanPreset,
   updateMealPlan,
 } from "./meal-plans.js";
-import { schema } from "@traiv/db";
-import { Router } from "express";
-import { z } from "zod";
-import { requireStudio, requireStudioAuth } from "../../middleware/authorize.js";
-import { requireSession } from "../../middleware/session.js";
-import {
-  checkInTrend,
-  createMetric,
-  ensureCheckIns,
-  getCheckIn,
-  listMetrics,
-  submitCheckIn,
-} from "./check-ins.js";
 import {
   createIngredient,
   deleteIngredient,
@@ -122,7 +131,13 @@ const rosterQuery = z.object({
 
 studios.get("/:id/clients", requireStudio({ param: "id" }), async (req, res) => {
   const { studioId } = requireStudioAuth(req);
-  res.json(await listRoster({ studioId, ...rosterQuery.parse(req.query) }));
+  res.json(
+    await listRoster({
+      studioId,
+      viewerId: requireSession(req).userId,
+      ...rosterQuery.parse(req.query),
+    }),
+  );
 });
 
 const clientParam = z.object({ clientId: z.string().max(64) });
@@ -848,3 +863,49 @@ studios.get("/:id/mealplan-templates/live", requireStudio({ param: "id" }), asyn
 });
 
 studios.use("/:id/clients/:clientId/food", clientFoodRouter);
+studios.use("/:id/clients/:clientId/measurements", measurementsRouter);
+studios.use("/:id/clients/:clientId/training", requireStudio({ param: "id" }), trainingRouter);
+
+studios.use("/:id/inbox", trainerMessaging);
+
+studios.get(
+  "/:id/clients/:clientId/development",
+  requireStudio({ param: "id" }),
+  async (req, res) => {
+    const { studioId } = requireStudioAuth(req);
+    const { clientId } = clientParam.parse(req.params);
+    res.json(await development(studioId, clientId));
+  },
+);
+studios.get("/:id/clients/:clientId/steps", requireStudio({ param: "id" }), async (req, res) => {
+  const { studioId } = requireStudioAuth(req);
+  const { clientId } = clientParam.parse(req.params);
+  await developmentClient(studioId, clientId);
+  const { start, end } = stepsPeriod.parse(req.query);
+  res.json(await readSteps(clientId, start, end));
+});
+studios.put(
+  "/:id/clients/:clientId/step-goal",
+  requireStudio({ param: "id" }),
+  async (req, res) => {
+    const { studioId } = requireStudioAuth(req);
+    const { clientId } = clientParam.parse(req.params);
+    await developmentClient(studioId, clientId);
+    const { date, count } = z
+      .object({ date: developmentDay, count: z.number().int().min(100).max(100000) })
+      .parse(req.body);
+    await saveStepGoal(clientId, date, count);
+    res.json({ saved: true });
+  },
+);
+studios.post(
+  "/:id/clients/:clientId/development/:checkInId/review",
+  requireStudio({ param: "id" }),
+  async (req, res) => {
+    const { studioId } = requireStudioAuth(req);
+    const { clientId } = clientParam.parse(req.params);
+    const checkInId = z.string().uuid().parse(req.params.checkInId);
+    await reviewDevelopment(studioId, clientId, checkInId, requireSession(req).userId);
+    res.json({ saved: true });
+  },
+);

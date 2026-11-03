@@ -1,10 +1,10 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState, type UIEvent } from "react";
 import { Button } from "@traiv/ui/components/button";
 import { Calendar } from "@traiv/ui/components/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@traiv/ui/components/popover";
-import { CalendarDays, ShoppingBasket, ChevronLeft, ChevronRight, Copy } from "@traiv/ui/icons";
+import { CalendarDays, Copy, ShoppingBasket } from "@traiv/ui/icons";
+import { type UIEvent, useLayoutEffect, useRef, useState } from "react";
 import { localDay, offsetDay } from "@/lib/api/food";
 
 function sunday(date: string) {
@@ -123,7 +123,7 @@ export function FoodHeader({
       <div
         ref={pager}
         onScroll={scrollWeek}
-        tabIndex={0}
+        role="toolbar"
         aria-label="Diary week. Swipe horizontally for previous or next week."
         onKeyDown={(event) => {
           if (event.key === "ArrowLeft" || event.key === "ArrowRight") {

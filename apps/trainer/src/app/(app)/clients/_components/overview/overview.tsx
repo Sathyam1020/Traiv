@@ -1,17 +1,23 @@
 "use client";
 
+import { Avatar } from "@traiv/ui/components/avatar";
 import { Badge } from "@traiv/ui/components/badge";
 import { Skeleton } from "@traiv/ui/components/skeleton";
 import {
   CalendarDays,
+  ClipboardList,
   CreditCard,
+  Dumbbell,
   type Icon,
+  Salad,
   Scale,
   Smartphone,
   Star,
   User,
+  Utensils,
 } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
+import { useState } from "react";
 import type { CheckInTrend as CheckInTrendData, ClientOverview, EnergyBasis } from "@/lib/api";
 import { shortDate } from "../duration-cell";
 import { CheckInTrend, CheckInTrendSkeleton } from "./check-in-trend";
@@ -43,25 +49,31 @@ const REVIEW_LABEL: Record<string, string> = {
   deficit_not_possible: "Deficit not possible",
 };
 
-/** Four weeks, as the messages chart labels them. */
-const CHART_WEEKS = 4;
-
 /**
- * The client's overview.
- *
- * Four bands: the headline figures as one divided strip, the energy line, what they are
- * on right now, then the two trends. All of it from a single request.
- *
- * Several panels have nothing behind them yet — ratings, payments, messages, check-ins.
- * They render in full with their real empty state rather than being hidden, because a
- * coach who cannot see a panel does not conclude it is unbuilt, they conclude they
- * missed it.
+ * One glyph and colour per activity kind — `roster.ts`'s `activity` array is the
+ * complete list of kinds this ever emits (`created`, `activated`, `checkin`, `workout`,
+ * `nutrition`, `food`). Every kind gets its own entry on purpose: a feed where a
+ * check-in, a workout and a meal plan all render as the same blue calendar icon reads as
+ * one long list of nothing, not a record of what actually happened.
  */
+const ACTIVITY_STYLE: Record<string, { icon: Icon; bg: string; fg: string }> = {
+  created: { icon: User, bg: "bg-blue-50", fg: "text-blue-600" },
+  activated: { icon: Smartphone, bg: "bg-violet-50", fg: "text-violet-600" },
+  checkin: { icon: ClipboardList, bg: "bg-green-50", fg: "text-green-600" },
+  workout: { icon: Dumbbell, bg: "bg-sky-50", fg: "text-sky-600" },
+  nutrition: { icon: Salad, bg: "bg-orange-50", fg: "text-orange-600" },
+  food: { icon: Utensils, bg: "bg-teal-50", fg: "text-teal-600" },
+};
+const DEFAULT_ACTIVITY_STYLE = { icon: CalendarDays, bg: "bg-blue-50", fg: "text-blue-600" };
+
+/** Live client summaries and recorded activity. */
 export function Overview({
   data,
   checkIns,
+  onNavigate,
 }: {
   data: ClientOverview;
+  onNavigate?: (tab: "Nutrition" | "Development") => void;
   /** Undefined while its own request is still in flight. */
   checkIns?: CheckInTrendData;
 }) {
@@ -75,19 +87,25 @@ export function Overview({
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
         <Panel
           label="Current meal plan"
-          headline="No meal plan assigned"
-          foot="No active meal plan"
+          headline={data.currentPlan?.name ?? "No meal plan assigned"}
+          foot={
+            data.currentPlan
+              ? `${data.currentPlan.kcal.toLocaleString()} kcal/day · Open nutrition →`
+              : "No active meal plan"
+          }
+          onClick={() => onNavigate?.("Nutrition")}
         />
         <Panel
           label="Latest workout"
-          headline={data.training.lastSessionAt ? "Logged a session" : "No recent workouts"}
+          headline={data.latestWorkout?.name ?? "No workouts recorded"}
           foot={
-            data.training.lastSessionAt
-              ? `${shortDate(new Date(data.training.lastSessionAt))} · ${data.training.sessions} in ${data.training.windowDays} days`
-              : "No recent activity"
+            data.latestWorkout
+              ? `${data.latestWorkout.minutes ?? 0} min · ${shortDate(new Date(data.latestWorkout.completedAt))} · View details →`
+              : "Completed workouts appear here"
           }
+          onClick={() => onNavigate?.("Development")}
         />
-        <MessagesTrend />
+        <MessagesTrend weeks={data.messageWeeks} />
       </div>
 
       <div className="grid grid-cols-1 gap-3 border-line border-t pt-4 lg:grid-cols-2">
@@ -117,12 +135,19 @@ function NotJoined() {
  */
 function HeadlineStrip({ data }: { data: ClientOverview }) {
   const started = new Date(data.startedAt);
-  const startsToday = new Date().toDateString() === started.toDateString();
+  const journeyWeek = Math.max(1, Math.floor((Date.now() - started.getTime()) / 604800000) + 1);
   const w = data.weight;
 
   return (
     <div className="grid grid-cols-1 overflow-hidden rounded-surface border border-line bg-surface sm:grid-cols-2 xl:grid-cols-4">
-      <Cell icon={Star} label="Happiness" value="N/A" foot="No ratings yet" muted />
+      <Cell
+        icon={Star}
+        label="Happiness"
+        value={data.happiness == null ? "N/A" : `${data.happiness} / 5`}
+        foot={data.happiness == null ? "No ratings yet" : "From check-ins"}
+        muted={data.happiness == null}
+        tone={happinessTone(data.happiness)}
+      />
       <Cell icon={CreditCard} label="Next payment" value="N/A" foot="No payments found" muted />
       <Cell
         icon={Scale}
@@ -139,9 +164,9 @@ function HeadlineStrip({ data }: { data: ClientOverview }) {
       />
       <Cell
         icon={CalendarDays}
-        label="Starting"
-        value={startsToday ? "Today" : shortDate(started)}
-        foot={`Starts ${started.toLocaleDateString("en-IN", {
+        label="Journey"
+        value={`Week ${journeyWeek}`}
+        foot={`Started ${started.toLocaleDateString("en-IN", {
           day: "numeric",
           month: "short",
           year: "numeric",
@@ -151,36 +176,66 @@ function HeadlineStrip({ data }: { data: ClientOverview }) {
   );
 }
 
+const CELL_TONE = {
+  success: { bg: "bg-success-subtle", fg: "text-success" },
+  warning: { bg: "bg-warning-subtle", fg: "text-warning" },
+  danger: { bg: "bg-danger-subtle", fg: "text-danger" },
+} as const;
+
 function Cell({
   icon: Glyph,
   label,
   value,
   foot,
   muted = false,
+  tone,
 }: {
   icon: Icon;
   label: string;
   value: string;
   foot: string;
   muted?: boolean;
+  tone?: keyof typeof CELL_TONE;
 }) {
+  const t = tone ? CELL_TONE[tone] : null;
   return (
-    <section className="flex flex-col gap-2 border-line border-b p-4 last:border-b-0 sm:border-r sm:[&:nth-child(2n)]:border-r-0 sm:[&:nth-last-child(-n+2)]:border-b-0 xl:border-b-0 xl:[&:nth-child(2n)]:border-r xl:last:border-r-0">
-      <span className="flex items-center gap-1.5 text-caption uppercase tracking-[0.06em] text-fg-subtle">
+    <section
+      className={cn(
+        "flex flex-col gap-2 border-line border-b p-4 last:border-b-0 sm:border-r sm:[&:nth-child(2n)]:border-r-0 sm:[&:nth-last-child(-n+2)]:border-b-0 xl:border-b-0 xl:[&:nth-child(2n)]:border-r xl:last:border-r-0",
+        t?.bg,
+      )}
+    >
+      <span
+        className={cn(
+          "flex items-center gap-1.5 text-caption uppercase tracking-[0.06em]",
+          t?.fg ?? "text-fg-subtle",
+        )}
+      >
         <Glyph className="size-3.5" aria-hidden="true" />
         {label}
       </span>
       <span
-        className={cn(
-          "font-semibold text-display tabular-nums",
-          muted ? "text-fg-subtle" : "text-fg",
-        )}
+        className={cn("font-semibold text-2xl tabular-nums", muted ? "text-fg-subtle" : "text-fg")}
       >
         {value}
       </span>
       <span className="text-caption text-fg-muted">{foot}</span>
     </section>
   );
+}
+
+/**
+ * Three bands, not a continuous gradient — Coachway's own Happiness card only ever
+ * evidenced one data point (a green card at 4.5/5), so the boundaries here are drawn
+ * from the mood check-in's own five labels (`weekly-fields.tsx`: Very low, Low,
+ * Neutral, Good, Great), not invented from scratch: 1-2 is the two "low" labels, 3 is
+ * "Neutral", 4-5 is the two "good" labels.
+ */
+function happinessTone(happiness: number | null): keyof typeof CELL_TONE | undefined {
+  if (happiness == null) return undefined;
+  if (happiness <= 2) return "danger";
+  if (happiness <= 3) return "warning";
+  return "success";
 }
 
 /**
@@ -293,109 +348,155 @@ function Preferences({ nutrition }: { nutrition: ClientOverview["nutrition"] }) 
 }
 
 /** A labelled panel: small-caps label, a headline, and a footnote pinned to the bottom. */
-function Panel({ label, headline, foot }: { label: string; headline: string; foot: string }) {
+function Panel({
+  label,
+  headline,
+  foot,
+  onClick,
+}: {
+  label: string;
+  headline: string;
+  foot: string;
+  onClick?: () => void;
+}) {
   return (
-    <section className="flex min-h-40 flex-col rounded-surface border border-line bg-surface p-4">
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex min-h-48 flex-col rounded-surface border border-line bg-surface p-5 text-left transition-colors hover:bg-sunken/40 focus-visible:outline-2 focus-visible:outline-primary"
+    >
       <span className="text-caption uppercase tracking-[0.06em] text-fg-subtle">{label}</span>
       <span className="mt-3 font-semibold text-heading tracking-[-0.02em]">{headline}</span>
       <span className="mt-auto pt-4 text-body-sm text-fg-muted">{foot}</span>
-    </section>
+    </button>
   );
 }
 
-/**
- * Four weeks of coach-versus-client messages.
- *
- * Nothing writes a message yet, so every bar is zero. The axis is still drawn: an empty
- * chart with its weeks labelled reads as "no messages", where a blank panel reads as
- * broken.
- */
-function MessagesTrend() {
-  const weeks = Array.from({ length: CHART_WEEKS }, (_, i) => {
-    const end = new Date(Date.now() - (CHART_WEEKS - 1 - i) * 7 * 86_400_000);
-    const start = new Date(end.getTime() - 6 * 86_400_000);
-    const d = (x: Date) =>
-      `${String(x.getMonth() + 1).padStart(2, "0")}/${String(x.getDate()).padStart(2, "0")}`;
-    return { key: d(start), label: `${d(start)} – ${d(end)}` };
-  });
-
+/** Four weeks of actual coach and client messages. */
+function MessagesTrend({ weeks }: { weeks: ClientOverview["messageWeeks"] }) {
+  const max = Math.max(1, ...weeks.map((w) => w.coach + w.client));
+  const coach = weeks.reduce((n, w) => n + w.coach, 0);
+  const client = weeks.reduce((n, w) => n + w.client, 0);
   return (
-    <section className="flex min-h-40 flex-col rounded-surface border border-line bg-surface p-4">
-      <span className="flex flex-wrap items-baseline justify-between gap-2">
-        <span className="text-caption uppercase tracking-[0.06em] text-fg-subtle">
-          Messages trend
+    <section className="flex min-h-48 flex-col rounded-surface border border-line bg-surface p-5">
+      <div className="flex justify-between gap-2 text-caption text-fg-muted">
+        <span className="uppercase tracking-wider">Messages trend</span>
+        <span>
+          Coach: {coach} · Client: {client}
         </span>
-        <span className="flex gap-3 text-caption text-fg-muted tabular-nums">
-          <span>Coach: 0</span>
-          <span>Client: 0</span>
-        </span>
-      </span>
-
-      <span className="relative mt-4 flex flex-1 items-end gap-2 border-line border-b">
-        <span aria-hidden="true" className="absolute inset-x-0 top-1/3 h-px bg-line/60" />
-        <span aria-hidden="true" className="absolute inset-x-0 top-2/3 h-px bg-line/60" />
+      </div>
+      <div className="relative mt-4 flex h-24 items-end gap-4 border-b border-line">
+        {!coach && !client && (
+          <span className="absolute inset-0 flex items-center justify-center text-caption text-fg-muted">
+            No messages this period
+          </span>
+        )}
         {weeks.map((w) => (
-          <span key={w.key} className="relative z-10 min-w-0 flex-1" />
+          <div
+            key={w.key}
+            title={`${w.label}: Coach ${w.coach}, Client ${w.client}`}
+            className="z-10 flex h-full flex-1 items-end justify-center gap-1"
+          >
+            <div
+              className="w-5 rounded-t bg-blue-700"
+              style={{ height: `${(w.coach / max) * 100}%` }}
+            />
+            <div
+              className="w-5 rounded-t bg-blue-400"
+              style={{ height: `${(w.client / max) * 100}%` }}
+            />
+          </div>
         ))}
-      </span>
-
-      <span className="mt-1.5 flex gap-2 text-fg-subtle tabular-nums [font-size:0.625rem]">
+      </div>
+      <div className="mt-2 flex gap-4 text-[10px] text-fg-muted">
         {weeks.map((w) => (
-          <span key={w.key} className="min-w-0 flex-1 truncate text-center">
+          <span key={w.key} className="flex-1 text-center">
             {w.label}
           </span>
         ))}
-      </span>
+      </div>
     </section>
   );
 }
 
-/**
- * What has actually happened to this client.
- *
- * Only two kinds of event are recorded anywhere: the client row being created, and the
- * first app login. Status changes and delivered emails are absent because nothing
- * writes them down — an audit table is what would make this feed real.
- */
 function ActivityFeed({ activity }: { activity: ClientOverview["activity"] }) {
-  const ICON: Record<string, Icon> = { created: User, activated: Smartphone };
-
+  const [filter, setFilter] = useState("All");
+  const visible = filter === "Emails" || filter === "Invoices" ? [] : activity;
   return (
-    <section className="flex flex-col gap-4 rounded-surface border border-line bg-surface p-4 sm:p-5">
-      <span className="font-semibold text-subheading">Activity</span>
-
-      {activity.length === 0 ? (
-        <p className="py-8 text-center text-body-sm text-fg-muted">Nothing recorded yet.</p>
-      ) : (
-        <ol className="flex flex-col">
-          {activity.map((e, i) => {
-            const Glyph = ICON[e.kind] ?? CalendarDays;
-            const last = i === activity.length - 1;
-            return (
-              <li key={e.kind} className="flex gap-3">
-                <span className="flex flex-col items-center">
-                  <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-sunken text-fg-muted">
-                    <Glyph className="size-4" aria-hidden="true" />
-                  </span>
-                  {last ? null : <span aria-hidden="true" className="w-px flex-1 bg-line" />}
-                </span>
-                <span className={cn("flex flex-col gap-0.5", last ? "pb-0" : "pb-5")}>
-                  <span className="font-medium text-body-sm">{e.title}</span>
-                  <span className="text-caption text-fg-muted">
-                    {new Date(e.at).toLocaleString("en-IN", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                </span>
-              </li>
-            );
-          })}
-        </ol>
-      )}
+    <section className="rounded-surface border border-line bg-surface p-5">
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h3 className="font-semibold text-subheading">Activity</h3>
+        <div className="flex rounded-xl border border-line bg-sunken/40 p-1">
+          {["All", "Activity", "Emails", "Invoices"].map((f) => (
+            <button
+              key={f}
+              type="button"
+              onClick={() => setFilter(f)}
+              className={cn(
+                "rounded-lg px-3 py-1.5 text-caption transition-colors",
+                filter === f
+                  ? "bg-surface font-semibold text-fg shadow-sm"
+                  : "text-fg-muted hover:text-fg",
+              )}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
+      </div>
+      {/* A fixed height, scrolling on its own — without this, a client with months of
+          history stretches the whole page instead of staying put beside Check-in trend,
+          which is exactly the overflow Coachway's own `height: 400px` box avoids. */}
+      <div className="max-h-[400px] overflow-y-auto">
+        {!visible.length ? (
+          <p className="py-16 text-center text-body-sm text-fg-muted">
+            {filter === "All" || filter === "Activity"
+              ? "No activity recorded yet."
+              : `No ${filter.toLowerCase()} recorded.`}
+          </p>
+        ) : (
+          <ol>
+            {visible.map((e, i) => {
+              const style = ACTIVITY_STYLE[e.kind] ?? DEFAULT_ACTIVITY_STYLE;
+              const Glyph = style.icon;
+              return (
+                <li key={e.id} className="flex gap-3">
+                  <div className="flex flex-col items-center">
+                    <span
+                      className={cn(
+                        "flex size-9 items-center justify-center rounded-full",
+                        style.bg,
+                        style.fg,
+                      )}
+                    >
+                      <Glyph className="size-4" />
+                    </span>
+                    {i < visible.length - 1 && <span className="w-px flex-1 bg-line" />}
+                  </div>
+                  <div className="min-w-0 flex-1 pb-6 pt-1">
+                    <p className="text-body-sm font-semibold">{e.title}</p>
+                    <p className="mt-1 text-caption text-fg-muted">
+                      {new Date(e.at).toLocaleString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                  </div>
+                  {e.by && (
+                    <div className="flex shrink-0 items-start gap-2 pt-1.5">
+                      <span className="text-caption font-medium text-fg-muted">{e.by}</span>
+                      <Avatar name={e.by} size={24} />
+                    </div>
+                  )}
+                </li>
+              );
+            })}
+          </ol>
+        )}
+      </div>
     </section>
   );
 }

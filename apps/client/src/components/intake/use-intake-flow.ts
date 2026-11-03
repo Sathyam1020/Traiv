@@ -75,7 +75,10 @@ export function useIntakeFlow(studioId: string) {
   return {
     step,
     /** Null until the server has said where they left off. */
-    loading: state.isPending || step === null,
+    loading: state.isPending || (step === null && !state.isError),
+    loadError: state.isError && !state.data,
+    retry: () => state.refetch(),
+    retrying: state.isFetching,
     intake,
     weightKg: state.data?.weightKg ?? null,
     target: state.data?.target ?? null,

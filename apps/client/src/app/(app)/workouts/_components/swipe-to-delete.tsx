@@ -46,7 +46,7 @@ export function SwipeToDelete({
   const dragging = liveX !== null;
 
   function onPointerDown(e: React.PointerEvent) {
-    if (disabled) return;
+    if (disabled || (e.pointerType === "mouse" && e.buttons !== 1)) return;
     start.current = { x: e.clientX, y: e.clientY, open };
     lock.current = "unset";
     // Not setPointerCapture yet — captured too early, a tap on the checkbox or an
@@ -54,6 +54,7 @@ export function SwipeToDelete({
   }
 
   function onPointerMove(e: React.PointerEvent) {
+    if (disabled || e.buttons === 0) return;
     if (lock.current === "vertical") return;
 
     const dx = e.clientX - start.current.x;
@@ -99,7 +100,9 @@ export function SwipeToDelete({
           onOpenChange(false);
         }}
         aria-label="Delete set"
-        tabIndex={open ? 0 : -1}
+        tabIndex={open && !disabled ? 0 : -1}
+        disabled={disabled}
+        aria-hidden={!open}
         className="absolute inset-y-0 right-0 flex w-[72px] items-center justify-center rounded-control bg-danger text-white"
       >
         <Trash className="size-4" />
@@ -108,12 +111,15 @@ export function SwipeToDelete({
         style={{ transform: `translateX(${x}px)`, touchAction: "pan-y" }}
         className={cn(
           "relative bg-panel",
-          !dragging && "transition-transform duration-200 ease-out",
+          !dragging && "transition-transform duration-200 ease-out motion-reduce:transition-none",
         )}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        onPointerCancel={onPointerUp}
+        onPointerCancel={() => {
+          setLiveX(null);
+          lock.current = "unset";
+        }}
         onClickCapture={(e) => {
           // A tap anywhere on an already-open row closes it instead of reaching
           // whatever's underneath — the same as tapping away from an open iOS swipe.

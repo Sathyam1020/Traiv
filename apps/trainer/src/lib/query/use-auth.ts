@@ -62,6 +62,9 @@ export function useVerifyCode() {
 export function useUpdateProfile() {
   const qc = useQueryClient();
   return useMutation({
+    meta: {
+      feedback: { error: "Couldn't update your profile. Try again.", success: "Profile updated" },
+    },
     mutationFn: authApi.updateProfile,
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.auth.session }),
   });

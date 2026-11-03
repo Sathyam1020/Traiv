@@ -85,6 +85,7 @@ const SIGNALS = {
 
 export type RosterQuery = {
   studioId: string;
+  viewerId?: string;
   status: RosterStatus;
   filter: Filter;
   search?: string;
@@ -97,13 +98,17 @@ const alive = (studioId: string) =>
   and(eq(schema.clients.studioId, studioId), isNull(schema.clients.deletedAt));
 
 export async function listRoster(q: RosterQuery) {
+  const signals = {
+    ...SIGNALS,
+    unread: sql`exists (select 1 from chat_message m where m.client_id=${CLIENT_ID} and m.author in ('client','activity') and m.created_at > coalesce((select r.read_at from chat_read r where r.client_id=${CLIENT_ID} and r.channel=m.channel and r.user_id=${q.viewerId ?? ""}), '-infinity'::timestamptz))`,
+  };
   const base = alive(q.studioId);
   const search = q.search?.trim();
 
   const where = and(
     base,
     eq(schema.clients.status, q.status),
-    SIGNALS[q.filter],
+    signals[q.filter],
     search ? sql`${schema.clients.name} ilike ${`%${search}%`}` : undefined,
   );
 
@@ -123,6 +128,11 @@ export async function listRoster(q: RosterQuery) {
         startedAt: schema.clients.createdAt,
         endsAt: schema.clients.endsAt,
         lastSessionAt: lastSession,
+        lastMessage: sql<{
+          body: string;
+          kind: string;
+          createdAt: string;
+        } | null>`(select json_build_object('body',m.body,'kind',m.kind,'createdAt',m.created_at) from chat_message m where m.client_id=${CLIENT_ID} order by m.created_at desc,m.id desc limit 1)`,
       })
       .from(schema.clients)
       .where(where)
@@ -142,10 +152,10 @@ export async function listRoster(q: RosterQuery) {
     // And one for every chip, within the tab being looked at.
     db
       .select({
-        unread: sql<number>`count(*) filter (where ${SIGNALS.unread})::int`,
-        newCheckin: sql<number>`count(*) filter (where ${SIGNALS["new-checkin"]})::int`,
-        missingCheckin: sql<number>`count(*) filter (where ${SIGNALS["missing-checkin"]})::int`,
-        endingSoon: sql<number>`count(*) filter (where ${SIGNALS["ending-soon"]})::int`,
+        unread: sql<number>`count(*) filter (where ${signals.unread})::int`,
+        newCheckin: sql<number>`count(*) filter (where ${signals["new-checkin"]})::int`,
+        missingCheckin: sql<number>`count(*) filter (where ${signals["missing-checkin"]})::int`,
+        endingSoon: sql<number>`count(*) filter (where ${signals["ending-soon"]})::int`,
         all: sql<number>`count(*)::int`,
       })
       .from(schema.clients)
@@ -414,6 +424,220 @@ export async function getClientOverview(studioId: string, clientId: string) {
       .orderBy(desc(schema.sessions_.completedAt)),
   ]);
 
+  const [plans, workoutAssignments, workouts, completedCheckIns, ratings, messageCounts, foodLogs] =
+    await Promise.all([
+      db
+        .select({
+          id: schema.mealPlanTemplates.id,
+          name: schema.mealPlanTemplates.name,
+          kcal: schema.mealPlanTemplates.calorieTarget,
+          status: schema.mealPlanTemplates.status,
+          published: sql<boolean>`${schema.mealPlanTemplates.publishedDocument} is not null`,
+          createdAt: schema.mealPlanTemplates.createdAt,
+          archivedAt: schema.mealPlanTemplates.archivedAt,
+          createdBy: schema.mealPlanTemplates.createdBy,
+        })
+        .from(schema.mealPlanTemplates)
+        .where(
+          and(
+            eq(schema.mealPlanTemplates.studioId, studioId),
+            eq(schema.mealPlanTemplates.clientId, clientId),
+          ),
+        )
+        .orderBy(desc(schema.mealPlanTemplates.createdAt))
+        .limit(100),
+      // A client's own copy of a workout template, same `clientId`-is-a-copy shape ADR
+      // 0024 already uses — this is the "Workout assigned" activity entry, distinct from
+      // "Workout completed" below, which is a session the client actually did.
+      db
+        .select({
+          id: schema.workoutTemplates.id,
+          name: schema.workoutTemplates.name,
+          createdAt: schema.workoutTemplates.createdAt,
+          createdBy: schema.workoutTemplates.createdBy,
+        })
+        .from(schema.workoutTemplates)
+        .where(
+          and(
+            eq(schema.workoutTemplates.studioId, studioId),
+            eq(schema.workoutTemplates.clientId, clientId),
+          ),
+        )
+        .orderBy(desc(schema.workoutTemplates.createdAt))
+        .limit(100),
+      db
+        .select({
+          id: schema.sessions_.id,
+          name: schema.workoutSessions.name,
+          completedAt: schema.sessions_.completedAt,
+          startedAt: schema.sessions_.startedAt,
+          intensity: schema.sessions_.intensity,
+        })
+        .from(schema.sessions_)
+        .leftJoin(
+          schema.workoutSessions,
+          eq(schema.sessions_.workoutSessionId, schema.workoutSessions.id),
+        )
+        .where(
+          and(eq(schema.sessions_.clientId, clientId), isNotNull(schema.sessions_.completedAt)),
+        )
+        .orderBy(desc(schema.sessions_.completedAt))
+        .limit(100),
+      db
+        .select({ id: schema.checkIns.id, completedAt: schema.checkIns.completedAt })
+        .from(schema.checkIns)
+        .where(and(eq(schema.checkIns.clientId, clientId), isNotNull(schema.checkIns.completedAt)))
+        .orderBy(desc(schema.checkIns.completedAt))
+        .limit(100),
+      db
+        .select({ value: sql<number>`avg(${schema.checkInAnswers.ratingValue})::float` })
+        .from(schema.checkInAnswers)
+        .innerJoin(schema.checkIns, eq(schema.checkInAnswers.checkInId, schema.checkIns.id))
+        .where(
+          and(
+            eq(schema.checkIns.clientId, clientId),
+            isNotNull(schema.checkIns.completedAt),
+            isNotNull(schema.checkInAnswers.ratingValue),
+          ),
+        ),
+      db
+        .select({
+          week: sql<string>`date_trunc('week', ${schema.messages.createdAt})::date::text`,
+          author: schema.messages.author,
+          count: sql<number>`count(*)::int`,
+        })
+        .from(schema.messages)
+        .where(
+          and(
+            eq(schema.messages.studioId, studioId),
+            eq(schema.messages.clientId, clientId),
+            inArray(schema.messages.author, ["coach", "client"]),
+            sql`${schema.messages.createdAt} >= date_trunc('week', now()) - interval '3 weeks'`,
+          ),
+        )
+        .groupBy(
+          sql`date_trunc('week', ${schema.messages.createdAt})::date::text`,
+          schema.messages.author,
+        ),
+      db
+        .select({
+          id: schema.foodLogEntries.id,
+          name: schema.foodLogEntries.manualName,
+          loggedAt: schema.foodLogEntries.loggedAt,
+        })
+        .from(schema.foodLogEntries)
+        .where(eq(schema.foodLogEntries.clientId, clientId))
+        .orderBy(desc(schema.foodLogEntries.loggedAt))
+        .limit(100),
+    ]);
+
+  // Who assigned it — only for the activity kinds Coachway itself attributes (a meal
+  // plan or workout template a coach gave this client), resolved in one follow-up query
+  // rather than a join per row above, since most of those rows carry no `createdBy` at
+  // all for a client-authored copy.
+  const assignerIds = [
+    ...new Set(
+      [...plans.map((p) => p.createdBy), ...workoutAssignments.map((w) => w.createdBy)].filter(
+        (id): id is string => id !== null,
+      ),
+    ),
+  ];
+  const assignerNames =
+    assignerIds.length === 0
+      ? new Map<string, string>()
+      : new Map(
+          (
+            await db
+              .select({ id: schema.memberships.id, name: schema.users.name })
+              .from(schema.memberships)
+              .innerJoin(schema.users, eq(schema.users.id, schema.memberships.userId))
+              .where(inArray(schema.memberships.id, assignerIds))
+          ).map((m) => [m.id, m.name] as const),
+        );
+  const assignerOf = (membershipId: string | null) =>
+    membershipId ? (assignerNames.get(membershipId) ?? null) : null;
+
+  const currentPlan =
+    plans.find((p) => p.status === "active" && p.published && !p.archivedAt) ?? null;
+  const lastWorkout = workouts[0];
+  const messageWeeks = Array.from({ length: 4 }, (_, i) => {
+    const start = new Date();
+    start.setHours(0, 0, 0, 0);
+    start.setDate(start.getDate() - ((start.getDay() + 6) % 7) - (3 - i) * 7);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 6);
+    const key = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, "0")}-${String(start.getDate()).padStart(2, "0")}`;
+    const counts = messageCounts.filter((m) => m.week === key);
+    return {
+      key,
+      label: `${start.getDate()}/${start.getMonth() + 1} – ${end.getDate()}/${end.getMonth() + 1}`,
+      coach: counts.find((m) => m.author === "coach")?.count ?? 0,
+      client: counts.find((m) => m.author === "client")?.count ?? 0,
+    };
+  });
+  const activity: { id: string; kind: string; at: Date; title: string; by: string | null }[] = [
+    { id: "created", kind: "created", at: row.startedAt, title: "Client created", by: null },
+    ...(row.activatedAt
+      ? [
+          {
+            id: "activated",
+            kind: "activated",
+            at: row.activatedAt,
+            title: "Client activated",
+            by: null,
+          },
+        ]
+      : []),
+    ...completedCheckIns.map((c) => ({
+      id: `checkin-${c.id}`,
+      kind: "checkin",
+      at: c.completedAt!,
+      title: "Check-in completed: Weekly Check-In",
+      by: null,
+    })),
+    ...workouts.map((w) => ({
+      id: `workout-${w.id}`,
+      kind: "workout",
+      at: w.completedAt!,
+      title: `Workout completed: ${w.name ?? "Workout"}`,
+      by: null,
+    })),
+    ...workoutAssignments.map((w) => ({
+      id: `workout-assigned-${w.id}`,
+      kind: "workout",
+      at: w.createdAt,
+      title: `Workout assigned: ${w.name}`,
+      by: assignerOf(w.createdBy),
+    })),
+    ...plans.flatMap((p) => [
+      {
+        id: `plan-${p.id}`,
+        kind: "nutrition",
+        at: p.createdAt,
+        title: `Meal plan assigned: ${p.name}`,
+        by: assignerOf(p.createdBy),
+      },
+      ...(p.archivedAt
+        ? [
+            {
+              id: `removed-${p.id}`,
+              kind: "nutrition",
+              at: p.archivedAt,
+              title: `Meal plan removed: ${p.name}`,
+              by: assignerOf(p.createdBy),
+            },
+          ]
+        : []),
+    ]),
+    ...foodLogs.map((f) => ({
+      id: `food-${f.id}`,
+      kind: "food",
+      at: f.loggedAt,
+      title: f.name ? `Food logged: ${f.name}` : "Food logged",
+      by: null,
+    })),
+  ];
+  activity.sort((a, b) => b.at.getTime() - a.at.getTime());
   const intake = intakeRows[0] ?? null;
   const latest = weights[0] ?? null;
 
@@ -455,19 +679,27 @@ export async function getClientOverview(studioId: string, clientId: string) {
         }
       : null,
 
-    /**
-     * What we can prove happened, newest first.
-     *
-     * There is no audit table, so this is derived from timestamps the client row
-     * already carries rather than invented. Status changes and delivered emails are
-     * absent because nothing records them — see `unknowns` in the research.
-     */
-    activity: [
-      row.activatedAt
-        ? { kind: "activated" as const, at: row.activatedAt, title: "First app login" }
-        : null,
-      { kind: "created" as const, at: row.startedAt, title: "Client created" },
-    ].filter((e): e is { kind: "activated" | "created"; at: Date; title: string } => e !== null),
+    happiness: ratings[0]?.value == null ? null : round1(ratings[0].value),
+    currentPlan: currentPlan
+      ? { id: currentPlan.id, name: currentPlan.name, kcal: currentPlan.kcal }
+      : null,
+    latestWorkout: lastWorkout
+      ? {
+          name: lastWorkout.name ?? "Workout",
+          completedAt: lastWorkout.completedAt,
+          intensity: lastWorkout.intensity,
+          minutes: lastWorkout.startedAt
+            ? Math.max(
+                0,
+                Math.round(
+                  (lastWorkout.completedAt!.getTime() - lastWorkout.startedAt.getTime()) / 60000,
+                ),
+              )
+            : null,
+        }
+      : null,
+    messageWeeks,
+    activity: activity.slice(0, 100),
 
     training: {
       windowDays: TRAINING_WINDOW_DAYS,

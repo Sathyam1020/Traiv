@@ -7,8 +7,9 @@ import { useState } from "react";
 import { useActiveStudioId } from "@/lib/active-studio";
 import { useCheckIns, useClient, useClientOverview, useTags } from "@/lib/query";
 import { ClientHeader, ClientHeaderSkeleton } from "../_components/client-header";
-import { Overview, OverviewSkeleton } from "../_components/overview/overview";
+import { Development } from "../_components/development/development";
 import { ClientNutrition } from "../_components/nutrition/client-nutrition";
+import { Overview, OverviewSkeleton } from "../_components/overview/overview";
 import { ClientWorkouts } from "../_components/workouts/client-workouts";
 
 /**
@@ -27,12 +28,14 @@ export default function ClientPage() {
   const overview = useClientOverview(studioId, clientId);
   const checkIns = useCheckIns(studioId, clientId);
   const tags = useTags(studioId);
-  const [tab, setTab] = useState<"Overview" | "Workouts" | "Nutrition">(
-    searchParams.get("tab") === "nutrition"
-      ? "Nutrition"
-      : searchParams.get("tab") === "workouts"
-        ? "Workouts"
-        : "Overview",
+  const [tab, setTab] = useState<"Overview" | "Workouts" | "Nutrition" | "Development">(
+    searchParams.get("tab") === "development"
+      ? "Development"
+      : searchParams.get("tab") === "nutrition"
+        ? "Nutrition"
+        : searchParams.get("tab") === "workouts"
+          ? "Workouts"
+          : "Overview",
   );
 
   if (client.isPending) {
@@ -64,11 +67,14 @@ export default function ClientPage() {
         tags={tags.data ?? []}
         activeTab={tab}
         onTabChange={(t) => {
-          if (t === "Overview" || t === "Workouts" || t === "Nutrition") setTab(t);
+          if (t === "Overview" || t === "Workouts" || t === "Nutrition" || t === "Development")
+            setTab(t);
         }}
       />
 
-      {tab === "Nutrition" ? (
+      {tab === "Development" && studioId ? (
+        <Development studioId={studioId} clientId={clientId} />
+      ) : tab === "Nutrition" ? (
         <ClientNutrition
           studioId={studioId}
           clientId={clientId}
@@ -80,7 +86,7 @@ export default function ClientPage() {
       ) : overview.isPending ? (
         <OverviewSkeleton />
       ) : overview.data ? (
-        <Overview data={overview.data} checkIns={checkIns.data} />
+        <Overview data={overview.data} checkIns={checkIns.data} onNavigate={setTab} />
       ) : (
         <p className="px-6 py-16 text-center text-body-sm text-fg-muted">
           We couldn&apos;t load this client&apos;s overview. Reload to try again.

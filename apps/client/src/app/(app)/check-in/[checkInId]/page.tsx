@@ -3,13 +3,19 @@
 import { Button } from "@traiv/ui/components/button";
 import { Page } from "@traiv/ui/components/shell/page";
 import { Skeleton } from "@traiv/ui/components/skeleton";
-import { CircleCheck } from "@traiv/ui/icons";
+import { ArrowLeft, ArrowRight, Check } from "@traiv/ui/icons";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 import { CheckInAnswers } from "@/components/check-in/answers";
-import { Step } from "@/components/check-in/steps";
+import {
+  playCompletionSound,
+  prepareCompletionSound,
+} from "@/components/check-in/completion-sound";
 import { useCheckInFlow } from "@/components/check-in/use-check-in-flow";
-import { StepShell } from "@/components/common/step-shell";
+import { WeeklyFields } from "@/components/check-in/weekly-fields";
+import { QueryError } from "@/components/common/query-state";
+
 import { longDate } from "@/lib/dates";
 import { useActiveStudio, useCheckIn, useUploadsConfigured } from "@/lib/query";
 
@@ -26,14 +32,20 @@ export default function CheckInPage() {
   const { checkInId } = useParams<{ checkInId: string }>();
   const { studioId } = useActiveStudio();
   const detail = useCheckIn(studioId, checkInId);
+  const [submitted, setSubmitted] = useState(false);
+  const filling = useRef(false);
+  if (submitted) return <Success />;
 
   if (detail.isPending) return <Loading />;
 
   if (detail.error || !detail.data) {
     return (
       <Page className="gap-3">
-        <h1 className="text-heading font-medium">Check-in not found</h1>
-        <p className="text-body-sm text-fg-muted">This one isn't yours, or it's been removed.</p>
+        <QueryError
+          title="Couldn't load this check-in."
+          busy={detail.isFetching}
+          onRetry={() => void detail.refetch()}
+        />
         <Button asChild variant="secondary" className="mt-2 self-start">
           <Link href="/dashboard">Back to today</Link>
         </Button>
@@ -44,8 +56,9 @@ export default function CheckInPage() {
   const { state } = detail.data.checkIn;
   const open = state === "upcoming" || state === "overdue";
 
-  return open && studioId ? (
-    <Wizard studioId={studioId} detail={detail.data} />
+  if (open) filling.current = true;
+  return (open || filling.current) && studioId ? (
+    <Wizard studioId={studioId} detail={detail.data} onSubmitted={() => setSubmitted(true)} />
   ) : (
     <Done detail={detail.data} />
   );
@@ -54,70 +67,135 @@ export default function CheckInPage() {
 function Wizard({
   studioId,
   detail,
+  onSubmitted,
 }: {
   studioId: string;
   detail: NonNullable<ReturnType<typeof useCheckIn>["data"]>;
+  onSubmitted: () => void;
 }) {
   const router = useRouter();
   const uploads = useUploadsConfigured(studioId);
-  const { state, answer, next, back } = useCheckInFlow(studioId, detail);
-
+  const { state, answer, clear, next, back } = useCheckInFlow(studioId, detail, onSubmitted);
+  const [uploadCount, setUploadCount] = useState(0);
+  const content = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    content.current?.scrollTo({ top: 0 });
+  }, [state.kind === "asking" ? state.index : -1]);
   if (state.kind === "loading") return <Loading />;
-
-  if (state.kind === "done") {
-    return (
-      <Page className="items-center gap-4 pt-10 text-center">
-        <CircleCheck aria-hidden="true" className="size-12 text-success" />
-        <h1 className="text-heading font-medium">You're all set</h1>
-        <p className="max-w-[42ch] text-body-sm leading-relaxed text-fg-muted">
-          Your check-in is in. Your coach will read it and come back to you.
-        </p>
-        <Button asChild className="mt-2">
-          <Link href="/dashboard">Done</Link>
-        </Button>
-      </Page>
-    );
-  }
-
+  if (state.kind === "done") return <Success />;
   const last = state.index === state.total - 1;
-
   return (
-    <Page className="max-w-xl gap-0">
-      <StepShell
-        step={state.index + 1}
-        total={state.total}
-        title={state.metric.name}
-        blurb={
-          last
-            ? "Last one. Anything you leave blank is simply not answered."
-            : "Leave anything blank you'd rather skip."
-        }
-        onContinue={next}
-        onBack={back}
-        busy={state.busy}
-        error={state.error}
-        // Every question is skippable — the registry has no required flag, and a check-in
-        // that refuses to move until a photo is taken is a check-in nobody finishes. The
-        // flow refuses an entirely empty submission instead.
-        canContinue
-        continueLabel={
-          last ? `Send check-in${state.answered ? "" : " — nothing answered"}` : "Continue"
-        }
-        secondary={
-          <Button variant="ghost" className="h-10 w-full" onClick={() => router.push("/dashboard")}>
-            Continue later
-          </Button>
-        }
-      >
-        <Step
-          metric={state.metric}
-          answer={state.answer}
-          onAnswer={answer}
-          studioId={studioId}
-          uploads={uploads.data ?? false}
-        />
-      </StepShell>
-    </Page>
+    <div className="mx-auto flex h-dvh w-full max-w-[480px] flex-col bg-panel px-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-[max(1.5rem,env(safe-area-inset-top))]">
+      <div className="shrink-0 pb-7">
+        <p className="mb-3 text-[11px] font-medium uppercase tracking-wide text-fg-subtle">
+          Step {state.index + 1} of {state.total}
+        </p>
+        <div
+          role="progressbar"
+          aria-label="Check-in progress"
+          aria-valuenow={state.index + 1}
+          aria-valuemin={0}
+          aria-valuemax={state.total}
+          className="h-[3px] overflow-hidden rounded-full bg-line"
+        >
+          <div
+            className="h-full rounded-full bg-signal transition-[width] duration-200 motion-reduce:transition-none"
+            style={{ width: `${((state.index + 1) / state.total) * 100}%` }}
+          />
+        </div>
+      </div>
+      <div ref={content} className="min-h-0 flex-1 overflow-y-auto pb-5">
+        <h1 className="text-[26px] font-semibold leading-[1.25] tracking-tight text-fg">
+          {state.step.title}
+        </h1>
+        {state.step.description ? (
+          <p className="mt-3 text-sm leading-relaxed text-fg-muted">{state.step.description}</p>
+        ) : null}
+        <div key={state.index} className="mt-5">
+          <WeeklyFields
+            step={state.step}
+            metrics={state.metrics}
+            answers={state.answers}
+            onAnswer={answer}
+            onClear={clear}
+            studioId={studioId}
+            uploads={uploads.data ?? false}
+            onBusy={(busy) => setUploadCount((n) => Math.max(0, n + (busy ? 1 : -1)))}
+          />
+        </div>
+        {state.error ? (
+          <p role="alert" className="mt-4 text-sm text-danger">
+            {state.error}
+          </p>
+        ) : null}
+      </div>
+      <footer className="shrink-0 pt-4">
+        <div className="flex items-center gap-2.5">
+          {state.index > 0 ? (
+            <button
+              type="button"
+              aria-label="Previous step"
+              disabled={state.busy || uploadCount > 0}
+              onClick={back}
+              className="flex size-[52px] shrink-0 items-center justify-center rounded-full border border-line bg-surface disabled:opacity-40"
+            >
+              <ArrowLeft className="size-5" />
+            </button>
+          ) : null}
+          <button
+            type="button"
+            disabled={!state.valid || state.busy || uploadCount > 0}
+            onClick={() => {
+              if (last) prepareCompletionSound();
+              next();
+            }}
+            className="flex h-[52px] flex-1 items-center justify-center gap-3 rounded-full bg-signal text-base font-semibold text-white transition-opacity disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {state.busy ? "Submitting…" : last ? "Done" : "Continue"}
+            {last ? <Check className="size-5" /> : <ArrowRight className="size-5" />}
+          </button>
+        </div>
+        {!last ? (
+          <button
+            type="button"
+            disabled={state.busy || uploadCount > 0}
+            onClick={() => router.push("/dashboard")}
+            className="mt-3 h-10 w-full text-sm text-fg-subtle disabled:opacity-40"
+          >
+            Continue Later
+          </button>
+        ) : (
+          <div className="h-[52px]" />
+        )}
+      </footer>
+    </div>
+  );
+}
+function Success() {
+  const played = useRef(false);
+  useEffect(() => {
+    if (!played.current) {
+      played.current = true;
+      playCompletionSound();
+    }
+  }, []);
+  return (
+    <div className="mx-auto flex h-dvh w-full max-w-[480px] flex-col bg-panel px-6 pb-[max(2rem,env(safe-area-inset-bottom))]">
+      <div className="flex flex-1 flex-col items-center justify-center text-center">
+        <span className="check-in-success-tick mb-8 flex size-[72px] items-center justify-center rounded-full bg-signal text-white">
+          <Check className="size-10" strokeWidth={3.5} />
+        </span>
+        <h1 className="text-2xl font-semibold">You're all set</h1>
+        <p className="mt-3 text-sm leading-relaxed text-fg-muted">
+          Your check-in has been submitted successfully.
+        </p>
+      </div>
+      <Button asChild className="h-[52px] w-full rounded-full text-base">
+        <Link href="/dashboard">
+          Continue <ArrowRight className="size-5" />
+        </Link>
+      </Button>
+    </div>
   );
 }
 

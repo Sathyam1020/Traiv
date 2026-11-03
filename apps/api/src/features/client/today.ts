@@ -218,8 +218,8 @@ export async function getToday(clientId: string, userId: string | null, now: Day
     reveal: {
       workouts: workoutPlan.length > 0,
       food: true,
-      // General chat is not implemented. Nutrition Photo Log has its own conversation.
-      chat: false,
+      // Every admitted client can message their coach independently of assigned plans.
+      chat: true,
     },
   };
 }

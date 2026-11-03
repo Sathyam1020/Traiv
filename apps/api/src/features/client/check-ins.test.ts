@@ -263,14 +263,13 @@ describe("the history tally", () => {
 });
 
 describe("Today", () => {
-  it("hides the tabs whose content the coach has not created", async () => {
+  it("keeps Food and Chat available before a workout plan is assigned", async () => {
     const { person, studio } = await scenario();
     const res = await person.agent.get(today(studio.id));
     const { reveal } = (res.body as TodayBody).today;
 
-    // No plan written, so no tab offered — the Trainerize pattern, decided in
-    // competitor-client-apps.md. Chat has no table at all yet.
-    expect(reveal).toEqual({ workouts: false, food: false, chat: false });
+    // Workouts need a published plan. Food logging and conversations stand alone.
+    expect(reveal).toEqual({ workouts: false, food: true, chat: true });
   });
 
   it("reveals the workouts tab once a published copy exists for this client", async () => {
@@ -328,5 +327,91 @@ describe("Today", () => {
     const { person, studio } = await scenario();
     const res = await person.agent.get(today(studio.id));
     expect((res.body as TodayBody).today.firstName).toBe("Priya");
+  });
+});
+
+describe("development and daily steps", () => {
+  it("corrects a daily total instead of accumulating duplicates and isolates clients", async () => {
+    const { person, other, coach, studio, mine } = await scenario();
+    const date = "2026-01-05";
+    expect(
+      (await person.agent.request("PUT", `/c/${studio.id}/steps`, { date, count: 4500 })).status,
+    ).toBe(200);
+    expect(
+      (await person.agent.request("PUT", `/c/${studio.id}/steps`, { date, count: 6500 })).status,
+    ).toBe(200);
+    const response = await person.agent.get(`/c/${studio.id}/steps?start=${date}&end=2026-01-11`);
+    expect(response.status).toBe(200);
+    expect(response.body.days).toMatchObject([{ date, count: 6500 }]);
+    const hidden = await other.agent.get(`/c/${studio.id}/steps?start=${date}&end=2026-01-11`);
+    expect(hidden.body.days).toEqual([]);
+    const trainer = await coach.agent.get(
+      `/studios/${studio.id}/clients/${mine}/steps?start=${date}&end=2026-01-11`,
+    );
+    expect(trainer.body.days).toMatchObject([{ date, count: 6500 }]);
+  });
+  it("keeps dated goals and rejects invalid totals and paused writes", async () => {
+    const { person, coach, studio, mine } = await scenario();
+    for (const count of [-1, 2.5, 200001])
+      expect(
+        (await person.agent.request("PUT", `/c/${studio.id}/steps`, { date: "2026-01-05", count }))
+          .status,
+      ).toBe(400);
+    expect(
+      (
+        await person.agent.request("PUT", `/c/${studio.id}/steps`, {
+          date: "2026-02-30",
+          count: 10,
+        })
+      ).status,
+    ).toBe(400);
+    for (const [date, count] of [
+      ["2026-01-05", 8000],
+      ["2026-01-08", 10000],
+    ])
+      expect(
+        (
+          await coach.agent.request("PUT", `/studios/${studio.id}/clients/${mine}/step-goal`, {
+            date,
+            count,
+          })
+        ).status,
+      ).toBe(200);
+    const response = await person.agent.get(
+      `/c/${studio.id}/steps?start=2026-01-05&end=2026-01-11`,
+    );
+    expect(response.body.goals).toMatchObject([
+      { effectiveOn: "2026-01-08", count: 10000 },
+      { effectiveOn: "2026-01-05", count: 8000 },
+    ]);
+    await db.update(schema.clients).set({ status: "paused" }).where(eq(schema.clients.id, mine));
+    expect(
+      (
+        await person.agent.request("PUT", `/c/${studio.id}/steps`, {
+          date: "2026-01-05",
+          count: 10,
+        })
+      ).status,
+    ).toBe(403);
+  });
+  it("loads only this client's development and shares check-in review status", async () => {
+    const { person, coach, studio, mine, theirs } = await scenario();
+    const id = await openCheckIn(person.agent, studio.id);
+    await db
+      .update(schema.checkIns)
+      .set({ status: "completed", completedAt: new Date() })
+      .where(eq(schema.checkIns.id, id));
+    const path = `/studios/${studio.id}/clients/${mine}/development`;
+    expect((await coach.agent.get(path)).body.checkIns).toMatchObject([{ id, reviewed: false }]);
+    expect((await coach.agent.post(path + "/" + id + "/review", {})).status).toBe(200);
+    expect((await coach.agent.get(path)).body.checkIns).toMatchObject([{ id, reviewed: true }]);
+    expect(
+      (
+        await coach.agent.post(
+          `/studios/${studio.id}/clients/${theirs}/development/${id}/review`,
+          {},
+        )
+      ).status,
+    ).toBe(404);
   });
 });

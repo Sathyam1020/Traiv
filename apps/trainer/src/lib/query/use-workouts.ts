@@ -29,6 +29,12 @@ export function useTemplate(studioId: string | null, templateId: string | null) 
 export function useCreateTemplate(studioId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: {
+      feedback: {
+        error: "Couldn't create the template. Try again.",
+        success: "Workout template created",
+      },
+    },
     mutationFn: (input: TemplateInput) => workoutApi.templates.create(studioId, input),
     onSuccess: (t) => {
       qc.setQueryData(queryKeys.workouts.one(studioId, t.id), t);
@@ -40,6 +46,9 @@ export function useCreateTemplate(studioId: string) {
 export function useSaveTemplate(studioId: string, templateId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: {
+      feedback: { error: "Couldn't save the workout. Try again.", success: "Workout saved" },
+    },
     mutationFn: (input: TemplateInput) => workoutApi.templates.update(studioId, templateId, input),
     onSuccess: (t) => {
       qc.setQueryData(queryKeys.workouts.one(studioId, templateId), t);
@@ -58,15 +67,33 @@ export function useTemplateActions(studioId: string, templateId: string) {
 
   return {
     setStatus: useMutation({
+      meta: {
+        feedback: {
+          success: "Workout status updated",
+          error: "Couldn't complete this action. Try again.",
+        },
+      },
       mutationFn: (status: "draft" | "active") =>
         workoutApi.templates.setStatus(studioId, templateId, status),
       onSuccess: settle,
     }),
     archive: useMutation({
+      meta: {
+        feedback: {
+          success: "Workout archived",
+          error: "Couldn't complete this action. Try again.",
+        },
+      },
       mutationFn: () => workoutApi.templates.archive(studioId, templateId),
       onSuccess: () => qc.invalidateQueries({ queryKey: ["workouts", studioId] }),
     }),
     duplicate: useMutation({
+      meta: {
+        feedback: {
+          success: "Workout duplicated",
+          error: "Couldn't complete this action. Try again.",
+        },
+      },
       mutationFn: () => workoutApi.templates.duplicate(studioId, templateId),
       onSuccess: (t) => {
         qc.setQueryData(queryKeys.workouts.one(studioId, t.id), t);
@@ -91,6 +118,12 @@ export function useClientPrograms(studioId: string | null, clientId: string | nu
 export function useCreateClientProgram(studioId: string, clientId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: {
+      feedback: {
+        error: "Couldn't add the workout plan. Try again.",
+        success: "Workout plan added to client",
+      },
+    },
     mutationFn: (input: TemplateInput) => workoutApi.client.create(studioId, clientId, input),
     onSuccess: (t) => {
       qc.setQueryData(queryKeys.workouts.one(studioId, t.id), t);
@@ -102,6 +135,9 @@ export function useCreateClientProgram(studioId: string, clientId: string) {
 export function useSaveAsTemplate(studioId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: {
+      feedback: { error: "Couldn't save this template. Try again.", success: "Saved to templates" },
+    },
     mutationFn: ({ clientId, templateId }: { clientId: string; templateId: string }) =>
       workoutApi.client.saveAsTemplate(studioId, clientId, templateId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["workouts", studioId] }),
@@ -111,6 +147,12 @@ export function useSaveAsTemplate(studioId: string) {
 export function useDuplicateFromTemplate(studioId: string, clientId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: {
+      feedback: {
+        error: "Couldn't copy the workout plan. Try again.",
+        success: "Workout plan copied",
+      },
+    },
     mutationFn: (args: {
       templateId: string;
       name?: string;
@@ -153,15 +195,33 @@ export function useExerciseActions(studioId: string) {
 
   return {
     create: useMutation({
+      meta: {
+        feedback: {
+          success: "Exercise created",
+          error: "Couldn't complete this action. Try again.",
+        },
+      },
       mutationFn: (input: ExerciseWrite) => workoutApi.exercises.create(studioId, input),
       onSuccess: invalidate,
     }),
     update: useMutation({
+      meta: {
+        feedback: {
+          success: "Exercise updated",
+          error: "Couldn't complete this action. Try again.",
+        },
+      },
       mutationFn: ({ id, input }: { id: string; input: ExerciseWrite }) =>
         workoutApi.exercises.update(studioId, id, input),
       onSuccess: invalidate,
     }),
     delete: useMutation({
+      meta: {
+        feedback: {
+          success: "Exercise deleted",
+          error: "Couldn't complete this action. Try again.",
+        },
+      },
       mutationFn: (id: string) => workoutApi.exercises.delete(studioId, id),
       onSuccess: invalidate,
     }),
@@ -183,6 +243,9 @@ export function useSavedSections(studioId: string | null) {
 export function useSaveSectionForReuse(studioId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: {
+      feedback: { error: "Couldn't save this section. Try again.", success: "Section saved" },
+    },
     mutationFn: ({ sessionId, name }: { sessionId: string; name?: string }) =>
       workoutApi.savedSections.save(studioId, sessionId, name),
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.workouts.savedSections(studioId) }),

@@ -48,7 +48,9 @@ export function useClientOverview(studioId: string | null, clientId: string) {
     queryKey: queryKeys.client.overview(studioId ?? "", clientId),
     queryFn: () => rosterApi.overview(studioId as string, clientId),
     enabled: Boolean(studioId && clientId),
-    staleTime: ROSTER_FRESH,
+    staleTime: 0,
+    refetchInterval: 15_000,
+    refetchOnWindowFocus: true,
   });
 }
 
@@ -106,6 +108,9 @@ export function useUpdateClient(studioId: string | null) {
   const qc = useQueryClient();
 
   return useMutation({
+    meta: {
+      feedback: { error: "Couldn't update the client. Try again.", success: "Client updated" },
+    },
     mutationFn: (args: { clientId: string; status?: RosterStatus; endsAt?: string | null }) =>
       rosterApi.update(studioId as string, args.clientId, {
         ...(args.status ? { status: args.status } : {}),
@@ -143,6 +148,7 @@ export function useSetClientTags(studioId: string | null) {
   const qc = useQueryClient();
 
   return useMutation({
+    meta: { feedback: { error: "Couldn't update tags. Your previous selection was restored." } },
     mutationFn: (args: { clientId: string; tagIds: string[] }) =>
       rosterApi.setTags(studioId as string, args.clientId, args.tagIds),
 
@@ -184,6 +190,7 @@ export function useSetClientTags(studioId: string | null) {
 export function useCreateTag(studioId: string | null) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { feedback: { error: "Couldn't create the tag. Try again.", success: "Tag created" } },
     mutationFn: (args: { name: string; description?: string | null; color: string }) =>
       rosterApi.createTag(studioId as string, args),
     onSuccess: () => {
@@ -201,6 +208,7 @@ export function useDeleteTag(studioId: string | null) {
   const qc = useQueryClient();
 
   return useMutation({
+    meta: { feedback: { error: "Couldn't delete the tag. Try again.", success: "Tag deleted" } },
     mutationFn: (tagId: string) => rosterApi.deleteTag(studioId as string, tagId),
 
     onMutate: (tagId) => {

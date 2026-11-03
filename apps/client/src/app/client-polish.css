@@ -1,0 +1,119 @@
+/* Client-only interaction contract. Does not alter trainer/admin primitives. */
+html[data-traiv-client] {
+  --client-motion-press: 100ms;
+  --client-motion-state: 180ms;
+  --client-motion-panel: 240ms;
+  --client-ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --client-touch-target: 2.75rem;
+  --client-page-width: 48rem;
+}
+html[data-traiv-client] body {
+  -webkit-tap-highlight-color: transparent;
+}
+html[data-traiv-client]
+  :where(button, a, input, textarea, [role="tab"], [role="checkbox"]):focus-visible {
+  outline: 2px solid var(--line-focus);
+  outline-offset: 3px;
+}
+html[data-traiv-client] :where(button, [role="button"]) {
+  touch-action: manipulation;
+  transition-duration: var(--client-motion-state);
+}
+html[data-traiv-client] :where(button, [role="button"]):disabled {
+  cursor: not-allowed;
+}
+html[data-traiv-client]
+  :where(button, [role="button"]):not(:disabled):not([aria-disabled="true"]):active {
+  filter: brightness(0.95);
+}
+html[data-traiv-client] .client-tappable {
+  transition:
+    background-color var(--client-motion-state),
+    transform var(--client-motion-press) var(--client-ease);
+}
+html[data-traiv-client] .client-tappable:not(:disabled):not([aria-disabled="true"]):active {
+  transform: scale(0.985);
+}
+html[data-traiv-client] .text-display {
+  font-size: clamp(1.75rem, 5.8vw, 2.25rem);
+  line-height: 1.18;
+  letter-spacing: -0.035em;
+  overflow-wrap: anywhere;
+}
+html[data-traiv-client] .text-heading {
+  letter-spacing: -0.025em;
+}
+html[data-traiv-client] :where(input, textarea) {
+  scroll-margin-block: 6rem;
+}
+html[data-traiv-client] :where(h1, h2, h3) {
+  text-wrap: balance;
+}
+html[data-traiv-client] .client-state {
+  max-width: var(--client-page-width);
+  border-radius: var(--radius-surface);
+  background: var(--surface);
+  padding: 1.25rem;
+}
+html[data-traiv-client] .client-workout-header {
+  background: var(--signal);
+  color: var(--signal-fg);
+  --accent: var(--signal);
+  --fg-on-accent: var(--signal-fg);
+}
+html[data-traiv-client] .client-set {
+  transition:
+    background-color var(--client-motion-state),
+    box-shadow var(--client-motion-state);
+}
+html[data-traiv-client] .client-set[data-complete="true"] {
+  background: color-mix(in srgb, var(--success) 7%, var(--surface));
+  box-shadow: inset 2px 0 var(--success);
+}
+html[data-traiv-client] .client-set-check svg {
+  transition:
+    transform var(--client-motion-state) var(--client-ease),
+    opacity var(--client-motion-state);
+}
+html[data-traiv-client] .client-set-check[aria-pressed="false"] svg {
+  transform: scale(0.7);
+  opacity: 0;
+}
+html[data-traiv-client] .client-set-check[aria-pressed="true"] svg {
+  transform: scale(1);
+  opacity: 1;
+}
+@media (pointer: coarse) {
+  html[data-traiv-client] :where(button, a[aria-label], [role="tab"], [role="combobox"]) {
+    min-height: var(--client-touch-target);
+  }
+  html[data-traiv-client] :where(button[aria-label], a[aria-label]) {
+    min-width: var(--client-touch-target);
+  }
+  html[data-traiv-client] :where(input, textarea) {
+    font-size: max(1rem, 1em);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html[data-traiv-client] {
+    scroll-behavior: auto;
+  }
+  html[data-traiv-client] :where(button, a, [role="button"], .client-set, .client-set-check svg) {
+    transition: none;
+  }
+  html[data-traiv-client] .client-tappable:not(:disabled):not([aria-disabled="true"]):active {
+    transform: none;
+  }
+  html[data-traiv-client] .wensity-skeleton {
+    animation: none;
+  }
+}
+
+@keyframes check-in-tick {
+  from { transform: scale(.65); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.check-in-success-tick { animation: check-in-tick 350ms cubic-bezier(.2,.8,.2,1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .check-in-success-tick { animation: none; }
+}

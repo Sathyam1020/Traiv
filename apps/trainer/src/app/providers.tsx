@@ -22,5 +22,5 @@ export function Providers({ children }: { children: React.ReactNode }) {
  */
 function ThemedToaster() {
   const theme = useUiStore((s) => s.theme);
-  return <Toaster theme={theme} />;
+  return <Toaster theme={theme} position="top-center" className="pt-[env(safe-area-inset-top)]" />;
 }

@@ -1,3 +1,4 @@
+import { activity } from "../messaging/service.js";
 import { newId, schema } from "@traiv/db";
 import { and, asc, desc, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import { db } from "../../db.js";
@@ -383,12 +384,19 @@ export async function finishSession(
     totalSeconds?: number | null;
   },
 ) {
+  const [prior] = await db.select().from(schema.sessions_).where(and(eq(schema.sessions_.id, trainingSessionId), eq(schema.sessions_.clientId, clientId)));
+  if (!prior) throw notFound();
+  if (prior.completedAt) return prior;
   await assertSession(clientId, trainingSessionId);
 
   const sets = await setsFor(trainingSessionId);
   const completed = sets.filter((s) => s.completed);
 
-  await db
+  return db.transaction(async tx => {
+    await tx.execute(sql`select id from training_session where id=${trainingSessionId} for update`);
+    const [locked] = await tx.select().from(schema.sessions_).where(eq(schema.sessions_.id, trainingSessionId));
+    if (locked?.completedAt) return locked;
+  await tx
     .update(schema.sessions_)
     .set({
       completedAt: new Date(),
@@ -405,17 +413,19 @@ export async function finishSession(
     })
     .where(eq(schema.sessions_.id, trainingSessionId));
 
-  await db
+  await tx
     .update(schema.clients)
     .set({ activatedAt: new Date() })
     .where(and(eq(schema.clients.id, clientId), isNull(schema.clients.activatedAt)));
 
-  const [row] = await db
+  const [row] = await tx
     .select()
     .from(schema.sessions_)
     .where(eq(schema.sessions_.id, trainingSessionId))
     .limit(1);
+  await activity(tx, clientId, "workout", trainingSessionId);
   return row;
+  });
 }
 
 const sum = (values: (number | null)[]): number | null => {

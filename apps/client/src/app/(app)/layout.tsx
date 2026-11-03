@@ -1,5 +1,6 @@
 "use client";
 
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { AppShell } from "@traiv/ui/components/shell/app-shell";
 import { RailBrand } from "@traiv/ui/components/shell/rail";
 import { usePathname, useRouter } from "next/navigation";
@@ -10,6 +11,7 @@ import { BrandTheme } from "@/components/layout/brand-theme";
 import { navFor } from "@/components/layout/nav-items";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import type { Today } from "@/lib/api";
+import { API_BASE, http } from "@/lib/api/client";
 import { useActiveStudio, useIntake, useSession, useToday } from "@/lib/query";
 
 const REVEAL_CACHE_KEY = "traiv.reveal-cache";
@@ -31,13 +33,41 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   // A workout in progress, and the screen right after it, are the one place Coachway
   // drops every bit of app chrome — no tab bar, no header, nothing to tap by accident
   // while a set is mid-rep.
-  const immersive = /^\/workouts\/[^/]+\/[^/]+\/(active|finish)(\/|$)/.test(pathname ?? "");
+  const immersive = pathname?.startsWith("/check-in/") || /^\/workouts\/[^/]+\/[^/]+\/(active|finish)(\/|$)/.test(pathname ?? "");
 
   // Blocked only when nothing is running. With two coaches and one paused, the app works
   // and the paused one carries its state on its own card.
   const { studioId, stalled, coaches } = useActiveStudio();
   // The coach whose studio the app is currently showing — their colour is the one that
   // applies. With two coaches, the running one wins, same as everything else here.
+  const qc = useQueryClient();
+  const unreadKey = ["client-chat-unread", session.data?.user.id, studioId];
+  const chatUnread = useQuery({
+    queryKey: unreadKey,
+    queryFn: async () =>
+      (await http.get<{ unread: number }>(`/c/${studioId}/chat/unread`, { timeout: 15000 })).data
+        .unread,
+    enabled: Boolean(signedIn && studioId),
+    retry: false,
+    refetchInterval: 15000,
+  });
+  useEffect(() => {
+    if (!studioId || !signedIn) return;
+    const events = new EventSource(`${API_BASE}/c/${studioId}/chat/events`, {
+      withCredentials: true,
+    });
+    const update = () => {
+      void qc.invalidateQueries({
+        queryKey: ["client-chat-unread", session.data?.user.id, studioId],
+      });
+    };
+    events.addEventListener("change", update);
+    window.addEventListener("traiv:chat-read", update);
+    return () => {
+      events.close();
+      window.removeEventListener("traiv:chat-read", update);
+    };
+  }, [studioId, signedIn, qc, session.data?.user.id]);
   const brand = coaches.find((c) => c.studio.id === studioId)?.studio.color;
   const blocked = stalled !== null;
   const intake = useIntake(studioId);
@@ -112,7 +142,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <>
       <BrandTheme color={brand} />
       <AppShell
-        nav={navFor(reveal)}
+        nav={navFor(reveal).map((group) => ({
+          ...group,
+          items: group.items.map((item) =>
+            item.href === "/chat" ? { ...item, badge: chatUnread.data ?? 0 } : item,
+          ),
+        }))}
         mobileGlass
         sidebarBrand={
           <RailBrand name={session.data?.user.name || "You"} sub="Traiv">

@@ -1,25 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Barcode, Camera, Zap, Plus, Clock, Star, Salad } from "@traiv/ui/icons";
-import { Button } from "@traiv/ui/components/button";
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@traiv/ui/components/select";
+import { ArrowLeft, Barcode, Camera, Clock, Plus, Salad, Star, Zap } from "@traiv/ui/icons";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { QueryError } from "@/components/common/query-state";
+import { type Diary, type FoodItem, foodApi, localDay, type Slot, slots } from "@/lib/api/food";
 import { useActiveStudio } from "@/lib/query";
-import { foodApi, localDay, slots, type Diary, type FoodItem, type Slot } from "@/lib/api/food";
+import { ErrorText } from "../_components/common";
+import { FoodSkeleton } from "../_components/food-skeleton";
 import { Logger } from "../_components/logger";
 import { QuickAdd } from "../_components/quick-add";
 import { BarcodeScanner } from "../_components/search";
 import { FoodTools } from "../_components/tools";
-import { ErrorText } from "../_components/common";
 
 export default function LogFoodPage() {
   const router = useRouter();
@@ -84,7 +85,7 @@ export default function LogFoodPage() {
         >
           <ArrowLeft className="size-5" />
         </Link>
-        <div className="text-center">
+        <div className="min-w-0 flex-1 text-center">
           <p className="text-[10px] font-semibold uppercase text-fg-muted">Logging into</p>
           <h1 className="text-body font-semibold">Log food</h1>
         </div>
@@ -136,6 +137,7 @@ export default function LogFoodPage() {
             },
           ].map((a) => (
             <button
+              type="button"
               key={a.view}
               disabled={!a.enabled || Boolean(stalled)}
               onClick={() => setTool(a.view)}
@@ -150,11 +152,8 @@ export default function LogFoodPage() {
             </button>
           ))}
         </div>
-        <div
-          className="my-5 flex gap-2 overflow-x-auto pb-1"
-          role="tablist"
-          aria-label="Food sources"
-        >
+        <fieldset className="my-5 flex gap-2 overflow-x-auto pb-1">
+          <legend className="sr-only">Food sources</legend>
           {[
             { id: "recent", name: "Recent", Icon: Clock },
             { id: "favorites", name: "Favorites", Icon: Star },
@@ -163,8 +162,8 @@ export default function LogFoodPage() {
           ].map((tab) => (
             <button
               key={tab.id}
-              role="tab"
-              aria-selected={mode === tab.id}
+              type="button"
+              aria-pressed={mode === tab.id}
               onClick={() =>
                 tab.id === "recipes" || tab.id === "mine"
                   ? router.push(
@@ -178,23 +177,35 @@ export default function LogFoodPage() {
               {tab.name}
             </button>
           ))}
-        </div>
-        <ErrorText error={query.error ?? diary.error ?? error} />
+        </fieldset>
+        <ErrorText error={error} />
+        <ErrorText
+          error={diary.error}
+          message="Couldn't load your logging preferences. Try reopening this page."
+        />
         {query.isError ? (
-          <Button variant="outline" onClick={() => void query.refetch()}>
-            Try again
-          </Button>
+          <QueryError
+            title="Couldn't load your foods."
+            busy={query.isFetching}
+            onRetry={() => void query.refetch()}
+          />
         ) : null}
-        {query.isPending ? (
-          <p className="py-8 text-center text-body-sm text-fg-muted">Loading foods…</p>
+        {query.isPending ? <FoodSkeleton /> : null}
+        {!query.isPending && !query.isError && !query.data?.length ? (
+          <p className="px-5 py-10 text-center text-body-sm leading-relaxed text-fg-muted">
+            {mode === "favorites"
+              ? "No favorites yet. Save a food you enjoy to find it here."
+              : "Foods you log will appear here for next time. Use Quick add to log something new."}
+          </p>
         ) : null}
         <div className="space-y-2">
           {query.data?.map((food) => (
             <button
+              type="button"
               key={`${food.kind}:${food.id}`}
               disabled={selecting || Boolean(stalled)}
               onClick={() => void select(food)}
-              className="flex w-full items-center gap-3 rounded-2xl border border-line bg-surface p-3 text-left disabled:opacity-50"
+              className="client-tappable flex w-full items-center gap-3 rounded-2xl border border-line bg-surface p-3 text-left disabled:opacity-50"
             >
               {food.imageUrl ? (
                 <img

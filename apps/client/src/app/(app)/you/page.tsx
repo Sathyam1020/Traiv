@@ -5,6 +5,7 @@ import { Page } from "@traiv/ui/components/shell/page";
 import { Skeleton } from "@traiv/ui/components/skeleton";
 import { Pencil } from "@traiv/ui/icons";
 import Link from "next/link";
+import { QueryError } from "@/components/common/query-state";
 import { useCoaches, useIntake, useSession } from "@/lib/query";
 
 const GOAL: Record<string, string> = {
@@ -85,14 +86,24 @@ export default function YouPage() {
   const studioId = coaches.data?.[0]?.studio.id ?? null;
   const intake = useIntake(studioId);
 
-  if (session.isPending || coaches.isPending || intake.isPending) return <Loading />;
+  if (session.isPending || coaches.isPending || (studioId && intake.isPending)) return <Loading />;
 
+  if (coaches.isError)
+    return (
+      <Page>
+        <QueryError
+          title="Couldn't load your profile."
+          busy={coaches.isFetching}
+          onRetry={() => void coaches.refetch()}
+        />
+      </Page>
+    );
   const i = intake.data?.intake ?? null;
   const weight = intake.data?.weightKg ?? null;
   const user = session.data?.user;
 
   return (
-    <Page className="gap-8">
+    <Page className="w-full max-w-3xl gap-8">
       <header className="flex flex-col gap-1">
         <h1 className="text-display font-medium">{user?.name || "You"}</h1>
         <p className="text-body-sm tabular-nums text-fg-muted">{user?.phone}</p>
@@ -230,7 +241,7 @@ function Card({
 
 function Loading() {
   return (
-    <Page className="gap-8">
+    <Page className="w-full max-w-3xl gap-8">
       <div className="flex flex-col gap-2">
         <Skeleton className="h-9 w-52" />
         <Skeleton className="h-4 w-36" />

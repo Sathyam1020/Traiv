@@ -20,6 +20,7 @@ export type NavItem = {
   href: string;
   label: string;
   icon: Icon;
+  badge?: number;
 };
 
 /**

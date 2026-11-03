@@ -1,6 +1,6 @@
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { env } from "../../env.js";
-import { AppError } from "../../errors.js";
+import { mediaStorage } from "../../integrations/media-storage.js";
 
 /**
  * Signed, browser-direct uploads to Cloudinary.
@@ -14,17 +14,6 @@ import { AppError } from "../../errors.js";
  * unsigned preset lets the browser choose where the file lands, and "where" is the only
  * thing separating one client's photos from another's.
  */
-
-/** Cloudinary's own rule: sha1 over the sorted params, then the secret appended raw. */
-function sign(params: Record<string, string>, secret: string): string {
-  const canonical = Object.keys(params)
-    .sort()
-    .map((k) => `${k}=${params[k]}`)
-    .join("&");
-  return createHash("sha1")
-    .update(canonical + secret)
-    .digest("hex");
-}
 
 export type UploadTicket = {
   url: string;
@@ -44,34 +33,9 @@ export function signUpload(
   clientId: string,
   kind: "check-in" | "avatar" | "food" | "food-label" | "photo-log",
 ): UploadTicket {
-  const {
-    CLOUDINARY_CLOUD_NAME: cloud,
-    CLOUDINARY_API_KEY: key,
-    CLOUDINARY_API_SECRET: secret,
-  } = env;
-
-  if (!cloud || !key || !secret) {
-    throw new AppError(
-      503,
-      "uploads_unconfigured",
-      "Photo upload isn't set up yet. Everything else in this check-in still works.",
-    );
-  }
-
   const publicId = randomUUID();
-  const signed = {
-    folder: `traiv/${kind}/${clientId}`,
-    public_id: publicId,
-    timestamp: String(Math.floor(Date.now() / 1000)),
-  };
-
-  return {
-    url: `https://api.cloudinary.com/v1_1/${cloud}/image/upload`,
-    publicId,
-    // api_key is sent but never signed — Cloudinary's scheme signs only the parameters
-    // that affect where and what the upload becomes.
-    fields: { ...signed, api_key: key, signature: sign(signed, secret) },
-  };
+  const signed = mediaStorage.upload(`traiv/${kind}/${clientId}/${publicId}`, "image", "public");
+  return { publicId, ...signed };
 }
 
 /** True when the route should exist at all. The client app asks before offering a camera. */

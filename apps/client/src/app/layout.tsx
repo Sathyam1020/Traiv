@@ -1,5 +1,6 @@
 import { Providers } from "@/app/providers";
 import "@traiv/ui/styles/globals.css";
+import "./client-polish.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 
@@ -23,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     // pull-to-refresh, which would throw away unsaved work in a form. The marketing
     // site deliberately does not do this — there, both behaviours are what a reader
     // expects from a web page.
-    <html lang="en" className={`${inter.variable} overscroll-none`}>
+    <html data-traiv-client="" lang="en" className={`${inter.variable} overscroll-none`}>
       <body>
         <Providers>{children}</Providers>
       </body>

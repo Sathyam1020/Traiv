@@ -1,13 +1,13 @@
 "use client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
 import { Button } from "@traiv/ui/components/button";
 import { Input } from "@traiv/ui/components/input";
 import { Textarea } from "@traiv/ui/components/textarea";
 import { Plus, Trash } from "@traiv/ui/icons";
+import { useRef, useState } from "react";
 import { foodApi, type ShoppingItem } from "@/lib/api/food";
-import { Panel, Field, ErrorText, card } from "./common";
 import { useAction } from "./actions";
+import { ErrorText, Field, Panel } from "./common";
 export function Shopping({ studio, onClose }: { studio: string; onClose: () => void }) {
   const api = foodApi(studio),
     qc = useQueryClient(),
@@ -46,7 +46,9 @@ export function Shopping({ studio, onClose }: { studio: string; onClose: () => v
         {query.isPending ? <p>Loading shopping list…</p> : null}
         {Object.entries(
           (query.data ?? []).reduce<Record<string, ShoppingItem[]>>((groups, item) => {
-            (groups[item.category] ??= []).push(item);
+            const category = groups[item.category] ?? [];
+            category.push(item);
+            groups[item.category] = category;
             return groups;
           }, {}),
         ).map(([group, items]) => (

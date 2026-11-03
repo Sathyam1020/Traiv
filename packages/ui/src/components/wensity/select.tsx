@@ -7,10 +7,10 @@
  * (always non-modal dropdown). data-open replaces data-state=open.
  */
 
-import * as React from "react";
 import { Select as BaseSelect } from "@base-ui/react/select";
 import { IconCheck, IconChevronDown } from "@tabler/icons-react";
 import { cn } from "@traiv/ui/lib/cn";
+import * as React from "react";
 
 export type SelectSize = "sm" | "md" | "lg";
 export type SelectVariant = "field" | "filled" | "command" | "pill";
@@ -143,7 +143,7 @@ function adaptValueChange(
 }
 
 function isGroupedOptions(options: SelectOption[] | SelectGroup[]): options is SelectGroup[] {
-  return options.length > 0 && "options" in options[0];
+  return options[0] !== undefined && "options" in options[0];
 }
 
 function flattenOptions(options: SelectOption[] | SelectGroup[]) {

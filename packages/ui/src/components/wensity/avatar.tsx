@@ -1,10 +1,10 @@
 "use client";
 
-import * as React from "react";
 import { Avatar as BaseAvatar } from "@base-ui/react/avatar";
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { IconCamera, IconUser } from "@tabler/icons-react";
 import { cn } from "@traiv/ui/lib/cn";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import * as React from "react";
 
 /** Motion tiers, the same speeds as the --primitive-motion-* tokens. */
 const SPRING = {
@@ -155,8 +155,8 @@ function getInitials(value: string) {
     .split(/[\s@._-]+/)
     .filter(Boolean);
   if (parts.length === 0) return "?";
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  if (parts.length === 1) return (parts[0] ?? "?").slice(0, 2).toUpperCase();
+  return `${parts[0]?.[0] ?? ""}${parts.at(-1)?.[0] ?? ""}`.toUpperCase();
 }
 
 function toneFromSeed(seed: string): AvatarFallbackTone {
@@ -297,6 +297,8 @@ export const Avatar = React.forwardRef<HTMLSpanElement, AvatarProps>(
         <span
           ref={ref}
           data-slot="avatar-root"
+          role="img"
+          aria-label={typeof tooltip === "string" ? tooltip : "Profile picture"}
           className={cn(
             "group/avatar-root relative inline-flex align-middle",
             isInteractive && "cursor-default",

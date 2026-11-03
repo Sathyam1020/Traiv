@@ -1,8 +1,8 @@
 "use client";
-import { SolidSidebarIcon } from "@traiv/ui/components/shell/solid-sidebar-icon";
 
 import { Avatar } from "@traiv/ui/components/avatar";
 import { RailTip, useRailCollapsed } from "@traiv/ui/components/shell/rail";
+import { SolidSidebarIcon } from "@traiv/ui/components/shell/solid-sidebar-icon";
 import { LogOut } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
 import { useLogout, useSession } from "@/lib/query";
@@ -54,19 +54,11 @@ export function AccountButton({
       {tone === "rail" ? (
         <SolidSidebarIcon
           icon={LogOut}
-          className={cn(
-            "shrink-0",
-            railCollapsed ? "size-4" : "size-3.5",
-            tone === "rail" ? "text-contrast-fg/50" : "text-fg-subtle",
-          )}
+          className={cn("shrink-0", railCollapsed ? "size-4" : "size-3.5", "text-contrast-fg/50")}
         />
       ) : (
         <LogOut
-          className={cn(
-            "shrink-0",
-            railCollapsed ? "size-4" : "size-3.5",
-            tone === "rail" ? "text-contrast-fg/50" : "text-fg-subtle",
-          )}
+          className={cn("shrink-0", railCollapsed ? "size-4" : "size-3.5", "text-fg-subtle")}
         />
       )}
     </button>

@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { Button } from "@traiv/ui/components/button";
 import { Skeleton } from "@traiv/ui/components/skeleton";
 import {
@@ -14,9 +15,11 @@ import {
   Plus,
   Repeat,
 } from "@traiv/ui/icons";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { QueryError } from "@/components/common/query-state";
 import type { SessionDetail, SessionExerciseDetail } from "@/lib/api";
 import {
   useActiveStudio,
@@ -25,6 +28,8 @@ import {
   useLogSet,
   useWorkoutSession,
 } from "@/lib/query";
+import { queryKeys } from "@/lib/query/keys";
+import { createSaveQueue } from "@/lib/workouts/save-queue";
 import { ActiveSetRow, type ActiveSetValue } from "../../../_components/active-set-row";
 import { IncompleteWorkoutDialog } from "../../../_components/incomplete-workout-dialog";
 import { LeaveWorkoutSheet } from "../../../_components/leave-workout-sheet";
@@ -102,6 +107,13 @@ export default function ActiveSessionPage() {
   }>();
 
   const router = useRouter();
+  const qc = useQueryClient();
+  const reduceMotion = useReducedMotion();
+  const [saveQueue] = useState(createSaveQueue);
+  const pendingCount = useRef(0);
+  const [saving, setSaving] = useState(0);
+  const [saveErrors, setSaveErrors] = useState<Record<string, string>>({});
+  const [actionError, setActionError] = useState<string | null>(null);
   const { studioId } = useActiveStudio();
   const session = useWorkoutSession(studioId, templateId, sessionId);
 
@@ -111,6 +123,7 @@ export default function ActiveSessionPage() {
   const [restTimer, setRestTimer] = useState<ActiveRestTimer | null>(null);
 
   const [restTimerPaused, setRestTimerPaused] = useState(false);
+  const [restTimerEditing, setRestTimerEditing] = useState(false);
   const [headerRunning, setHeaderRunning] = useState(true);
   const [now, setNow] = useState(() => Date.now());
 
@@ -140,13 +153,9 @@ export default function ActiveSessionPage() {
 
   // Rest countdown. No countdown updates are scheduled while paused.
   useEffect(() => {
-    if (!restTimer || restTimerPaused) return;
+    if (!restTimer || restTimerPaused || restTimerEditing) return;
 
-    if (restTimer.remainingSeconds <= 0) {
-      setRestTimer(null);
-      setRestTimerPaused(false);
-      return;
-    }
+    if (restTimer.remainingSeconds <= 0) return;
 
     const id = setTimeout(() => {
       setRestTimer((current) =>
@@ -160,7 +169,7 @@ export default function ActiveSessionPage() {
     }, 1000);
 
     return () => clearTimeout(id);
-  }, [restTimer, restTimerPaused]);
+  }, [restTimer, restTimerPaused, restTimerEditing]);
 
   const live = session.data?.live ?? null;
 
@@ -176,7 +185,19 @@ export default function ActiveSessionPage() {
     );
   }, [sets]);
 
-  if (session.isPending || sets === null) {
+  if (session.isError && !session.data) {
+    return (
+      <div className="p-4">
+        <QueryError
+          title="Couldn't load your workout."
+          busy={session.isFetching}
+          onRetry={() => void session.refetch()}
+        />
+      </div>
+    );
+  }
+
+  if (session.isPending || (session.data?.live && sets === null)) {
     return <Loading />;
   }
 
@@ -218,21 +239,67 @@ export default function ActiveSessionPage() {
     });
   }
 
-  async function persistRow(sessionExerciseId: string, index: number, row: LocalSet) {
+  // Serialize writes so a blur save cannot overtake the completion tap that follows.
+  // Per-row revisions prevent stale responses from clearing newer errors or edits.
+  async function persistRow(
+    sessionExerciseId: string,
+    index: number,
+    row: LocalSet,
+    rollbackCompleted?: boolean,
+  ) {
     if (!trainingSessionId) return;
-
-    await logSet.mutateAsync({
-      sessionExerciseId,
-      setNumber: row.setNumber,
-      reps: row.reps,
-      loadKg: row.loadKg,
-      completed: row.completed,
+    const key = `${sessionExerciseId}:${row.setNumber}`;
+    pendingCount.current += 1;
+    setSaving(pendingCount.current);
+    let succeeded = false;
+    const task = saveQueue.run(key, async (isLatest) => {
+      try {
+        const saved = await logSet.mutateAsync({
+          sessionExerciseId,
+          setNumber: row.setNumber,
+          reps: row.reps,
+          loadKg: row.loadKg,
+          completed: row.completed,
+        });
+        qc.setQueryData<SessionDetail>(
+          queryKeys.client.workoutSession(studioId ?? "", templateId, sessionId),
+          (previous) =>
+            previous?.live ? { ...previous, live: { ...previous.live, sets: saved } } : previous,
+        );
+        succeeded = true;
+        if (isLatest()) {
+          patchSet(sessionExerciseId, index, { persisted: true });
+          setSaveErrors((previous) => {
+            const next = { ...previous };
+            delete next[key];
+            return next;
+          });
+        }
+      } catch {
+        if (isLatest()) {
+          if (rollbackCompleted !== undefined) {
+            patchSet(sessionExerciseId, index, { completed: rollbackCompleted });
+            if (!rollbackCompleted)
+              setRestTimer((current) =>
+                current?.sessionExerciseId === sessionExerciseId ? null : current,
+              );
+          }
+          setSaveErrors((previous) => ({
+            ...previous,
+            [key]: "This set couldn't be saved. Your entered values are still here.",
+          }));
+        }
+      } finally {
+        pendingCount.current -= 1;
+        setSaving(pendingCount.current);
+      }
     });
-
-    patchSet(sessionExerciseId, index, { persisted: true });
+    await task;
+    return succeeded;
   }
 
   function toggleComplete(exercise: SessionExerciseDetail, index: number) {
+    if (deleteSet.isPending || cancelSession.isPending) return;
     const row = sets?.[exercise.id]?.[index];
 
     if (!row) return;
@@ -246,7 +313,7 @@ export default function ActiveSessionPage() {
       completed: next.completed,
     });
 
-    void persistRow(exercise.id, index, next);
+    void persistRow(exercise.id, index, next, row.completed);
 
     if (next.completed) {
       const totalSeconds = restSecondsFor(exercise, index);
@@ -281,7 +348,7 @@ export default function ActiveSessionPage() {
       const last = rows.at(-1);
 
       const next: LocalSet = {
-        setNumber: rows.length + 1,
+        setNumber: Math.max(0, ...rows.map((row) => row.setNumber)) + 1,
         reps: last?.reps ?? null,
         loadKg: last?.loadKg ?? null,
         completed: false,
@@ -298,15 +365,28 @@ export default function ActiveSessionPage() {
   async function removeSet(sessionExerciseId: string, index: number) {
     const row = sets?.[sessionExerciseId]?.[index];
 
-    if (!row) return;
+    if (!row || pendingCount.current > 0) return;
 
     if (row.persisted && trainingSessionId) {
-      await deleteSet.mutateAsync({
-        sessionExerciseId,
-        setNumber: row.setNumber,
-      });
+      try {
+        const saved = await deleteSet.mutateAsync({ sessionExerciseId, setNumber: row.setNumber });
+        qc.setQueryData<SessionDetail>(
+          queryKeys.client.workoutSession(studioId ?? "", templateId, sessionId),
+          (previous) =>
+            previous?.live ? { ...previous, live: { ...previous.live, sets: saved } } : previous,
+        );
+        setActionError(null);
+      } catch {
+        setActionError("Couldn't delete this set. Try again.");
+        return;
+      }
     }
 
+    setSaveErrors((previous) => {
+      const next = { ...previous };
+      delete next[`${sessionExerciseId}:${row.setNumber}`];
+      return next;
+    });
     setSets((previous) => {
       if (!previous) return previous;
 
@@ -320,6 +400,7 @@ export default function ActiveSessionPage() {
   }
 
   function handleHeaderFinish() {
+    if (pendingCount.current > 0 || Object.keys(saveErrors).length > 0) return;
     if (allComplete) {
       router.push(`/workouts/${templateId}/${sessionId}/finish`);
     } else {
@@ -328,8 +409,13 @@ export default function ActiveSessionPage() {
   }
 
   async function cancelWorkout() {
-    await cancelSession.mutateAsync(trainingSessionId as string);
-    router.push("/workouts");
+    try {
+      await cancelSession.mutateAsync(trainingSessionId as string);
+      router.push("/workouts");
+    } catch {
+      setActionError("Couldn't cancel your workout. Try again.");
+      setLeaveOpen(false);
+    }
   }
 
   function handleSkipRestTimer() {
@@ -354,7 +440,7 @@ export default function ActiveSessionPage() {
   return (
     <div className="flex flex-1 flex-col">
       {/* Workout header */}
-      <div className="sticky top-0 z-10 flex flex-col gap-3 bg-brand px-4 pt-4 pb-4 text-brand-fg sm:px-6">
+      <div className="client-workout-header sticky top-0 z-10 flex flex-col gap-3 bg-brand px-4 pt-4 pb-4 text-brand-fg sm:px-6">
         <div className="flex items-start justify-between gap-3">
           <button
             type="button"
@@ -394,6 +480,7 @@ export default function ActiveSessionPage() {
           <button
             type="button"
             onClick={handleHeaderFinish}
+            disabled={saving > 0 || deleteSet.isPending || Object.keys(saveErrors).length > 0}
             className="flex cursor-pointer items-center gap-1.5 rounded-full bg-brand-fg/15 px-3.5 py-2 text-body-sm font-medium transition-colors hover:bg-brand-fg/25"
           >
             Finish
@@ -410,6 +497,18 @@ export default function ActiveSessionPage() {
         />
       </div>
 
+      <div role="status" aria-live="polite" className="sr-only">
+        {saving > 0
+          ? "Saving your sets"
+          : Object.keys(saveErrors).length
+            ? "A set needs saving. Review the message below it."
+            : "All changes saved"}
+      </div>
+      {actionError ? (
+        <p role="alert" className="mx-4 mt-3 text-body-sm text-danger">
+          {actionError}
+        </p>
+      ) : null}
       {/* Exercise list */}
       <div className="flex min-h-0 flex-1 flex-col gap-4 bg-panel px-4 pt-4 pb-32 sm:px-6">
         {exercises.map((exercise) => {
@@ -485,22 +584,40 @@ export default function ActiveSessionPage() {
                       key={key}
                       open={openRow === key}
                       onOpenChange={(open) => setOpenRow(open ? key : null)}
-                      disabled={rows.length <= 1}
+                      disabled={rows.length <= 1 || saving > 0 || deleteSet.isPending}
                       onDelete={() => void removeSet(exercise.id, index)}
                     >
-                      <ActiveSetRow
-                        index={index}
-                        fields={exercise.fields}
-                        value={row}
-                        placeholder={{
-                          reps: prescribed?.reps ?? null,
-                          repsMax: prescribed?.repsMax ?? null,
-                          weightKg: prescribed?.weightKg ?? null,
-                        }}
-                        onChange={(patch) => patchSet(exercise.id, index, patch)}
-                        onBlur={() => commitRow(exercise.id, index)}
-                        onToggleComplete={() => toggleComplete(exercise, index)}
-                      />
+                      <div>
+                        <ActiveSetRow
+                          index={index}
+                          fields={exercise.fields}
+                          value={row}
+                          placeholder={{
+                            reps: prescribed?.reps ?? null,
+                            repsMax: prescribed?.repsMax ?? null,
+                            weightKg: prescribed?.weightKg ?? null,
+                          }}
+                          onChange={(patch) => patchSet(exercise.id, index, patch)}
+                          onBlur={() => commitRow(exercise.id, index)}
+                          onToggleComplete={() => toggleComplete(exercise, index)}
+                        />
+                        {saveErrors[key] ? (
+                          <div
+                            role="alert"
+                            className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 text-caption text-danger"
+                          >
+                            <span>{saveErrors[key]}</span>
+                            <button
+                              type="button"
+                              disabled={saving > 0}
+                              onClick={() => commitRow(exercise.id, index)}
+                              className="min-h-11 font-medium underline underline-offset-4"
+                            >
+                              Retry save
+                            </button>
+                          </div>
+                        ) : null}
+                      </div>
                     </SwipeToDelete>
                   );
                 })}
@@ -508,6 +625,7 @@ export default function ActiveSessionPage() {
                 <button
                   type="button"
                   onClick={() => addSet(exercise)}
+                  disabled={deleteSet.isPending || cancelSession.isPending}
                   className="flex w-fit cursor-pointer items-center gap-1 rounded-control px-2 py-1.5 text-caption text-fg-muted transition-colors hover:bg-hover"
                 >
                   <Plus className="size-3.5" />
@@ -522,22 +640,36 @@ export default function ActiveSessionPage() {
           <Button
             size="lg"
             className="w-full"
-            onClick={() => router.push(`/workouts/${templateId}/${sessionId}/finish`)}
+            disabled={saving > 0 || deleteSet.isPending || Object.keys(saveErrors).length > 0}
+            onClick={handleHeaderFinish}
           >
-            Complete Workout
+            {saving > 0 ? "Saving sets…" : "Finish workout"}
           </Button>
         ) : null}
       </div>
 
       {/* Sticky rest timer */}
-      {restTimer ? (
-        <RestTimerCard
-          timer={restTimer}
-          onSkip={handleSkipRestTimer}
-          onEditingChange={setRestTimerPaused}
-          onChangeDuration={handleChangeRestDuration}
-        />
-      ) : null}
+      <AnimatePresence initial={false}>
+        {restTimer ? (
+          <motion.div
+            key="rest-timer"
+            className="sticky bottom-0 z-20"
+            initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={reduceMotion ? undefined : { opacity: 0, y: 12 }}
+            transition={{ duration: 0.18 }}
+          >
+            <RestTimerCard
+              timer={restTimer}
+              paused={restTimerPaused}
+              onPausedChange={setRestTimerPaused}
+              onSkip={handleSkipRestTimer}
+              onEditingChange={setRestTimerEditing}
+              onChangeDuration={handleChangeRestDuration}
+            />
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
 
       <LeaveWorkoutSheet
         open={leaveOpen}
@@ -545,6 +677,7 @@ export default function ActiveSessionPage() {
         onPause={() => router.push(`/workouts/${templateId}/${sessionId}`)}
         onCancelWorkout={() => void cancelWorkout()}
         cancelling={cancelSession.isPending}
+        saving={saving > 0}
       />
 
       <IncompleteWorkoutDialog

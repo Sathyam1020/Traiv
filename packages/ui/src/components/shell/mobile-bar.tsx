@@ -2,6 +2,7 @@
 
 import type { NavItem } from "@traiv/ui/components/shell/app-shell";
 import { useNavOverride } from "@traiv/ui/components/shell/nav-override-context";
+import { ActiveStateIcon } from "@traiv/ui/components/shell/solid-sidebar-icon";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -59,13 +60,13 @@ export function MobileBar({ nav, glass = false }: { nav: readonly NavItem[]; gla
             : undefined
         }
       >
-        {nav.map(({ href, label, icon: Icon }) => {
+        {nav.map(({ href, label, icon: Icon, badge }) => {
           const active = current.startsWith(href);
           return (
             <Link
               key={href}
               href={href}
-              aria-label={label}
+              aria-label={badge ? `${label}, ${badge} unread` : label}
               aria-current={active ? "page" : undefined}
               className={`relative flex min-w-0 cursor-pointer items-center justify-center rounded-full transition-colors duration-100 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-focus ${
                 active ? "text-signal-text" : "text-fg-muted"
@@ -84,7 +85,19 @@ export function MobileBar({ nav, glass = false }: { nav: readonly NavItem[]; gla
                   }
                 />
               )}
-              <Icon className={glass ? "relative size-6 shrink-0" : "relative size-5 shrink-0"} />
+              <ActiveStateIcon
+                icon={Icon}
+                active={active}
+                className={glass ? "relative size-6 shrink-0" : "relative size-5 shrink-0"}
+              />
+              {badge ? (
+                <span
+                  className="absolute right-2 top-0.5 z-10 flex min-w-4 items-center justify-center rounded-full bg-signal px-1 text-[10px] font-semibold leading-4 text-white"
+                  aria-hidden="true"
+                >
+                  {badge > 99 ? "99+" : badge}
+                </span>
+              ) : null}
               {glass ? (
                 <span className="relative text-[11px] font-medium leading-none">{label}</span>
               ) : null}

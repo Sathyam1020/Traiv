@@ -1,13 +1,14 @@
 "use client";
-import type { ReactNode } from "react";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from "@traiv/ui/components/sheet";
 import { Carbs, Fat, Protein } from "@traiv/ui/icons";
+import { cloneElement, isValidElement, type ReactNode, useEffect, useId } from "react";
+import { isApiError } from "@/lib/api/client";
 import type { Nutrients } from "@/lib/api/food";
 export const card = "rounded-surface border border-line bg-surface p-4";
 export function Panel({
@@ -79,19 +80,39 @@ export function Macros({ value }: { value: Nutrients }) {
     </div>
   );
 }
-export function ErrorText({ error }: { error: unknown }) {
+export function ErrorText({
+  error,
+  message = "Couldn't save your changes. Try again.",
+}: {
+  error: unknown;
+  message?: string;
+}) {
+  useEffect(() => {
+    if (error) console.error("Nutrition request failed", error);
+  }, [error]);
+  const detail =
+    isApiError(error) && error.status === 401
+      ? "Your session has expired. Sign in again to continue."
+      : isApiError(error) && error.status === 403
+        ? "This action isn't available for your account."
+        : message;
   return error ? (
-    <p role="alert" className="my-3 text-body-sm text-danger">
-      {error instanceof Error ? error.message : "Couldn't save. Try again."}
+    <p role="alert" className="my-3 text-body-sm leading-relaxed text-danger">
+      {detail}
     </p>
   ) : null;
 }
 export function Field({ label, children }: { label: string; children: ReactNode }) {
+  const generatedId = useId();
+  const control = isValidElement<{ id?: string }>(children) ? children : null;
+  const id = control?.props.id ?? generatedId;
   return (
-    <label className="flex min-w-0 flex-col gap-2 text-body-sm">
-      <span className="font-medium">{label}</span>
-      {children}
-    </label>
+    <div className="flex min-w-0 flex-col gap-2 text-body-sm">
+      <label htmlFor={id} className="font-medium">
+        {label}
+      </label>
+      {control ? cloneElement(control, { id }) : children}
+    </div>
   );
 }
 

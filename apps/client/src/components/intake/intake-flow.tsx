@@ -1,6 +1,7 @@
 "use client";
 
 import { Skeleton } from "@traiv/ui/components/skeleton";
+import { QueryError } from "@/components/common/query-state";
 import type { Intake } from "@/lib/api";
 import { AvailabilityStep } from "./steps/availability-step";
 import { BodyStep } from "./steps/body-step";
@@ -28,6 +29,16 @@ export function IntakeFlow({
 }) {
   const flow = useIntakeFlow(studioId);
 
+  if (flow.loadError)
+    return (
+      <div className="mx-auto w-full max-w-xl p-4">
+        <QueryError
+          title="Couldn't load your onboarding answers."
+          busy={flow.retrying}
+          onRetry={() => void flow.retry()}
+        />
+      </div>
+    );
   if (flow.loading) return <Loading />;
   if (flow.step === "done") return <Finished flow={flow} coachName={coachName} onDone={onDone} />;
 

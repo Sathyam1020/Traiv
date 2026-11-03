@@ -12,18 +12,20 @@ export function LeaveWorkoutSheet({
   onPause,
   onCancelWorkout,
   cancelling,
+  saving = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onPause: () => void;
   onCancelWorkout: () => void;
   cancelling: boolean;
+  saving?: boolean;
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="gap-4 text-center sm:max-w-sm">
         <DialogHeader>
-          <DialogTitle className="text-center">Leave Workout</DialogTitle>
+          <DialogTitle className="text-center">Leave workout</DialogTitle>
           <p className="text-body-sm text-fg-muted">
             You can pause to continue later or cancel to discard your progress.
           </p>
@@ -33,17 +35,18 @@ export function LeaveWorkoutSheet({
           <button
             type="button"
             onClick={onPause}
+            disabled={saving || cancelling}
             className="w-full cursor-pointer rounded-control bg-sunken py-3 text-body font-medium transition-colors hover:bg-hover"
           >
-            Pause Workout
+            Pause workout
           </button>
           <button
             type="button"
             onClick={onCancelWorkout}
-            disabled={cancelling}
+            disabled={cancelling || saving}
             className="w-full cursor-pointer rounded-control bg-sunken py-3 text-body font-medium text-danger transition-colors hover:bg-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {cancelling ? "Cancelling…" : "Cancel Workout"}
+            {cancelling ? "Cancelling…" : saving ? "Saving your sets…" : "Cancel workout"}
           </button>
           <button
             type="button"

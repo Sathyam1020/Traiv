@@ -1,3 +1,4 @@
+import { activity } from "../messaging/service.js";
 import { newId, schema } from "@traiv/db";
 import { and, asc, desc, eq, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import { db } from "../../db.js";
@@ -416,6 +417,7 @@ export async function submitCheckIn(
       .update(schema.checkIns)
       .set({ status: "completed", completedAt: new Date() })
       .where(eq(schema.checkIns.id, checkInId));
+    await activity(tx, row.clientId, "check-in", checkInId);
   });
 
   // A weight answer also lands in `body_metric` with source `check_in` — a value that

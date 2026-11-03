@@ -253,6 +253,34 @@
       "when": 1793469343492,
       "tag": "0035_clear_shard",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1793611392251,
+      "tag": "0036_wide_lady_mastermind",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1793613551095,
+      "tag": "0037_even_the_phantom",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1793636532156,
+      "tag": "0038_modern_leader",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1793642119034,
+      "tag": "0039_sloppy_lockjaw",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,7 @@
 import { schema } from "@traiv/db";
 import { desc, eq } from "drizzle-orm";
 import { db } from "../../db.js";
-import { notFound } from "../../errors.js";
+import { badRequest, notFound } from "../../errors.js";
 import {
   type AnswerInput,
   checkInState,
@@ -129,8 +129,65 @@ export async function submitClientCheckIn(
   checkInId: string,
   answers: AnswerInput[],
   now: Day = today(),
+  formVersion?: "weekly-v2",
 ) {
   await assertOwned(clientId, checkInId);
+  if (formVersion === "weekly-v2") {
+    const metrics = await listMetrics(studioId);
+    const required = [
+      "weight",
+      "arm",
+      "chest",
+      "forearm",
+      "hips",
+      "thigh",
+      "waist",
+      "photo_back",
+      "photo_front",
+      "photo_side",
+      "mood",
+      "energy",
+      "nutrition",
+      "progress",
+      "biggest_win",
+      "training_feel",
+      "sleep_quality",
+    ];
+    if (new Set(answers.map((a) => a.metricId)).size !== answers.length)
+      throw badRequest("invalid_check_in", "Duplicate check-in answers.");
+    for (const code of required) {
+      const metric = metrics.find((m) => m.code === code && m.shared);
+      const answer = answers.find((a) => a.metricId === metric?.id);
+      let valid = false;
+      if (metric && answer) {
+        if (metric.type === "number")
+          valid =
+            typeof answer.numberValue === "number" &&
+            Number.isFinite(answer.numberValue) &&
+            answer.numberValue > 0 &&
+            answer.numberValue <= (code === "weight" ? 500 : 300);
+        else if (metric.type === "rating")
+          valid =
+            Number.isInteger(answer.ratingValue) &&
+            Number(answer.ratingValue) >= 1 &&
+            Number(answer.ratingValue) <= 5;
+        else if (metric.type === "image") valid = Boolean(answer.imageUrl?.startsWith("https://"));
+        else {
+          const value = answer.textValue?.trim() ?? "";
+          valid =
+            value.length > 0 &&
+            value.length <= 2048 &&
+            (code !== "training_feel" ||
+              ["Struggled", "Okay", "Good", "Great", "Amazing"].includes(value));
+        }
+      }
+      if (!valid)
+        throw badRequest(
+          "invalid_check_in",
+          "Complete all required check-in fields before submitting.",
+        );
+    }
+  }
   return submitCheckIn(studioId, checkInId, answers, now);
 }
 

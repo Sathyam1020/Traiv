@@ -38,6 +38,7 @@ export function useToday(studioId: string | null) {
 export function useLogWeight(studioId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { feedback: { error: "Couldn't log your weight. Try again.", success: "Weight logged" } },
     mutationFn: (kg: number) => todayApi.logWeight(studioId, kg),
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.client.today(studioId) }),
   });
@@ -72,15 +73,23 @@ export function useCheckIn(studioId: string | null, checkInId: string | null) {
 export function useSubmitCheckIn(studioId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: {
+      feedback: {
+        error: "Couldn't send your check-in. Your answers are still here.",
+        success: "Check-in sent",
+      },
+    },
     mutationFn: ({
       checkInId,
       submissionId,
       answers,
+      formVersion,
     }: {
       checkInId: string;
       submissionId: string;
       answers: AnswerInput[];
-    }) => checkInApi.submit(studioId, checkInId, submissionId, answers),
+      formVersion?: "weekly-v2";
+    }) => checkInApi.submit(studioId, checkInId, submissionId, answers, formVersion),
 
     onSuccess: (_result, { checkInId }) => {
       qc.invalidateQueries({ queryKey: queryKeys.client.today(studioId) });

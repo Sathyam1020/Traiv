@@ -23,6 +23,12 @@ export function useRotateJoinCode() {
   const qc = useQueryClient();
   const studioId = useActiveStudioId();
   return useMutation({
+    meta: {
+      feedback: {
+        success: "Join code regenerated",
+        error: "Couldn't regenerate the join code. Try again.",
+      },
+    },
     mutationFn: () => joinApi.rotate(studioId as string),
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.join.code(studioId ?? "") }),
   });
@@ -32,6 +38,12 @@ export function useSetJoinEnabled() {
   const qc = useQueryClient();
   const studioId = useActiveStudioId();
   return useMutation({
+    meta: {
+      feedback: {
+        success: "Join settings updated",
+        error: "Couldn't update join settings. Try again.",
+      },
+    },
     mutationFn: (enabled: boolean) => joinApi.setEnabled(studioId as string, enabled),
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.join.code(studioId ?? "") }),
   });

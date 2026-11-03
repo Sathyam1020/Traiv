@@ -1,5 +1,13 @@
 import type { NavGroup } from "@traiv/ui/components/shell/app-shell";
-import { BookOpen, ClipboardList, Dumbbell, LayoutGrid, Salad, Users } from "@traiv/ui/icons";
+import {
+  BookOpen,
+  ClipboardList,
+  Dumbbell,
+  Inbox,
+  LayoutGrid,
+  Salad,
+  Users,
+} from "@traiv/ui/icons";
 
 /**
  * The coach's rail, grouped by subject.
@@ -17,7 +25,10 @@ import { BookOpen, ClipboardList, Dumbbell, LayoutGrid, Salad, Users } from "@tr
 export const navItems: readonly NavGroup[] = [
   {
     label: "Coaching",
-    items: [{ href: "/clients", label: "Clients", icon: Users }],
+    items: [
+      { href: "/clients", label: "Clients", icon: Users },
+      { href: "/inbox", label: "Inbox", icon: Inbox },
+    ],
   },
   {
     label: "Workouts",

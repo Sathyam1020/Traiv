@@ -1234,3 +1234,31 @@ input[type="radio"][aria-hidden="true"][tabindex="-1"] {
 @media (prefers-reduced-motion: reduce) {
   [data-slot="sheet-content"] { animation: none !important; transition: none !important; }
 }
+
+/* Sidebar-only icon feedback: one short lift, never a continuous loop. */
+.sidebar-solid-icon {
+  transform-origin: center;
+  transition: transform 140ms ease-out;
+}
+@media (prefers-reduced-motion: no-preference) {
+  a:hover > .sidebar-solid-icon,
+  a:focus-visible > .sidebar-solid-icon,
+  button:hover > .sidebar-solid-icon,
+  button:focus-visible > .sidebar-solid-icon {
+    animation: sidebar-icon-lift 240ms ease-out;
+    transform: translateY(-1px) scale(1.08);
+  }
+  a:active > .sidebar-solid-icon,
+  button:active > .sidebar-solid-icon {
+    animation: none;
+    transform: scale(.92);
+  }
+}
+@keyframes sidebar-icon-lift {
+  0% { transform: translateY(0) scale(1); }
+  55% { transform: translateY(-2px) scale(1.12) rotate(-5deg); }
+  100% { transform: translateY(-1px) scale(1.08); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-solid-icon { transition: none; }
+}

@@ -2,11 +2,13 @@
 
 import { Button } from "@traiv/ui/components/button";
 import { Skeleton } from "@traiv/ui/components/skeleton";
+import { toast } from "@traiv/ui/components/sonner";
 import { Textarea } from "@traiv/ui/components/textarea";
 import { Activity, CircleCheck } from "@traiv/ui/icons";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
+import { QueryError } from "@/components/common/query-state";
 import { useActiveStudio, useFinishSession, useWorkoutSession } from "@/lib/query";
 import { IntensityRating, QualityRating } from "../../../_components/rating";
 
@@ -27,6 +29,17 @@ export default function FinishPage() {
   const [note, setNote] = useState("");
 
   if (session.isPending) return <Loading />;
+
+  if (session.isError)
+    return (
+      <div className="p-4">
+        <QueryError
+          title="Couldn't load your workout summary."
+          busy={session.isFetching}
+          onRetry={() => void session.refetch()}
+        />
+      </div>
+    );
 
   const live = session.data?.live;
   if (!live) {
@@ -51,29 +64,37 @@ export default function FinishPage() {
 
   async function complete() {
     if (!live) return;
-    await finish.mutateAsync({
-      trainingSessionId: live.id,
-      quality,
-      intensity,
-      note: note.trim() || null,
-      totalSeconds: elapsedSeconds,
-    });
-    router.push("/workouts");
+    try {
+      await finish.mutateAsync({
+        trainingSessionId: live.id,
+        quality,
+        intensity,
+        note: note.trim() || null,
+        totalSeconds: elapsedSeconds,
+      });
+      toast("Workout complete", { description: "Your session has been saved." });
+      router.push("/workouts");
+    } catch {
+      /* Keep summary and entered ratings visible for retry. */
+    }
   }
 
   return (
-    <div className="flex flex-1 flex-col gap-6 px-4 pt-10 pb-8 sm:px-6">
+    <div className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-6 px-4 pt-10 pb-8 sm:px-6">
       <div className="flex flex-col items-center gap-3 text-center">
         <CircleCheck aria-hidden="true" className="size-16 text-success" strokeWidth={1.5} />
-        <h1 className="text-heading font-medium">Workout completed</h1>
-        <p className="text-body-sm text-fg-muted">You&apos;ve done it!</p>
+        <h1 className="text-heading font-medium">Workout summary</h1>
+        <p className="text-body-sm text-fg-muted">Your session is ready to save.</p>
       </div>
 
       <div className="overflow-hidden rounded-surface border border-line bg-surface">
         <div className="flex items-center justify-between gap-3 p-4">
           <div className="flex flex-col">
             <span className="font-medium">{session.data?.session.name}</span>
-            <span className="text-caption text-fg-muted">{totalWeightKg ?? 0} kg</span>
+            <span className="text-caption text-fg-muted">
+              {(totalWeightKg ?? 0).toLocaleString(undefined, { maximumFractionDigits: 1 })} kg
+              total volume
+            </span>
           </div>
           <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-sunken px-2.5 py-1 text-caption text-fg-muted">
             <Activity className="size-3.5" />
@@ -98,8 +119,11 @@ export default function FinishPage() {
       </div>
 
       <div className="flex flex-col gap-2">
-        <h2 className="font-medium text-body-sm">Leave a note</h2>
+        <label htmlFor="workout-note" className="font-medium text-body-sm">
+          Leave a note
+        </label>
         <Textarea
+          id="workout-note"
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="How did the workout feel?"
@@ -109,13 +133,19 @@ export default function FinishPage() {
 
       {/* Not `fixed` — see the preview screen's own note on why: the floating mobile
           nav pill is fixed at a higher z-index and would eat this button's taps. */}
+      {finish.isError ? (
+        <p role="alert" className="text-body-sm text-danger">
+          Couldn't save your workout. Your ratings and note are still here. Try again.
+        </p>
+      ) : null}
       <Button
+        aria-busy={finish.isPending}
         size="lg"
         className="w-full"
         onClick={() => void complete()}
         disabled={finish.isPending}
       >
-        {finish.isPending ? "Completing…" : "Complete Workout"}
+        {finish.isPending ? "Saving workout…" : "Save workout"}
       </Button>
     </div>
   );

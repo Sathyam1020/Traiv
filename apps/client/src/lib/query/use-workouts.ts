@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { workoutApi } from "@/lib/api";
+import { type SessionDetail, workoutApi } from "@/lib/api";
 import { queryKeys } from "./keys";
 
 /** Same `retry: false` as every other client query — see `use-coaching.ts`. */
@@ -46,11 +46,15 @@ export function useWorkoutSession(
 export function useStartSession(studioId: string, templateId: string, sessionId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: { feedback: { error: "Couldn't start your workout. Try again." } },
     mutationFn: () => workoutApi.startSession(studioId, templateId, sessionId),
-    onSuccess: () =>
-      qc.invalidateQueries({
-        queryKey: queryKeys.client.workoutSession(studioId, templateId, sessionId),
-      }),
+    onSuccess: (live) => {
+      // The start response is authoritative; don't wait for an identical GET before navigation.
+      qc.setQueryData<SessionDetail>(
+        queryKeys.client.workoutSession(studioId, templateId, sessionId),
+        (previous) => (previous ? { ...previous, live } : previous),
+      );
+    },
   });
 }
 
@@ -87,6 +91,9 @@ export function useDeleteSet(studioId: string, trainingSessionId: string) {
 export function useCancelSession(studioId: string) {
   const qc = useQueryClient();
   return useMutation({
+    meta: {
+      feedback: { error: "Couldn't cancel your workout. Try again.", success: "Workout cancelled" },
+    },
     mutationFn: (trainingSessionId: string) =>
       workoutApi.cancelSession(studioId, trainingSessionId),
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.client.workouts(studioId) }),
@@ -114,9 +121,15 @@ export function useFinishSession(studioId: string) {
       note?: string | null;
       totalSeconds?: number;
     }) => workoutApi.finish(studioId, trainingSessionId, input),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: queryKeys.client.workouts(studioId) });
-      qc.invalidateQueries({ queryKey: queryKeys.client.today(studioId) });
+    onSuccess: (finished) => {
+      // Remove the finished live session so Back cannot offer to resume it from cache.
+      qc.setQueriesData<SessionDetail>(
+        { queryKey: ["client", "workout-session", studioId] },
+        (previous) => (previous?.live?.id === finished.id ? { ...previous, live: null } : previous),
+      );
+      void qc.invalidateQueries({ queryKey: queryKeys.client.workouts(studioId) });
+      void qc.invalidateQueries({ queryKey: ["client", "workout", studioId] });
+      void qc.invalidateQueries({ queryKey: queryKeys.client.today(studioId) });
     },
   });
 }

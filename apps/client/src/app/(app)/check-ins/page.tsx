@@ -5,6 +5,7 @@ import { Skeleton } from "@traiv/ui/components/skeleton";
 import { CircleCheck, Clock, X } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
 import Link from "next/link";
+import { QueryError } from "@/components/common/query-state";
 import type { CheckInState, CheckInSummary } from "@/lib/api";
 import { longDate, relativeDay } from "@/lib/dates";
 import { useActiveStudio, useCheckIns } from "@/lib/query";
@@ -32,6 +33,16 @@ export default function CheckInsPage() {
 
   if (list.isPending) return <Loading />;
 
+  if (list.isError && !list.data)
+    return (
+      <Page className="max-w-xl">
+        <QueryError
+          title="Couldn't load your check-ins."
+          busy={list.isFetching}
+          onRetry={() => void list.refetch()}
+        />
+      </Page>
+    );
   const data = list.data;
   const done = data?.checkIns.filter((c) => c.state !== "upcoming") ?? [];
   const next = data?.checkIns.filter((c) => c.state === "upcoming").at(-1);

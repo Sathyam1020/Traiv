@@ -12,6 +12,16 @@ tokens and product layouts remain. CLI configuration and update instructions:
 typechecks, builds and browser checks were not run per user instruction. Manual
 acceptance is pending; do not describe this migration as release-verified.
 
+## Client UI interaction polish — 2026-11-01
+
+Client-only visual/motion tokens, touch/focus feedback, structural food loading,
+contextual query recovery, workout intent-prefetch, ordered set saving with error
+recovery, compact pauseable rest timer, and truthful save/finish feedback implemented.
+No API contract or dependency changes. Targeted lint/typecheck and four save-queue tests
+pass; Webpack production build passes (default Turbopack CSS worker port restriction
+in this environment). Browser/device acceptance remains pending.
+Handoff and audit: `docs/client-ui-polish.md`.
+
 ## Nutrition Phase F closeout — 2026-11-01
 
 Legacy schema/code removal was already complete under migration 0024. Repository searches

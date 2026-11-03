@@ -1,7 +1,7 @@
 "use client";
 
-import { Page } from "@traiv/ui/components/shell/page";
 import { Button } from "@traiv/ui/components/button";
+import { Page } from "@traiv/ui/components/shell/page";
 import { Skeleton } from "@traiv/ui/components/skeleton";
 import { Clock, Pause, Snowflake } from "@traiv/ui/icons";
 import { useState } from "react";
@@ -11,6 +11,7 @@ import { CheckInCard } from "./_components/check-in-card";
 import { LogWeightDialog } from "./_components/log-weight-dialog";
 import { MeasurementsCard } from "./_components/measurements-card";
 import { RecentActivity } from "./_components/recent-activity";
+import { StepsCard } from "./_components/steps-card";
 import { WeightCard } from "./_components/weight-card";
 
 /**
@@ -32,13 +33,14 @@ export default function TodayPage() {
 
   if (isPending) return <Loading />;
   if (coaches.length === 0) return <NoCoach />;
+  if (today.isPending) return <Loading />;
 
   // A paused or waiting relationship with nothing else running: the layout's gate has
   // already taken the screen, so reaching here means something is active.
   const data = today.data;
 
   return (
-    <Page className="gap-8">
+    <Page className="w-full max-w-3xl gap-8">
       {/* Coachway's greeting carries the exclamation; it is the one place in the app
           that is pleased to see you, and the rest of the screen is deliberately flat. */}
       <header className="flex flex-col gap-1">
@@ -85,6 +87,9 @@ export default function TodayPage() {
             />
           </div>
 
+          {studioId ? (
+            <StepsCard studioId={studioId} weightKg={data.weight.latest ?? undefined} />
+          ) : null}
           <RecentActivity sessions={data.recentSessions} />
         </>
       ) : null}
@@ -93,7 +98,7 @@ export default function TodayPage() {
           active coach needs no card — the whole screen is already theirs. */}
       {coaches.length > 1 || stalled ? (
         <section className="flex flex-col gap-3">
-          <h2 className="text-caption font-semibold uppercase tracking-[0.08em] text-fg-subtle">
+          <h2 className="text-body-sm font-medium text-fg-muted">
             {coaches.length > 1 ? "Your coaches" : "Your coach"}
           </h2>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -180,7 +185,7 @@ function NoCoach() {
 
 function Loading() {
   return (
-    <Page className="gap-8">
+    <Page className="w-full max-w-3xl gap-8">
       <div className="flex flex-col gap-2">
         <Skeleton className="h-9 w-56" />
         <Skeleton className="h-4 w-72" />

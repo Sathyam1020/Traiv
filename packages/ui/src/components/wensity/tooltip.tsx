@@ -260,6 +260,7 @@ export function TooltipRich({
   defaultOpen,
   onOpenChange,
   delayDuration,
+  side,
 }: {
   title: React.ReactNode;
   description: React.ReactNode;
@@ -268,13 +269,14 @@ export function TooltipRich({
   defaultOpen?: boolean;
   onOpenChange?: (open: boolean) => void;
   delayDuration?: number;
+  side?: TooltipContentProps["side"];
 }) {
   return (
     <Tooltip open={open} defaultOpen={defaultOpen} onOpenChange={onOpenChange}>
       <TooltipTrigger asChild delay={delayDuration}>
         {children}
       </TooltipTrigger>
-      <TooltipContent variant="rich" heading={title}>
+      <TooltipContent variant="rich" heading={title} side={side}>
         {description}
       </TooltipContent>
     </Tooltip>

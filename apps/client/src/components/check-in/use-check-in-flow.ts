@@ -13,6 +13,7 @@ import {
   saveStepIndex,
   startDraft,
 } from "./draft";
+import { stepValid, WEEKLY_STEPS, type WeeklyStep } from "./weekly-steps";
 
 /**
  * One question at a time, over the studio's metric registry.
@@ -33,14 +34,20 @@ export type FlowState =
       kind: "asking";
       index: number;
       total: number;
-      metric: CheckInDetail["metrics"][number];
-      answer: AnswerInput | undefined;
+      step: WeeklyStep;
+      metrics: CheckInDetail["metrics"];
+      answers: Record<string, AnswerInput>;
+      valid: boolean;
       answered: number;
       busy: boolean;
       error: string | null;
     };
 
-export function useCheckInFlow(studioId: string, detail: CheckInDetail | undefined) {
+export function useCheckInFlow(
+  studioId: string,
+  detail: CheckInDetail | undefined,
+  onSubmitted?: () => void,
+) {
   const submit = useSubmitCheckIn(studioId);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [index, setIndex] = useState(0);
@@ -65,20 +72,15 @@ export function useCheckInFlow(studioId: string, detail: CheckInDetail | undefin
     setDraft(next);
     // Clamp: the coach may have removed a metric since, which would otherwise resume
     // past the end of the form and render nothing.
-    setIndex(Math.min(next.stepIndex, Math.max(metrics.length - 1, 0)));
+    setIndex(Math.min(next.stepIndex, WEEKLY_STEPS.length - 1));
   }, [checkIn, draft, metrics.length]);
 
-  const answer = useCallback(
-    (input: AnswerInput | null) => {
-      setDraft((d) => {
-        if (!d) return d;
-        const metric = metrics[index];
-        if (!metric) return d;
-        return input === null ? clearAnswer(d, metric.id) : saveAnswer(d, input);
-      });
-    },
-    [index, metrics],
-  );
+  const answer = useCallback((input: AnswerInput | null) => {
+    setDraft((d) => {
+      if (!d) return d;
+      return input === null ? d : saveAnswer(d, input);
+    });
+  }, []);
 
   const go = useCallback((to: number) => {
     setIndex(to);
@@ -89,7 +91,20 @@ export function useCheckInFlow(studioId: string, detail: CheckInDetail | undefin
     if (!draft || !checkIn) return;
     setError(null);
 
-    const answers = Object.values(draft.answers);
+    if (!WEEKLY_STEPS.every((step) => stepValid(step, metrics, draft.answers))) {
+      setError("Complete all required fields before submitting.");
+      return;
+    }
+    const ids = new Set(
+      metrics
+        .filter(
+          (m) =>
+            m.shared &&
+            WEEKLY_STEPS.some((step) => (step.codes as readonly string[]).includes(m.code)),
+        )
+        .map((m) => m.id),
+    );
+    const answers = Object.values(draft.answers).filter((a) => ids.has(a.metricId));
     if (answers.length === 0) {
       setError("Answer at least one question before sending this.");
       return;
@@ -102,22 +117,26 @@ export function useCheckInFlow(studioId: string, detail: CheckInDetail | undefin
         // one check-in rather than creating a second.
         submissionId: draft.submissionId,
         answers,
+        formVersion: "weekly-v2",
       });
       // Only once the server has it. Clearing on optimism is how a failed submit loses
       // everything somebody just typed.
       clearDraft();
       setDone(true);
+      onSubmitted?.();
     } catch (e) {
       setError(
         isApiError(e) ? e.message : "Couldn't send that. Your answers are saved — try again.",
       );
     }
-  }, [draft, checkIn, submit]);
+  }, [draft, checkIn, submit, metrics, onSubmitted]);
 
   const next = useCallback(() => {
-    if (index < metrics.length - 1) go(index + 1);
+    const step = WEEKLY_STEPS[index];
+    if (!draft || !step || !stepValid(step, metrics, draft.answers)) return;
+    if (index < WEEKLY_STEPS.length - 1) go(index + 1);
     else void finish();
-  }, [index, metrics.length, go, finish]);
+  }, [index, metrics, draft, go, finish]);
 
   const back = useCallback(() => {
     if (index > 0) go(index - 1);
@@ -125,15 +144,17 @@ export function useCheckInFlow(studioId: string, detail: CheckInDetail | undefin
 
   const state: FlowState = useMemo(() => {
     if (done) return { kind: "done" };
-    const metric = metrics[index];
-    if (!draft || !metric) return { kind: "loading" };
+    const step = WEEKLY_STEPS[index];
+    if (!draft || !step) return { kind: "loading" };
 
     return {
       kind: "asking",
       index,
-      total: metrics.length,
-      metric,
-      answer: draft.answers[metric.id],
+      total: WEEKLY_STEPS.length,
+      step,
+      metrics,
+      answers: draft.answers,
+      valid: stepValid(step, metrics, draft.answers),
       answered: Object.keys(draft.answers).length,
       busy: submit.isPending,
       error,
@@ -141,5 +162,6 @@ export function useCheckInFlow(studioId: string, detail: CheckInDetail | undefin
   }, [done, draft, metrics, index, submit.isPending, error]);
 
   /** Leaving keeps the draft — that is what "Continue later" means. */
-  return { state, answer, next, back, discard: clearDraft };
+  const clear = useCallback((id: string) => setDraft((d) => (d ? clearAnswer(d, id) : d)), []);
+  return { state, answer, clear, next, back, discard: clearDraft };
 }

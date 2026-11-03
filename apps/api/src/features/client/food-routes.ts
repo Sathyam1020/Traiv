@@ -1,3 +1,4 @@
+import { photoMessage } from "../messaging/service.js";
 import { personalPlanInput, savePersonalPlan } from "./personal-food-plans.js";
 import { newId, schema } from "@traiv/db";
 import { energyTarget } from "@traiv/nutrition";
@@ -32,7 +33,7 @@ import {
   reserveLabelScan,
 } from "./food-tools.js";
 
-export const foodRouter = Router({ mergeParams: true });
+export const foodRouter: Router = Router({ mergeParams: true });
 const idParam = z.object({ id: z.string().min(1).max(150) });
 foodRouter.get("/days/:date", requireClient(), async (req, res) => {
   const { clientId } = requireClientAuth(req);
@@ -225,10 +226,7 @@ foodRouter.post("/photos", requireClient({ write: true }), async (req, res) => {
     })
     .parse(req.body);
   ownedImage(clientId, v.imageUrl);
-  await db
-    .insert(schema.foodPhotoMessages)
-    .values({ ...v, clientId, author: "client" })
-    .onConflictDoNothing();
+  await db.transaction(tx => photoMessage(tx, { ...v, clientId, author: "client" }));
   res.status(201).json({ saved: true });
 });
 foodRouter.get("/shopping", requireClient(), async (req, res) =>

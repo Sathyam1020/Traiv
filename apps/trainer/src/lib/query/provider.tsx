@@ -1,10 +1,16 @@
 "use client";
 
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MutationCache, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { mutationFeedback } from "@traiv/ui/lib/action-feedback";
 import { useState } from "react";
 
 function makeQueryClient() {
   return new QueryClient({
+    mutationCache: new MutationCache({
+      onSuccess: (_data, _variables, _context, mutation) =>
+        mutationFeedback(mutation.meta, "success"),
+      onError: (_error, _variables, _context, mutation) => mutationFeedback(mutation.meta, "error"),
+    }),
     defaultOptions: {
       queries: {
         // Above zero so a server-rendered page doesn't refetch the instant it hydrates.

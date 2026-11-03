@@ -4,14 +4,28 @@ import { Page } from "@traiv/ui/components/shell/page";
 import { Skeleton } from "@traiv/ui/components/skeleton";
 import { Dumbbell, Play } from "@traiv/ui/icons";
 import Link from "next/link";
+import { QueryError } from "@/components/common/query-state";
 import type { WorkoutListItem } from "@/lib/api";
 import { useActiveStudio, useWorkouts } from "@/lib/query";
+import { useWorkoutPrefetch } from "@/lib/query/use-workout-prefetch";
 
 export default function WorkoutsPage() {
   const { studioId } = useActiveStudio();
   const list = useWorkouts(studioId);
+  const prefetch = useWorkoutPrefetch(studioId);
 
   if (list.isPending) return <Loading />;
+
+  if (list.isError && !list.data)
+    return (
+      <Page className="max-w-xl">
+        <QueryError
+          title="Couldn't load your workouts."
+          busy={list.isFetching}
+          onRetry={() => void list.refetch()}
+        />
+      </Page>
+    );
 
   const programs = list.data ?? [];
 
@@ -19,17 +33,21 @@ export default function WorkoutsPage() {
     <Page className="w-full max-w-xl gap-6">
       <header className="flex flex-col gap-1">
         <h1 className="text-display font-medium">Workouts</h1>
-        <h2 className="text-caption font-medium uppercase tracking-wide">Your plans</h2>
+        <h2 className="text-body-sm text-fg-muted">Your plans</h2>
       </header>
 
       {programs.length === 0 ? (
         <p className="rounded-surface border border-line border-dashed bg-surface p-4 text-body-sm">
-          No plan assigned yet. Plans assigned to you will show up here.
+          Your coach hasn't assigned a workout yet. Your plan will appear here when it's ready.
         </p>
       ) : (
         <ul className="flex flex-col gap-3">
           {programs.map((program) => (
-            <ProgramCard key={program.id} program={program} />
+            <ProgramCard
+              key={program.id}
+              program={program}
+              onIntent={() => prefetch.program(program.id)}
+            />
           ))}
         </ul>
       )}
@@ -37,7 +55,7 @@ export default function WorkoutsPage() {
   );
 }
 
-function ProgramCard({ program }: { program: WorkoutListItem }) {
+function ProgramCard({ program, onIntent }: { program: WorkoutListItem; onIntent: () => void }) {
   const workoutName = program.sessionNames[0] ?? program.name;
 
   return (
@@ -80,7 +98,10 @@ function ProgramCard({ program }: { program: WorkoutListItem }) {
       {/* Session row */}
       <Link
         href={`/workouts/${program.id}`}
-        className="flex min-w-0 items-center gap-3 px-4 py-3 transition-colors hover:bg-hover"
+        onPointerEnter={onIntent}
+        onFocus={onIntent}
+        onPointerDown={onIntent}
+        className="client-tappable flex min-w-0 items-center gap-3 px-4 py-3 transition-colors hover:bg-hover"
       >
         <div className="flex size-11 shrink-0 items-center justify-center rounded-control p-3 bg-sunken">
           <Dumbbell aria-hidden="true" className="size-5 text-brand" />

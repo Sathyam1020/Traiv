@@ -50,6 +50,7 @@ export type Tag = {
 };
 
 export type RosterClient = {
+  lastMessage?: { body: string; kind: string; createdAt: string } | null;
   id: string;
   name: string;
   status: RosterStatus;
@@ -128,7 +129,16 @@ export type ClientOverview = {
     healthFlags: string[];
     intakeCompletedAt: string | null;
   } | null;
-  activity: { kind: "activated" | "created"; at: string; title: string }[];
+  happiness: number | null;
+  currentPlan: { id: string; name: string; kcal: number } | null;
+  latestWorkout: {
+    name: string;
+    completedAt: string;
+    intensity: number | null;
+    minutes: number | null;
+  } | null;
+  messageWeeks: { key: string; label: string; coach: number; client: number }[];
+  activity: { id: string; kind: string; at: string; title: string; by: string | null }[];
   training: {
     windowDays: number;
     sessions: number;

@@ -2,40 +2,41 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import {
+  type MealPlan,
   optionConflicts,
   optionNutrition,
+  type PlanDocument,
+  type PlanOption,
   planRange,
   planWarnings,
   readPlanDocument,
   slotTargets,
-  type MealPlan,
-  type PlanDocument,
-  type PlanOption,
 } from "@traiv/nutrition/meal-plans";
 import { Button } from "@traiv/ui/components/button";
 import {
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@traiv/ui/components/dropdown-menu";
 import { SidebarToggle } from "@traiv/ui/components/shell/page-header";
 import {
   ArrowLeft,
   Carbs,
   Fat,
+  MoreHorizontal,
   Pencil,
   Plus,
   Protein,
-  MoreHorizontal,
   Trash,
 } from "@traiv/ui/icons";
+import { notifyAction } from "@traiv/ui/lib/action-feedback";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useEffect, useState } from "react";
 import { mealPlansApi } from "@/lib/api/meal-plans";
 import { MICROS } from "../../_components/controls";
-import { PlanOptionCard, PlanMealSheet } from "./plan-option";
+import { PlanMealSheet, PlanOptionCard } from "./plan-option";
 import { PlanSettingsSheet, settingsValid } from "./plan-settings";
 import { PlanRecipePicker } from "./recipe-picker";
 
@@ -156,7 +157,9 @@ export function PlanBuilder({
     setError("");
     try {
       adopt(await mealPlansApi.save(studioId, plan.id, input, plan.updatedAt, rebalance));
+      notifyAction("Meal plan saved", "success");
     } catch (e) {
+      notifyAction("Couldn't save your meal plan. Try again.", "error");
       setError(e instanceof Error ? e.message : "Couldn't save the meal plan.");
     } finally {
       setBusy(false);

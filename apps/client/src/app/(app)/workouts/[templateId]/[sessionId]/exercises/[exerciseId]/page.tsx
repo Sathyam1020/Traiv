@@ -16,6 +16,7 @@ import {
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useState } from "react";
+import { QueryError } from "@/components/common/query-state";
 import { useActiveStudio, useExercise, useWorkoutSession } from "@/lib/query";
 import { formatSetSummary } from "../../../../_components/set-summary";
 import { Sparkline } from "../../../../_components/sparkline";
@@ -51,7 +52,14 @@ export default function ExerciseDetailPage() {
   if (!sessionExercise || detail.error || !detail.data) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 py-20 text-center">
-        <p className="text-body text-fg-muted">We couldn&apos;t find that exercise.</p>
+        <QueryError
+          title="Couldn't load this exercise."
+          busy={session.isFetching || detail.isFetching}
+          onRetry={() => {
+            void session.refetch();
+            void detail.refetch();
+          }}
+        />
 
         <Button asChild variant="secondary" size="sm">
           <Link href={`/workouts/${templateId}/${sessionId}`}>Back to the workout</Link>
@@ -70,7 +78,7 @@ export default function ExerciseDetailPage() {
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col">
       {/* Responsive exercise header */}
-      <header className="w-full bg-brand px-4 pt-4 pb-7 text-brand-fg sm:px-6 sm:pt-6 sm:pb-8 lg:px-10">
+      <header className="client-workout-header w-full bg-brand px-4 pt-4 pb-7 text-brand-fg sm:px-6 sm:pt-6 sm:pb-8 lg:px-10">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-3">
           <Link
             href={`/workouts/${templateId}/${sessionId}`}
@@ -123,7 +131,7 @@ export default function ExerciseDetailPage() {
           >
             <span
               aria-hidden="true"
-              className="pointer-events-none absolute bottom-1 top-1 rounded-full border border-line bg-panel shadow-sm transition-transform duration-300 ease-in-out motion-reduce:transition-none"
+              className="pointer-events-none absolute bottom-1 top-1 rounded-full border border-line bg-panel shadow-sm transition-transform duration-180 ease-out motion-reduce:transition-none motion-reduce:transition-none"
               style={{
                 left: "4px",
                 width: "calc((100% - 8px) / 4)",
@@ -144,6 +152,24 @@ export default function ExerciseDetailPage() {
                   aria-controls={`exercise-panel-${tab.value}`}
                   tabIndex={selected ? 0 : -1}
                   onClick={() => setActiveTab(tab.value)}
+                  onKeyDown={(event) => {
+                    const index = tabs.findIndex((item) => item.value === activeTab);
+                    const next =
+                      event.key === "ArrowRight"
+                        ? (index + 1) % tabs.length
+                        : event.key === "ArrowLeft"
+                          ? (index + tabs.length - 1) % tabs.length
+                          : event.key === "Home"
+                            ? 0
+                            : event.key === "End"
+                              ? tabs.length - 1
+                              : null;
+                    const target = next === null ? undefined : tabs[next];
+                    if (!target) return;
+                    event.preventDefault();
+                    setActiveTab(target.value);
+                    document.getElementById(`exercise-tab-${target.value}`)?.focus();
+                  }}
                   className={`relative z-10 flex min-w-0 items-center justify-center rounded-full px-1 text-caption font-medium transition-colors duration-200 motion-reduce:transition-none ${
                     selected ? "text-fg" : "text-fg-muted"
                   }`}

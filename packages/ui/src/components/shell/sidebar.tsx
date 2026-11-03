@@ -132,6 +132,7 @@ function Item({
   label,
   icon: Icon,
   collapsed,
+  badge,
 }: NavGroup["items"][number] & { collapsed: boolean }) {
   const pathname = usePathname();
   // A screen can borrow another item's highlight when its own route does not say which
@@ -159,7 +160,22 @@ function Item({
       {/* The selected icon is the signal colour — the one place violet appears in the
           rail, which is what makes "you are here" readable at a glance. */}
       <SolidSidebarIcon icon={Icon} className={cn("size-4 shrink-0", active && "text-signal")} />
-      {collapsed ? <span className="sr-only">{label}</span> : label}
+      {collapsed ? (
+        <span className="sr-only">
+          {label}
+          {badge ? `, ${badge} unread` : ""}
+        </span>
+      ) : (
+        label
+      )}
+      {badge ? (
+        <span
+          title={`${badge} unread`}
+          className="ml-auto rounded-full bg-signal px-1.5 text-[10px] text-white"
+        >
+          {badge > 99 ? "99+" : badge}
+        </span>
+      ) : null}
     </Link>
   );
 

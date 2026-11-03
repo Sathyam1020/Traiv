@@ -5,15 +5,9 @@ import { db } from "../db.js";
 /**
  * The shared metric library every studio starts with.
  *
- * Ten questions, which is about as many as somebody will answer every week without
- * resenting it. `code` is the stable key everything else refers to — `weight` in
- * particular is special-cased on submission, where it also appends to `body_metric`.
- *
- * `unitCategory: "length"` is what puts a metric on the client's measurements card, so
- * the two circumferences here are the two worth asking everybody: waist is the one that
- * actually tracks fat loss when the scale is arguing with the mirror, and hips pairs
- * with it. Coachway offers ten sites; asking ten every week is how a form stops being
- * filled in. A coach who wants calves adds their own.
+ * The weekly wizard groups these stable metric codes into ten steps. Legacy metrics
+ * remain available so historical answers and studio customizations stay readable.
+ * Weight also appends to body_metric when submitted.
  *
  * Idempotent on `code`, so re-running corrects a row rather than duplicating it.
  *
@@ -92,6 +86,42 @@ const SEED = [
     unit: null,
     unitCategory: null,
     position: 90,
+  },
+  ...["arm", "chest", "forearm", "thigh"].map((code, i) => ({
+    code,
+    name: code.charAt(0).toUpperCase() + code.slice(1),
+    type: "number" as const,
+    unit: "cm",
+    unitCategory: "length",
+    position: 23 + i,
+  })),
+  ...[
+    { code: "mood", name: "Mood" },
+    { code: "nutrition", name: "Nutrition" },
+    { code: "progress", name: "Progress" },
+    { code: "sleep_quality", name: "Sleep quality" },
+  ].map((m, i) => ({
+    ...m,
+    type: "rating" as const,
+    unit: "1-5",
+    unitCategory: null,
+    position: 40 + i,
+  })),
+  {
+    code: "biggest_win",
+    name: "What was your biggest win last week?",
+    type: "text",
+    unit: null,
+    unitCategory: null,
+    position: 50,
+  },
+  {
+    code: "training_feel",
+    name: "How did your training feel?",
+    type: "text",
+    unit: null,
+    unitCategory: null,
+    position: 51,
   },
 ] as const;
 

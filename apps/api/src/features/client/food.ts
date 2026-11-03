@@ -1,3 +1,4 @@
+import { diaryWeek } from "./diary-week.js";
 import { createHash } from "node:crypto";
 import { newId, schema } from "@traiv/db";
 import { gramsForUnit } from "@traiv/nutrition/recipes";
@@ -358,7 +359,7 @@ export async function resolveItem(
   }
   throw notFound("Food not found");
 }
-export async function diary(clientId: string, date: string) {
+export async function diary(clientId: string, date: string, includeWeek = false) {
   const shift = (days: number) => {
     const d = new Date(`${date}T12:00:00Z`);
     d.setUTCDate(d.getUTCDate() + days);
@@ -394,27 +395,32 @@ export async function diary(clientId: string, date: string) {
   ]);
   const selected = entries.filter((e) => e.date === date);
   const loggedDays = [...new Set(entries.map((e) => e.date))];
-  const config = settingsPermissions.calculator
-    ? (goals.find((g) => g.day === date) ??
-      goals.find((g) => g.day === `weekday:${new Date(date + "T12:00:00").getDay()}`) ??
-      goals.find((g) => g.day === "default"))
-    : undefined;
-  const settings = plans[0]?.document.settings;
-  const target =
-    config ??
-    (settings
-      ? {
-          kcal: settings.calorieTarget,
-          proteinG: (settings.calorieTarget * settings.proteinPct) / 400,
-          carbsG: (settings.calorieTarget * settings.carbsPct) / 400,
-          fatG: (settings.calorieTarget * settings.fatPct) / 900,
-        }
-      : (intakeTargets[0] ?? null));
+  const targetFor = (date: string) => {
+    const config = settingsPermissions.calculator
+      ? (goals.find((g) => g.day === date) ??
+        goals.find((g) => g.day === `weekday:${new Date(date + "T12:00:00").getDay()}`) ??
+        goals.find((g) => g.day === "default"))
+      : undefined;
+    const settings = plans[0]?.document.settings;
+    return (
+      config ??
+      (settings
+        ? {
+            kcal: settings.calorieTarget,
+            proteinG: (settings.calorieTarget * settings.proteinPct) / 400,
+            carbsG: (settings.calorieTarget * settings.carbsPct) / 400,
+            fatG: (settings.calorieTarget * settings.fatPct) / 900,
+          }
+        : (intakeTargets[0] ?? null))
+    );
+  };
+  const target = targetFor(date);
   return {
     date,
     entries: selected,
     yesterdayEntries: entries.filter((entry) => entry.date === shift(-1)),
     loggedDays,
+    days: includeWeek ? diaryWeek(date, entries, targetFor) : undefined,
     target,
     total: selected.reduce(
       (sum, e) => ({

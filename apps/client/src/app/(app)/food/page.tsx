@@ -1,40 +1,42 @@
 "use client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { Page } from "@traiv/ui/components/shell/page";
 import { Button } from "@traiv/ui/components/button";
-import { Input } from "@traiv/ui/components/input";
-
-import { Zap, Barcode, Plus, MoreHorizontal, Trash, Copy, Salad } from "@traiv/ui/icons";
 import {
   DropdownMenu,
-  DropdownMenuTrigger,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuTrigger,
 } from "@traiv/ui/components/dropdown-menu";
+import { Input } from "@traiv/ui/components/input";
+import { Page } from "@traiv/ui/components/shell/page";
+import { Barcode, Copy, MoreHorizontal, Plus, Salad, Trash, Zap } from "@traiv/ui/icons";
+import { notifyAction } from "@traiv/ui/lib/action-feedback";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { QueryError } from "@/components/common/query-state";
 import { http } from "@/lib/api/client";
 import {
-  foodApi,
-  localDay,
-  offsetDay,
-  slots,
   type Diary,
   type Entry,
   type FoodItem,
-  type Slot,
+  foodApi,
+  localDay,
+  offsetDay,
   type PublishedPlan,
+  type Slot,
+  slots,
 } from "@/lib/api/food";
 import { useActiveStudio } from "@/lib/query";
-import { Panel, Field, ErrorText } from "./_components/common";
-import { Logger } from "./_components/logger";
-import { QuickAdd } from "./_components/quick-add";
-import { BarcodeScanner } from "./_components/search";
-import { MealCard } from "./_components/meal-card";
 import { ActivePlanCard } from "./_components/active-plan-card";
+import { ErrorText, Field, Panel } from "./_components/common";
 import { DiarySummary } from "./_components/diary-summary";
 import { FoodHeader } from "./_components/food-header";
+import { FoodSkeleton } from "./_components/food-skeleton";
+import { Logger } from "./_components/logger";
+import { MealCard } from "./_components/meal-card";
+import { QuickAdd } from "./_components/quick-add";
+import { BarcodeScanner } from "./_components/search";
 import { FoodTools } from "./_components/tools";
 
 type View =
@@ -128,14 +130,22 @@ export default function FoodPage() {
       />
       <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
         <Page className="gap-5 pt-2 pb-[calc(12rem+env(safe-area-inset-bottom))] lg:pb-28">
-          <ErrorText error={error ?? plans.error} />
+          <ErrorText error={error} />
+          {plans.isError ? (
+            <QueryError
+              title="Couldn't load your meal plans."
+              busy={plans.isFetching}
+              onRetry={() => void plans.refetch()}
+            />
+          ) : null}
           {diary.isPending ? (
-            <p className="py-10 text-center text-fg-muted">Loading your diary…</p>
-          ) : diary.isError ? (
-            <>
-              <ErrorText error={diary.error} />
-              <Button onClick={() => diary.refetch()}>Try again</Button>
-            </>
+            <FoodSkeleton diary />
+          ) : diary.isError && !data ? (
+            <QueryError
+              title="Couldn't load your diary."
+              busy={diary.isFetching}
+              onRetry={() => void diary.refetch()}
+            />
           ) : !data ? null : (
             <>
               <DiarySummary total={data.total} target={data.target} />
@@ -209,6 +219,7 @@ export default function FoodPage() {
                             onSelect={() =>
                               perform(async () => {
                                 for (const e of entries) await api.delete(`/entries/${e.id}`);
+                                notifyAction("Meal cleared", "success");
                               })
                             }
                           >
@@ -283,6 +294,7 @@ export default function FoodPage() {
       </div>
       <div
         className="pointer-events-none absolute inset-x-0 bottom-[calc(6.5rem+env(safe-area-inset-bottom))] z-20 flex items-center justify-center gap-3 px-4 lg:bottom-5"
+        role="toolbar"
         aria-label="Food logging actions"
       >
         <button

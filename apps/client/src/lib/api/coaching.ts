@@ -48,11 +48,13 @@ export const checkInApi = {
     checkInId: string,
     submissionId: string,
     answers: AnswerInput[],
+    formVersion?: "weekly-v2",
   ) =>
     (
       await http.post<{ checkIn: CheckInSummary }>(`/c/${studioId}/check-ins/${checkInId}`, {
         submissionId,
         answers,
+        formVersion,
       })
     ).data.checkIn,
 };

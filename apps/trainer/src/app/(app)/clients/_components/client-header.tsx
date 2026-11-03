@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@traiv/ui/components/dropdown-menu";
 import { SidebarToggle } from "@traiv/ui/components/shell/page-header";
+import { ActiveStateIcon } from "@traiv/ui/components/shell/solid-sidebar-icon";
 import { Skeleton } from "@traiv/ui/components/skeleton";
 import {
   Tooltip,
@@ -19,8 +20,8 @@ import {
 import {
   Apple,
   ArrowLeft,
-  BarChart,
   Cake,
+  ChartArea,
   ChevronDown,
   CircleCheckBig,
   CreditCard,
@@ -38,6 +39,7 @@ import {
 } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
 import Link from "next/link";
+import { useLayoutEffect, useRef, useState } from "react";
 import type { ClientProfile, RosterStatus, Tag } from "@/lib/api";
 import { useUpdateClient } from "@/lib/query";
 import { TagPicker } from "./tag-picker";
@@ -57,7 +59,7 @@ const STATUS_LABEL: Record<ClientProfile["status"], string> = {
  */
 const TABS = [
   { label: "Overview", icon: LayoutGrid, ready: true },
-  { label: "Development", icon: BarChart, ready: false },
+  { label: "Development", icon: ChartArea, ready: true },
   { label: "Nutrition", icon: Apple, ready: true },
   // ADR 0024: a client's own workout programmes. Flipped on now that the tab has a
   // real screen behind it — see `ClientWorkouts`.
@@ -109,8 +111,8 @@ export function ClientHeader({
     // Sticky against the panel's scroll container, which the shell owns. It needs an
     // opaque `bg-panel` or the content scrolls through it; it does NOT need its own
     // radius, because that container is `overflow-hidden` and clips the corners for it.
-    <header className="sticky top-0 z-20 flex shrink-0 flex-col bg-panel">
-      <div className="flex items-center gap-3 px-4 pt-4 pb-3 sm:px-6">
+    <header data-client-header className="sticky top-0 z-20 flex shrink-0 flex-col bg-surface">
+      <div className="flex items-center gap-3 px-4 py-5 sm:px-5">
         <SidebarToggle />
 
         <Link
@@ -126,8 +128,8 @@ export function ClientHeader({
         </span>
 
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <h1 className="truncate font-semibold text-display tracking-[-0.02em]">
+          <div className="flex items-center gap-x-3 gap-y-1">
+            <h1 className="max-w-full truncate text-xl font-semibold leading-7 tracking-[-0.02em]">
               {client.name}
             </h1>
             <StatusPill studioId={studioId} client={client} />
@@ -139,7 +141,7 @@ export function ClientHeader({
           </div>
         </div>
 
-        <Actions />
+        <Actions clientId={client.id} />
       </div>
 
       <Tabs active={activeTab} onChange={onTabChange} />
@@ -170,7 +172,7 @@ function StatusPill({ studioId, client }: { studioId: string | null; client: Cli
           type="button"
           aria-label={`Status: ${STATUS_LABEL[client.status]}. Change it`}
           className={cn(
-            "flex shrink-0 cursor-pointer items-center gap-1 rounded-full border px-2.5 py-1 font-medium text-body-sm transition-colors",
+            "flex shrink-0 cursor-pointer items-center gap-1 rounded-lg border px-2.5 py-1 font-medium text-body-sm transition-colors",
             "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-focus",
             client.status === "active"
               ? "border-success/30 bg-success-subtle text-success hover:bg-success-subtle/70"
@@ -239,24 +241,44 @@ function Facts({ client }: { client: ClientProfile }) {
   );
 }
 
-function Actions() {
+function Actions({ clientId }: { clientId: string }) {
   return (
     <TooltipProvider delayDuration={200}>
       {/* Hidden below `md`, where four of them and the name cannot share a row. */}
       <div className="hidden shrink-0 items-center gap-2 md:flex">
-        {ACTIONS.map(({ label, icon: Glyph, why }) => (
-          <Tooltip key={label}>
-            <TooltipTrigger asChild>
-              <span>
-                <Button variant="outline" size="sm" disabled className="rounded-full px-4">
-                  <Glyph className="size-4" />
-                  {label}
-                </Button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">{why}</TooltipContent>
-          </Tooltip>
-        ))}
+        {ACTIONS.map(({ label, icon: Glyph, why }) =>
+          label === "Chat" ? (
+            <Button
+              key={label}
+              asChild
+              variant="outline"
+              size="sm"
+              className="h-10 rounded-full bg-surface px-4"
+            >
+              <Link href={`/inbox?client=${clientId}`}>
+                <Glyph className="size-4" />
+                Chat
+              </Link>
+            </Button>
+          ) : (
+            <Tooltip key={label}>
+              <TooltipTrigger asChild>
+                <span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled
+                    className="h-10 rounded-full bg-surface px-4"
+                  >
+                    <Glyph className="size-4" />
+                    {label}
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">{why}</TooltipContent>
+            </Tooltip>
+          ),
+        )}
       </div>
     </TooltipProvider>
   );
@@ -269,9 +291,32 @@ function Actions() {
  * as one band and the tabs as the thing that divides it from the page.
  */
 function Tabs({ active, onChange }: { active?: TabLabel; onChange?: (tab: TabLabel) => void }) {
+  const navRef = useRef<HTMLElement>(null);
+  const [indicator, setIndicator] = useState({ left: 0, width: 0 });
+  useLayoutEffect(() => {
+    const nav = navRef.current;
+    if (!nav) return;
+    const measure = () => {
+      const tab = nav.querySelector<HTMLElement>('[aria-current="page"]');
+      setIndicator(tab ? { left: tab.offsetLeft, width: tab.offsetWidth } : { left: 0, width: 0 });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(nav);
+    for (const child of nav.children) observer.observe(child);
+    return () => observer.disconnect();
+  }, [active]);
   return (
     <TooltipProvider delayDuration={200}>
-      <nav className="flex gap-1 overflow-x-auto border-line border-b px-4 sm:px-6">
+      <nav
+        ref={navRef}
+        className="relative flex gap-1 overflow-x-auto border-t border-b border-line px-4 sm:px-5"
+      >
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-0 h-0.5 bg-fg transition-[left,width] duration-200 ease-out motion-reduce:transition-none"
+          style={{ left: indicator.left, width: indicator.width }}
+        />
         {TABS.map(({ label, icon: Glyph, ready }) =>
           ready ? (
             <button
@@ -280,13 +325,11 @@ function Tabs({ active, onChange }: { active?: TabLabel; onChange?: (tab: TabLab
               aria-current={active === label ? "page" : undefined}
               onClick={() => onChange?.(label)}
               className={cn(
-                "-mb-px flex shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap border-b-2 px-2 pt-1 pb-3 font-medium text-body-sm transition-colors",
-                active === label
-                  ? "border-fg text-fg"
-                  : "border-transparent text-fg-subtle hover:text-fg",
+                "flex h-12 shrink-0 cursor-pointer items-center gap-2 whitespace-nowrap px-3 font-medium text-body-sm transition-colors",
+                active === label ? "text-fg" : "text-fg-subtle hover:text-fg",
               )}
             >
-              <Glyph className="size-4" aria-hidden="true" />
+              <ActiveStateIcon icon={Glyph} active={active === label} className="size-4" />
               {label}
             </button>
           ) : (
@@ -294,7 +337,7 @@ function Tabs({ active, onChange }: { active?: TabLabel; onChange?: (tab: TabLab
               <TooltipTrigger asChild>
                 <span
                   aria-disabled="true"
-                  className="-mb-px flex shrink-0 cursor-default items-center gap-2 whitespace-nowrap border-transparent border-b-2 px-2 pt-1 pb-3 text-body-sm text-fg-subtle"
+                  className="flex h-12 shrink-0 cursor-default items-center gap-2 whitespace-nowrap px-3 text-body-sm text-fg-subtle"
                 >
                   <Glyph className="size-4" aria-hidden="true" />
                   {label}
@@ -313,7 +356,7 @@ function Tabs({ active, onChange }: { active?: TabLabel; onChange?: (tab: TabLab
 export function ClientHeaderSkeleton() {
   return (
     <header className="flex flex-col">
-      <div className="flex items-center gap-3 px-4 pt-4 pb-3 sm:px-6">
+      <div className="flex items-center gap-3 px-4 py-5 sm:px-5">
         <SidebarToggle />
         <Skeleton className="size-8 shrink-0 rounded-control" />
         <Skeleton className="size-14 shrink-0 rounded-full" />

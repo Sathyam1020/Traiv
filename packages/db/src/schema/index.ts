@@ -12,3 +12,8 @@ export * from "./studio.js";
 export * from "./tag.js";
 export * from "./user.js";
 export * from "./workout.js";
+
+export * from "./messaging.js";
+
+export * from "./steps.js";
+export * from "./measurements.js";

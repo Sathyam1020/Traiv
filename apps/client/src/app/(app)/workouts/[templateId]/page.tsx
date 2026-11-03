@@ -7,7 +7,9 @@ import { Check, Dumbbell, Play } from "@traiv/ui/icons";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { QueryError } from "@/components/common/query-state";
 import { useActiveStudio, useWorkout } from "@/lib/query";
+import { useWorkoutPrefetch } from "@/lib/query/use-workout-prefetch";
 
 /**
  * A programme with more than one session. One with exactly one skips this screen
@@ -18,6 +20,7 @@ export default function ProgramPage() {
   const router = useRouter();
   const { studioId } = useActiveStudio();
   const program = useWorkout(studioId, templateId);
+  const prefetch = useWorkoutPrefetch(studioId);
 
   const sessions = program.data?.sessions ?? [];
   const onlySession = sessions.length === 1 ? sessions[0] : null;
@@ -33,7 +36,11 @@ export default function ProgramPage() {
   if (program.error || !program.data) {
     return (
       <Page className="max-w-xl gap-3">
-        <h1 className="text-heading font-medium">Workout not found</h1>
+        <QueryError
+          title="Couldn't load this plan."
+          busy={program.isFetching}
+          onRetry={() => void program.refetch()}
+        />
         <Button asChild variant="secondary" className="mt-2 self-start">
           <Link href="/workouts">All workouts</Link>
         </Button>
@@ -57,7 +64,10 @@ export default function ProgramPage() {
           <li key={session.id}>
             <Link
               href={`/workouts/${templateId}/${session.id}`}
-              className="group flex min-w-0 items-center gap-3 rounded-surface border border-line bg-surface p-3.5 transition-colors hover:bg-hover"
+              onPointerEnter={() => prefetch.session(templateId, session.id)}
+              onFocus={() => prefetch.session(templateId, session.id)}
+              onPointerDown={() => prefetch.session(templateId, session.id)}
+              className="client-tappable group flex min-w-0 items-center gap-3 rounded-surface border border-line bg-surface p-3.5 transition-colors hover:bg-hover"
             >
               {/* Tinted icon container */}
               <span className="flex size-14 shrink-0 items-center justify-center rounded-xl bg-brand/10 text-brand">

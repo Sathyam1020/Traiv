@@ -1,11 +1,9 @@
-import { allow as allowFoodTool } from "./food.js";
-import { foodRouter } from "./food-routes.js";
-import { publishedMealPlans } from "./meal-plans.js";
 import { newId, schema } from "@traiv/db";
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { Router } from "express";
 import { z } from "zod";
 import { db } from "../../db.js";
+import { badRequest } from "../../errors.js";
 import { requireStudio, requireStudioAuth } from "../../middleware/authorize.js";
 import {
   READABLE_STATUSES,
@@ -13,9 +11,15 @@ import {
   requireClientAuth,
 } from "../../middleware/client-authorize.js";
 import { requireSession } from "../../middleware/session.js";
+import { clientMessaging } from "../messaging/routes.js";
+import { readSteps, saveSteps } from "../studio/development.js";
 import { getClientCheckIn, listClientCheckIns, submitClientCheckIn } from "./check-ins.js";
+import { allow as allowFoodTool } from "./food.js";
+import { foodRouter } from "./food-routes.js";
 import { completeIntake, FIRST_STEP, getIntake, LAST_STEP, saveStep } from "./intake.js";
 import { joinByCode, previewJoin, rotateJoinCode, setJoinEnabled } from "./join.js";
+import { publishedMealPlans } from "./meal-plans.js";
+import { isFutureStepDate, stepsPeriod, stepsWrite } from "./steps-validation.js";
 import { getToday } from "./today.js";
 import { signUpload, uploadsConfigured } from "./uploads.js";
 import {
@@ -273,14 +277,24 @@ clientApp.post(
   async (req, res) => {
     const { studioId, clientId } = requireClientAuth(req);
     const { checkInId } = checkInParam.parse(req.params);
-    const { answers } = z
+    const { answers, formVersion } = z
       .object({
         answers: z.array(answerSchema).max(40),
         submissionId: z.string().uuid().optional(),
+        formVersion: z.literal("weekly-v2").optional(),
       })
       .parse(req.body);
 
-    res.json({ checkIn: await submitClientCheckIn(studioId, clientId, checkInId, answers) });
+    res.json({
+      checkIn: await submitClientCheckIn(
+        studioId,
+        clientId,
+        checkInId,
+        answers,
+        undefined,
+        formVersion,
+      ),
+    });
   },
 );
 
@@ -516,3 +530,19 @@ clientApp.get("/:studioId/mealplans", requireClient(), async (req, res) => {
 });
 
 clientApp.use("/:studioId/food", foodRouter);
+
+clientApp.use("/:studioId/chat", clientMessaging);
+
+clientApp.get("/:studioId/steps", requireClient(), async (req, res) => {
+  const { clientId } = requireClientAuth(req);
+  const { start, end } = stepsPeriod.parse(req.query);
+  res.json(await readSteps(clientId, start, end));
+});
+clientApp.put("/:studioId/steps", requireClient({ write: true }), async (req, res) => {
+  const { clientId } = requireClientAuth(req);
+  const { date, count, timeZone } = stepsWrite.parse(req.body);
+  if (isFutureStepDate(date, timeZone))
+    throw badRequest("invalid_steps_date", "Cannot log future steps");
+  await saveSteps(clientId, date, count);
+  res.json({ saved: true });
+});
