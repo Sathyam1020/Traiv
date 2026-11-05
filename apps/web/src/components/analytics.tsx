@@ -32,6 +32,19 @@ export function Analytics() {
     const marks = [25, 50, 75, 100];
     const seen = new Set<number>();
 
+    const onClick = (event: MouseEvent) => {
+      const link =
+        event.target instanceof Element
+          ? event.target.closest<HTMLAnchorElement>("a[data-trial-location]")
+          : null;
+      if (link)
+        track("click", {
+          action: "start_trial",
+          location: link.dataset.trialLocation ?? "unknown",
+          plan: link.dataset.plan ?? "unspecified",
+        });
+    };
+    document.addEventListener("click", onClick);
     const onScroll = () => {
       const doc = document.documentElement;
       const scrollable = doc.scrollHeight - window.innerHeight;
@@ -57,6 +70,7 @@ export function Analytics() {
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("pagehide", onHide);
     return () => {
+      document.removeEventListener("click", onClick);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("pagehide", onHide);
     };

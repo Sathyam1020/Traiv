@@ -2,33 +2,17 @@ import "@traiv/ui/styles/globals.css";
 import "./marketing.css";
 import { Toaster } from "@traiv/ui/components/sonner";
 import type { Metadata } from "next";
-import { Bricolage_Grotesque, Inter } from "next/font/google";
+import { DM_Sans } from "next/font/google";
 import { Analytics } from "@/components/analytics";
 import { Footer } from "@/components/footer";
 import { Nav } from "@/components/nav";
 import { StructuredData } from "@/components/structured-data";
 import { SITE } from "@/content/site";
 
-const inter = Inter({
+const font = DM_Sans({
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  variable: "--font-inter",
-  display: "swap",
-});
-
-/**
- * Headlines only.
- *
- * Inter carries the product and carries it well, but Inter alone is the single most
- * common tell of a generated page — it is the face you pick when you have not picked one.
- * Bricolage is the same grotesque register, so the site still reads as the same product,
- * with enough character in the terminals and the tighter widths that a headline is not
- * just body copy at 48px.
- */
-const bricolage = Bricolage_Grotesque({
-  subsets: ["latin"],
-  weight: ["500", "600", "700"],
-  variable: "--font-display-family",
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-app-sans",
   display: "swap",
 });
 
@@ -46,20 +30,28 @@ export const metadata: Metadata = {
     url: SITE.url,
     title: `${SITE.name} — ${SITE.tagline}`,
     description: SITE.description,
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "Traiv — connected coaching for trainers and gyms",
+      },
+    ],
   },
-  twitter: { card: "summary_large_image" },
+  twitter: { card: "summary_large_image", images: ["/og.png"] },
   robots: { index: true, follow: true },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en-IN" className={`${inter.variable} ${bricolage.variable} dark`}>
+    <html lang="en-IN" className={`${font.variable} traiv-marketing`}>
       <body className="bg-canvas">
         <Nav />
         {/* The capsule header floats over the page, so content starts below it. */}
         <main className="pt-20 sm:pt-24">{children}</main>
         <Footer />
-        <Toaster theme="dark" />
+        <Toaster theme="light" />
         <StructuredData />
         {/* Our own, cookieless. See src/lib/analytics.ts for why there is no banner. */}
         <Analytics />

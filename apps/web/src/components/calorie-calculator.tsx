@@ -180,7 +180,7 @@ export function CalorieCalculator() {
             type="multiple"
             variant="outline"
             value={health}
-            onValueChange={(v) => setHealth(v as HealthFlag[])}
+            onValueChange={(v: string[]) => setHealth(v as HealthFlag[])}
             className="flex flex-wrap justify-start gap-2"
           >
             {HEALTH.map((h) => (

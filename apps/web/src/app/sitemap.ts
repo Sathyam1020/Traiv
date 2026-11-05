@@ -17,7 +17,7 @@ import { getPosts } from "@/lib/api";
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const at = (path: string, priority: number): MetadataRoute.Sitemap[number] => ({
     url: `${SITE.url}${path}`,
-    lastModified: new Date(),
+
     priority,
   });
 
@@ -29,6 +29,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     at("/", 1),
     at("/pricing", 0.9),
+    at("/gyms", 0.8),
     at("/features", 0.8),
     ...FEATURES.map((f) => at(`/features/${f.slug}`, 0.7)),
     at("/compare", 0.8),

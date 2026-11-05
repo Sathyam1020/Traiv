@@ -17,8 +17,9 @@ export function StructuredData() {
         "@id": `${SITE.url}/#organization`,
         name: SITE.name,
         url: SITE.url,
+        logo: `${SITE.url}/logo.svg`,
         description: SITE.description,
-        areaServed: { "@type": "Country", name: "India" },
+        areaServed: "Worldwide",
       },
       {
         "@type": "WebSite",

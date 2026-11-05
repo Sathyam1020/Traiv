@@ -14,6 +14,12 @@ const config: NextConfig = {
    */
   async redirects() {
     return [
+      { source: "/features/clients", destination: "/features/check-ins", permanent: true },
+      { source: "/features/progress", destination: "/features/check-ins", permanent: true },
+      { source: "/features/branding", destination: "/features/client-app", permanent: true },
+      { source: "/features/inbox", destination: "/features/messaging", permanent: true },
+      { source: "/features/whatsapp", destination: "/features/messaging", permanent: true },
+      { source: "/features/automations", destination: "/features", permanent: true },
       { source: "/guides/templates", destination: "/tools/templates", permanent: true },
       { source: "/guides/:slug", destination: "/blog/:slug", permanent: true },
       { source: "/guides", destination: "/blog", permanent: true },

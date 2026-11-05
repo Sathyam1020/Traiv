@@ -3,11 +3,12 @@ import Link from "next/link";
 import { CtaBand } from "@/components/cta-band";
 import { Container, PageHero, Section } from "@/components/layout";
 import { getPosts } from "@/lib/api";
+import { formatDate } from "@/lib/format-date";
 
 export const metadata: Metadata = {
   title: "Blog",
   description:
-    "What we are learning building coaching software in India — pricing, retention, nutrition, and what coaches here actually need.",
+    "What we are learning building coaching software — pricing, retention, nutrition, and what coaches here actually need.",
   alternates: { canonical: "/blog" },
 };
 
@@ -27,7 +28,7 @@ export default async function BlogPage() {
     <>
       <PageHero
         title="Building this in the open"
-        lede="What we are learning making coaching software for India — pricing, retention, nutrition, and the things nobody warns you about."
+        lede="What we are learning making coaching software — pricing, retention, nutrition, and the things nobody warns you about."
       />
 
       <Section>
@@ -71,12 +72,4 @@ export default async function BlogPage() {
       />
     </>
   );
-}
-
-export function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
 }

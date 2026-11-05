@@ -5,6 +5,7 @@ import { CtaBand } from "@/components/cta-band";
 import { Container, PageHero, Section } from "@/components/layout";
 import { PostBody } from "@/components/post-body";
 import { getPost, getPosts } from "@/lib/api";
+import { formatDate } from "@/lib/format-date";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -96,12 +97,4 @@ export default async function PostPage({ params }: Params) {
       <CtaBand source="post-close" secondary={{ href: "/blog", label: "All posts" }} />
     </>
   );
-}
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("en-IN", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
 }

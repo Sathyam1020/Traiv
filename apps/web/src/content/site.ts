@@ -1,18 +1,10 @@
-/**
- * Everything the site says about itself, in one place.
- *
- * Prices live here and nowhere else. A tier that reads ₹999 on the landing page and ₹1,099
- * on the pricing page is the kind of mistake nobody catches until a coach does, in public.
- *
- * Figures come from `.ai/product/positioning.md`, which is the decided source. If a number
- * here disagrees with that file, that file wins.
- */
+/** Public marketing facts confirmed by the founder. Prices are monthly INR. */
 
 export const SITE = {
   name: "Traiv",
-  tagline: "Coaching software for independent coaches",
+  tagline: "Coaching app for trainers and gyms",
   description:
-    "Plans, check-ins and payments for independent coaches in India. Unlimited clients at ₹999 a month — never per client.",
+    "Workout plans, diet plans, check-ins and client payments for personal trainers and gyms. Start your 14-day free trial.",
   /**
    * Where this deployment actually lives.
    *
@@ -46,59 +38,35 @@ export type Tier = {
   hero?: boolean;
 };
 
-/**
- * GST-inclusive, because an Indian buyer expects the price on the page to be the price
- * charged. ₹999 inclusive nets ₹846.
- *
- * Annual is two months free. Worth pushing: this category churns 5–13% a month, and a year
- * up front is worth far more than the 17% given up.
- */
 export const TIERS: readonly Tier[] = [
   {
-    name: "Free",
-    monthly: 0,
-    annual: null,
-    limit: "1 client",
-    summary: "Run one person properly, for as long as you like. No card.",
-    features: [
-      "1 client, forever",
-      "Plan builder and client app",
-      "Check-ins and progress",
-      "Your branding on the client app",
-    ],
-    cta: "Start free",
-  },
-  {
-    name: "Pro",
+    name: "Trainer",
     monthly: 999,
-    annual: 9990,
-    limit: "Unlimited clients",
-    summary: "The whole thing. However many people you coach.",
+    annual: null,
+    limit: "1 trainer",
+    summary: "For your personal coaching practice.",
     features: [
-      "Unlimited clients — the price does not move",
-      "Nutrition and meal plans",
-      "WhatsApp delivery",
-      "Check-in forms and automations",
-      "Payment links and GST invoices",
-      "0% platform fee on your revenue",
+      "Workout and diet plans",
+      "Check-ins and progress",
+      "Client fee collection",
+      "Your name and logo in the app",
     ],
-    cta: "Start free trial",
+    cta: "Start your 14-day free trial",
     hero: true,
   },
   {
-    name: "Studio",
+    name: "Gym",
     monthly: 2499,
-    annual: 24990,
-    limit: "5 coach seats",
-    summary: "For a gym or a team coaching under one name.",
+    annual: null,
+    limit: "For gyms with 3+ trainers",
+    summary: "One subscription for your gym's coaching.",
     features: [
-      "5 coach seats",
-      "Everything in Pro",
-      "Shared client roster",
-      "Group programmes",
-      "Per-coach permissions",
+      "Workout and diet plans",
+      "Check-ins and progress",
+      "Client fee collection",
+      "Your gym's name and logo in the app",
     ],
-    cta: "Talk to us",
+    cta: "Start your 14-day free trial",
   },
 ];
 
@@ -111,34 +79,15 @@ export const TIERS: readonly Tier[] = [
  */
 export const PROMISES = [
   {
-    title: "Unlimited clients",
-    body: "The price is the price at 5 clients and at 500. We will never charge you for growing.",
-    against: "TrueCoach, Everfit and Trainerize all bill per client.",
+    title: "Connected coaching",
+    body: "Workout plans, diet plans and check-ins in one workspace.",
+    against: "",
   },
+  { title: "Your name and logo", body: "Your coaching identity inside Traiv.", against: "" },
   {
-    title: "No add-ons",
-    body: "Nutrition, payments, automations and branding are in the price.",
-    against: "Trainerize charges $45 a month for nutrition.",
-  },
-  {
-    title: "0% platform fee",
-    body: "What your clients pay you is yours. We take the gateway cost and nothing else.",
-    against: "TrueCoach takes 5% of your revenue.",
-  },
-  {
-    title: "No setup fee for branding",
-    body: "Your name on your client's app, from the first day, at no extra cost.",
-    against: "Trainerize charges $169. FitBudd charges $75.",
-  },
-  {
-    title: "One-click cancel",
-    body: "A button in your settings. No email, no call, no retention offer.",
-    against: "Eight of the ten platforms we checked make you ask.",
-  },
-  {
-    title: "One-click export",
-    body: "Leave any time, take everything. Your clients, plans and history, in a file.",
-    against: "Most platforms will give you a CSV if you ask twice.",
+    title: "Built for your coaching",
+    body: "Subscriptions priced in rupees for trainers and gyms.",
+    against: "",
   },
 ] as const;
 

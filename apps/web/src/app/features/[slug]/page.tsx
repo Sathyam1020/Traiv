@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CtaBand } from "@/components/cta-band";
 import { Container, PageHero, Section } from "@/components/layout";
+import { ProductScene, sceneForFeature } from "@/components/product-scenes";
 import { FEATURES, featureBySlug } from "@/content/features";
 
 type Params = { params: Promise<{ slug: string }> };
@@ -43,6 +44,9 @@ export default async function FeaturePage({ params }: Params) {
 
       <Section>
         <Container>
+          <div className="mx-auto mb-12 max-w-2xl">
+            <ProductScene kind={sceneForFeature(slug)} />
+          </div>
           {/* Three numbered rows rather than three cards: the points are an argument in
               order, not a set of equivalent tiles. */}
           <ol className="flex flex-col">

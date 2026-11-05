@@ -1,72 +1,47 @@
+import { ArrowUpRight } from "@traiv/ui/icons";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CtaBand } from "@/components/cta-band";
-import { Container, PageHero, Section } from "@/components/layout";
-import { Reveal } from "@/components/reveal";
+import { ClosingCta } from "@/components/marketing-sections";
+import { ProductScene, sceneForFeature } from "@/components/product-scenes";
 import { FEATURES } from "@/content/features";
-
 export const metadata: Metadata = {
-  title: "Features",
+  title: "Coaching features",
   description:
-    "Everything Traiv does, by the screen you will be looking at — Today, the plan builder, nutrition, check-ins, the client app, payments and branding.",
+    "Explore Traiv's workout plans, diet plans, check-ins, client payments and client app.",
   alternates: { canonical: "/features" },
 };
-
 export default function FeaturesPage() {
-  const shipped = FEATURES.filter((f) => !f.status);
-  const building = FEATURES.filter((f) => f.status === "building");
-
   return (
     <>
-      <PageHero
-        title="Everything it does, by the screen you will be in"
-        lede="Not a feature matrix. These are the screens you will spend your week in, and what each one is for. The ones still being built say so."
-      />
-
-      <Section>
-        <Container>
-          <Grid items={shipped} />
-        </Container>
-      </Section>
-
-      {building.length > 0 ? (
-        <Section tone="sunken">
-          <Container>
-            <div className="max-w-[46rem]">
-              <h2 className="font-display text-heading font-medium">Being built now</h2>
-              <p className="mt-4 text-body leading-relaxed text-fg-muted">
-                On the roadmap, not in the product. They are listed because a coach deciding today
-                deserves to know what is not there yet — and because the order gets set by whoever
-                asks loudest.
-              </p>
+      <section className="subpage-hero marketing-container">
+        <span className="section-note">Inside Traiv</span>
+        <h1>
+          The plan. The person.
+          <br />
+          The progress.
+        </h1>
+        <p className="page-lede">
+          A connected workflow for your coaching, from the first workout plan to the next check-in.
+        </p>
+      </section>
+      <section className="marketing-section">
+        <div className="marketing-container feature-overview-list">
+          {FEATURES.map((f, i) => (
+            <div className={`workflow-row ${i % 2 ? "workflow-reverse" : ""}`} key={f.slug}>
+              <div className="workflow-copy">
+                <span className="section-note">{f.name}</span>
+                <h2>{f.headline}</h2>
+                <p>{f.body}</p>
+                <Link href={`/features/${f.slug}`}>
+                  Explore {f.name.toLowerCase()} <ArrowUpRight aria-hidden="true" size={18} />
+                </Link>
+              </div>
+              <ProductScene kind={sceneForFeature(f.slug)} />
             </div>
-            <div className="mt-10">
-              <Grid items={building} />
-            </div>
-          </Container>
-        </Section>
-      ) : null}
-
-      <CtaBand source="features-close" secondary={{ href: "/pricing", label: "See pricing" }} />
+          ))}
+        </div>
+      </section>
+      <ClosingCta />
     </>
-  );
-}
-
-function Grid({ items }: { items: typeof FEATURES }) {
-  return (
-    <ul className="grid gap-px overflow-hidden rounded-surface border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
-      {items.map((f, i) => (
-        <Reveal as="li" key={f.slug} delay={i * 45} className="bg-surface">
-          <Link
-            href={`/features/${f.slug}`}
-            className="flex h-full flex-col gap-2.5 p-7 transition-colors hover:bg-hover"
-          >
-            <f.icon className="size-4 text-fg-subtle" />
-            <h3 className="font-display text-subheading font-semibold">{f.name}</h3>
-            <p className="text-body-sm leading-relaxed text-fg-muted">{f.blurb}</p>
-          </Link>
-        </Reveal>
-      ))}
-    </ul>
   );
 }

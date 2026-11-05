@@ -63,12 +63,12 @@ export default function DemoPage() {
         <Container width="prose">
           <SectionHeading
             title="You probably do not need one"
-            lede="The free plan runs one client properly, forever, with no card. For most coaches that answers the question faster than a call with us would."
+            lede="Start your 14-day free trial to explore Traiv. If you want to discuss your gym’s coaching setup first, you can talk to us."
           />
           <p className="mt-6 text-body-sm leading-relaxed text-fg-muted">
             A demo is worth it if you are moving a roster off another platform, if you are a gym or
             an academy, or if you want to watch somebody build a plan before you trust the thing
-            with a client. Otherwise, start free and message us when you get stuck.
+            with a client. Otherwise, start your 14-day free trial.
           </p>
         </Container>
       </Section>

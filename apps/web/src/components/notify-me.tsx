@@ -157,7 +157,7 @@ function NotifyDialog({
         if (!v) setTimeout(() => setDone(false), 200);
       }}
     >
-      <DialogContent className="sm:max-w-[26rem]">
+      <DialogContent className="marketing-enquiry-dialog sm:max-w-[26rem]">
         {done ? (
           <div className="flex flex-col items-start gap-3 py-2">
             <span className="flex size-10 items-center justify-center rounded-full bg-success-subtle">

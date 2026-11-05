@@ -225,11 +225,16 @@ export const ExternalLink = icon(IconExternalLink, "ExternalLink");
 export const SlidersHorizontal = icon(IconAdjustmentsHorizontal, "SlidersHorizontal");
 
 export {
+  IconAntennaBars5 as SignalBars,
+  IconArrowUpRight as ArrowUpRight,
+  IconBattery3 as Battery,
+  IconBell as Bell,
   IconFile as File,
   IconLink as Link,
+  IconMail as Mail,
   IconMusic as Music,
+  IconPuzzle as Puzzle,
+  IconSend as Send,
   IconShare as Share,
   IconShoe as Footprints,
 } from "@tabler/icons-react";
-
-export { IconBell as Bell, IconMail as Mail, IconPuzzle as Puzzle } from "@tabler/icons-react";
