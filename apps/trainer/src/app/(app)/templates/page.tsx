@@ -17,8 +17,8 @@ import {
 } from "@traiv/ui/components/dropdown-menu";
 import { Input } from "@traiv/ui/components/input";
 import { Page } from "@traiv/ui/components/shell/page";
-import { StickyPageHeader } from "@traiv/ui/components/shell/sticky-page-header";
 import { SidebarToggle } from "@traiv/ui/components/shell/page-header";
+import { StickyPageHeader } from "@traiv/ui/components/shell/sticky-page-header";
 import { Skeleton } from "@traiv/ui/components/skeleton";
 import {
   Table,
@@ -43,6 +43,7 @@ import { cn } from "@traiv/ui/lib/cn";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
+import { PdfDownloadMenuItem } from "@/components/common/pdf-download-menu-item";
 import { useActiveStudioId } from "@/lib/active-studio";
 import type { TemplateSummary } from "@/lib/api";
 import { isApiError } from "@/lib/api";
@@ -227,6 +228,7 @@ function Row({ studioId, template: t }: { studioId: string; template: TemplateSu
               <Copy className="size-3.5" />
               Clone
             </DropdownMenuItem>
+            <PdfDownloadMenuItem kind="workout" studioId={studioId} id={t.id} />
             <DropdownMenuItem variant="destructive" onSelect={() => setConfirmingDelete(true)}>
               <Trash className="size-3.5" />
               Delete

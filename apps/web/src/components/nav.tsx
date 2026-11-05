@@ -1,6 +1,6 @@
 "use client";
 
-import { Logo } from "@traiv/ui/components/logo";
+import { Wordmark } from "@traiv/ui/components/logo";
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -74,8 +74,7 @@ export function Nav() {
           aria-label="Traiv home"
           className="flex shrink-0 items-center gap-2.5 py-2 transition-opacity hover:opacity-80"
         >
-          <Logo size={28} />
-          <span className="font-display text-subheading font-semibold">Traiv</span>
+          <Wordmark size={32} />
         </Link>
 
         <NavigationMenu

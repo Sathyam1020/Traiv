@@ -3,6 +3,7 @@ import { and, asc, desc, eq, gte, inArray, isNull, lte } from "drizzle-orm";
 import { db } from "../../db.js";
 import { badRequest, notFound } from "../../errors.js";
 import { getToday } from "../client/today.js";
+import { measurementHistory } from "../measurements/history.js";
 import { getCheckIn } from "./check-ins.js";
 
 export async function developmentClient(studioId: string, clientId: string) {
@@ -60,7 +61,50 @@ export async function development(studioId: string, clientId: string) {
       : Promise.resolve([]),
     getToday(clientId, client.userId ?? null),
   ]);
+  const end = new Date(),
+    start = new Date();
+  start.setDate(start.getDate() - 365);
+  const manualHistory = await measurementHistory(
+    studioId,
+    clientId,
+    client.userId,
+    start.toISOString().slice(0, 10),
+    end.toISOString().slice(0, 10),
+  );
+  const manualEntries = manualHistory.entries
+    .filter((e) => e.source === "measurement")
+    .map((e) => ({
+      id: e.id,
+      dueOn: e.takenAt.slice(0, 10),
+      completedAt: e.takenAt,
+      reviewed: true,
+      answers: manualHistory.fields.flatMap((f) =>
+        e.values[f.code] != null || e.imageUrls[f.code]
+          ? [
+              {
+                code: f.code,
+                name: f.name,
+                unit: f.unit,
+                numberValue: f.type === "number" ? (e.values[f.code] ?? null) : null,
+                ratingValue: f.type === "rating" ? (e.values[f.code] ?? null) : null,
+                textValue: null,
+                imageUrl: e.imageUrls[f.code] ?? null,
+              },
+            ]
+          : [],
+      ),
+    }));
+  const checkEntries = rows.map((c) => ({
+    ...c,
+    answers: answers.filter((a) => a.checkInId === c.id),
+    reviewed: reviews.some((r) => r.checkInId === c.id),
+  }));
   return {
+    progressEntries: [...checkEntries, ...manualEntries].sort(
+      (a, b) =>
+        (b.completedAt ? new Date(b.completedAt).getTime() : 0) -
+        (a.completedAt ? new Date(a.completedAt).getTime() : 0),
+    ),
     checkIns: rows.map((c) => ({
       ...c,
       answers: answers.filter((a) => a.checkInId === c.id),
@@ -104,7 +148,7 @@ export async function saveSteps(clientId: string, date: string, count: number) {
     .values({ clientId, date, count })
     .onConflictDoUpdate({
       target: [schema.dailySteps.clientId, schema.dailySteps.date],
-      set: { count, updatedAt: new Date() },
+      set: { count, source: "manual", updatedAt: new Date() },
     });
 }
 export async function saveStepGoal(clientId: string, date: string, count: number) {

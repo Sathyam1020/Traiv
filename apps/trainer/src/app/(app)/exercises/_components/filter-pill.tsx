@@ -3,6 +3,7 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@traiv/ui/components/popover";
 import { ChevronDown, X } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
+import { useState } from "react";
 
 /**
  * One filter chip — "Muscle Group", "Equipment", "Type" — exactly as the real Exercises
@@ -18,13 +19,16 @@ export function FilterPill({
   options,
   onChange,
   format,
+  disabled = false,
 }: {
   label: string;
   value: string | undefined;
   options: string[];
   onChange: (value: string | undefined) => void;
   format?: (value: string) => string;
+  disabled?: boolean;
 }) {
+  const [open, setOpen] = useState(false);
   const show = (v: string) => (format ? format(v) : v);
 
   return (
@@ -36,10 +40,11 @@ export function FilterPill({
           : "border-line bg-surface text-fg-muted",
       )}
     >
-      <Popover>
+      <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <button
             type="button"
+            disabled={disabled}
             className={cn(
               "flex cursor-pointer items-center gap-1.5 py-1.5 pl-3 transition-colors",
               value ? "pr-1.5" : "pr-3 hover:bg-hover",
@@ -60,7 +65,11 @@ export function FilterPill({
                 <button
                   key={o}
                   type="button"
-                  onClick={() => onChange(o === value ? undefined : o)}
+                  aria-pressed={o === value}
+                  onClick={() => {
+                    onChange(o === value ? undefined : o);
+                    setOpen(false);
+                  }}
                   className={cn(
                     "cursor-pointer rounded-control px-2.5 py-1.5 text-left text-body-sm transition-colors hover:bg-hover",
                     o === value && "bg-signal-subtle text-signal-text",

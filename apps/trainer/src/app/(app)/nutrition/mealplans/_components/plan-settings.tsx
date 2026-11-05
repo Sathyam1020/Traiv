@@ -6,9 +6,9 @@ import { Input } from "@traiv/ui/components/input";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from "@traiv/ui/components/sheet";
 import { Textarea } from "@traiv/ui/components/textarea";
 import { Check, GripVertical, Plus, Trash } from "@traiv/ui/icons";
@@ -100,6 +100,7 @@ export function PlanSettingsSheet({
 }) {
   const [document, setDocument] = useState<PlanDocument>(() => structuredClone(initial));
   const [mode, setMode] = useState("%");
+  const [customMacros, setCustomMacros] = useState(false);
   const [presetName, setPresetName] = useState<string | null>(null);
   const [presetError, setPresetError] = useState("");
   const [presetBusy, setPresetBusy] = useState(false);
@@ -139,7 +140,21 @@ export function PlanSettingsSheet({
   };
   const presetOptions = [
     { name: "Default 30/40/30", proteinPct: 30, carbsPct: 40, fatPct: 30 },
-    ...(presets.data ?? []),
+    { name: "High Protein (P40/C40/F20)", proteinPct: 40, carbsPct: 40, fatPct: 20 },
+    { name: "Low Carb (P50/C25/F25)", proteinPct: 50, carbsPct: 25, fatPct: 25 },
+    { name: "Muscle Gain (P30/C50/F20)", proteinPct: 30, carbsPct: 50, fatPct: 20 },
+    { name: "Balanced (P40/C30/F30)", proteinPct: 40, carbsPct: 30, fatPct: 30 },
+    ...(presets.data ?? []).filter(
+      (p) =>
+        ![
+          "Default 30/40/30",
+          "High Protein (P40/C40/F20)",
+          "Low Carb (P50/C25/F25)",
+          "Muscle Gain (P30/C50/F20)",
+          "Balanced (P40/C30/F30)",
+          "Custom",
+        ].includes(p.name),
+    ),
   ];
   const selectedPreset =
     presetOptions.find(
@@ -177,7 +192,7 @@ export function PlanSettingsSheet({
           className="flex min-h-0 flex-1 flex-col"
           onSubmit={(event) => {
             event.preventDefault();
-            if (settingsValid(document)) submit(document);
+            if (!busy && settingsValid(document)) submit(document);
           }}
         >
           <fieldset
@@ -348,9 +363,10 @@ export function PlanSettingsSheet({
                 <div className="flex flex-wrap items-center gap-2">
                   <Pick
                     label="Macro preset"
-                    value={selectedPreset}
+                    value={customMacros ? "Custom" : selectedPreset}
                     options={[...presetOptions.map((p) => p.name), "Custom"]}
                     onChange={(name) => {
+                      setCustomMacros(name === "Custom");
                       const p = presetOptions.find((x) => x.name === name);
                       if (p)
                         patch({ proteinPct: p.proteinPct, carbsPct: p.carbsPct, fatPct: p.fatPct });
@@ -603,7 +619,10 @@ export function PlanSettingsSheet({
             <Button type="button" variant="outline" disabled={busy} onClick={close}>
               Cancel
             </Button>
-            <Button disabled={busy || !settingsValid(document) || (!create && !changed)}>
+            <Button
+              type="submit"
+              disabled={busy || !settingsValid(document) || (!create && !changed)}
+            >
               {busy
                 ? create
                   ? "Selecting recipes…"

@@ -1,3 +1,4 @@
+import type { ExerciseFacets } from "@traiv/exercises";
 import { http } from "./client";
 import type {
   ClientProgramSummary,
@@ -112,15 +113,36 @@ export const workoutApi = {
   },
 
   exercises: {
+    filters: async (studioId: string, signal?: AbortSignal) =>
+      (await http.get<ExerciseFacets>(`/studios/${studioId}/exercise-filters`, { signal })).data,
+    local: async (studioId: string) =>
+      (await http.get<{ exercises: Exercise[] }>(`/studios/${studioId}/exercise-customizations`))
+        .data.exercises,
     list: async (
       studioId: string,
-      opts: { q?: string; muscle?: string; equipment?: string; category?: string } = {},
+      opts: {
+        q?: string;
+        muscle?: string;
+        equipment?: string;
+        category?: string;
+        offset?: number;
+      } = {},
+      signal?: AbortSignal,
     ) =>
       (
-        await http.get<{ exercises: Exercise[] }>(`/studios/${studioId}/exercises`, {
+        await http.get<{
+          exercises: Exercise[];
+          hasMore: boolean;
+          nextOffset: number | null;
+          total: number | null;
+          limitReached: boolean;
+          catalog: "exerciseapi" | "legacy";
+          providerError?: string;
+        }>(`/studios/${studioId}/exercises`, {
           params: opts,
+          signal,
         })
-      ).data.exercises,
+      ).data,
 
     get: async (studioId: string, exerciseId: string) =>
       (await http.get<{ exercise: Exercise }>(`/studios/${studioId}/exercises/${exerciseId}`)).data

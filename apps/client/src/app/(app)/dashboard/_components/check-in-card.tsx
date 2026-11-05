@@ -1,7 +1,6 @@
 "use client";
 
 import { Button } from "@traiv/ui/components/button";
-import { CircleCheck } from "@traiv/ui/icons";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { hasDraft } from "@/components/check-in/draft";
@@ -29,7 +28,7 @@ export function CheckInCard({ checkIn }: { checkIn: Today["checkIn"] }) {
   const [resumable, setResumable] = useState(false);
   useEffect(() => setResumable(hasDraft(checkIn)), [checkIn]);
 
-  if (!checkIn) return <AllClear />;
+  if (!checkIn || checkIn.state === "completed") return null;
 
   return (
     <section className="flex flex-col items-center gap-1 rounded-surface bg-signal p-6 text-center">
@@ -50,26 +49,6 @@ export function CheckInCard({ checkIn }: { checkIn: Today["checkIn"] }) {
           {resumable ? "Continue check-in" : "Start check-in"}
         </Link>
       </Button>
-    </section>
-  );
-}
-
-/**
- * Nothing due.
- *
- * Quiet rather than filled — there is nothing to ask for, so it reports like everything
- * else on the screen instead of shouting in the coach's colour.
- */
-function AllClear() {
-  return (
-    <section className="flex items-center gap-3 rounded-surface border border-line bg-surface p-4">
-      <CircleCheck aria-hidden="true" className="size-5 shrink-0 text-success" />
-      <div className="flex min-w-0 flex-col">
-        <span className="text-body font-medium">You're up to date</span>
-        <span className="text-body-sm text-fg-muted">
-          Nothing due. Your coach will be in touch.
-        </span>
-      </div>
     </section>
   );
 }

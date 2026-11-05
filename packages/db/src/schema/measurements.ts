@@ -10,6 +10,7 @@ export const clientMeasurements = pgTable(
       .references(() => clients.id, { onDelete: "cascade" }),
     takenAt: timestamp({ withTimezone: true }).notNull(),
     values: jsonb().$type<Record<string, number>>().notNull(),
+    imageUrls: jsonb().$type<Record<string, string>>().notNull().default({}),
     createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [index("client_measurement_date_idx").on(t.clientId, t.takenAt)],

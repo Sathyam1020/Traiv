@@ -1,6 +1,7 @@
 import type { NavGroup } from "@traiv/ui/components/shell/app-shell";
 import {
   BookOpen,
+  FileText,
   ClipboardList,
   Dumbbell,
   Inbox,
@@ -28,6 +29,7 @@ export const navItems: readonly NavGroup[] = [
     items: [
       { href: "/clients", label: "Clients", icon: Users },
       { href: "/inbox", label: "Inbox", icon: Inbox },
+      { href: "/vault/resources", label: "Vault", icon: FileText },
     ],
   },
   {

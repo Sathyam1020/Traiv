@@ -10,6 +10,7 @@ import { ClientHeader, ClientHeaderSkeleton } from "../_components/client-header
 import { Development } from "../_components/development/development";
 import { ClientNutrition } from "../_components/nutrition/client-nutrition";
 import { Overview, OverviewSkeleton } from "../_components/overview/overview";
+import { Vault } from "../../vault/vault";
 import { ClientWorkouts } from "../_components/workouts/client-workouts";
 
 /**
@@ -28,8 +29,8 @@ export default function ClientPage() {
   const overview = useClientOverview(studioId, clientId);
   const checkIns = useCheckIns(studioId, clientId);
   const tags = useTags(studioId);
-  const [tab, setTab] = useState<"Overview" | "Workouts" | "Nutrition" | "Development">(
-    searchParams.get("tab") === "development"
+  const [tab, setTab] = useState<"Overview" | "Workouts" | "Nutrition" | "Development" | "Vault">(
+    searchParams.get("tab") === "vault" ? "Vault" : searchParams.get("tab") === "development"
       ? "Development"
       : searchParams.get("tab") === "nutrition"
         ? "Nutrition"
@@ -67,12 +68,12 @@ export default function ClientPage() {
         tags={tags.data ?? []}
         activeTab={tab}
         onTabChange={(t) => {
-          if (t === "Overview" || t === "Workouts" || t === "Nutrition" || t === "Development")
+          if (t === "Overview" || t === "Workouts" || t === "Nutrition" || t === "Development" || t === "Vault")
             setTab(t);
         }}
       />
 
-      {tab === "Development" && studioId ? (
+      {tab === "Vault" ? <Vault clientId={clientId} /> : tab === "Development" && studioId ? (
         <Development studioId={studioId} clientId={clientId} />
       ) : tab === "Nutrition" ? (
         <ClientNutrition

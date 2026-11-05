@@ -40,7 +40,10 @@ export function useLogWeight(studioId: string) {
   return useMutation({
     meta: { feedback: { error: "Couldn't log your weight. Try again.", success: "Weight logged" } },
     mutationFn: (kg: number) => todayApi.logWeight(studioId, kg),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.client.today(studioId) }),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.client.today(studioId) });
+      void qc.invalidateQueries({ queryKey: ["measurement-history", studioId] });
+    },
   });
 }
 
@@ -94,6 +97,7 @@ export function useSubmitCheckIn(studioId: string) {
     onSuccess: (_result, { checkInId }) => {
       qc.invalidateQueries({ queryKey: queryKeys.client.today(studioId) });
       qc.invalidateQueries({ queryKey: queryKeys.client.checkIns(studioId) });
+      qc.invalidateQueries({ queryKey: ["profile-history", studioId] });
       qc.invalidateQueries({ queryKey: queryKeys.client.checkIn(studioId, checkInId) });
     },
   });

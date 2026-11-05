@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Button } from "@traiv/ui/components/button";
+import { ArrowLeft, Minus, Plus, Salad, ShoppingBasket, Star } from "@traiv/ui/icons";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Plus, Minus, Star, ShoppingBasket, Salad } from "@traiv/ui/icons";
-import { Button } from "@traiv/ui/components/button";
-import { foodApi, localDay, slots, type FoodItem, type Slot } from "@/lib/api/food";
+import { useEffect, useRef, useState } from "react";
+import { ClientActionBar } from "@/components/layout/client-action-bar";
+import { type FoodItem, foodApi, localDay, type Slot, slots } from "@/lib/api/food";
 import { useActiveStudio } from "@/lib/query";
-import { Logger } from "../../../../_components/logger";
 import { ErrorText, Macros } from "../../../../_components/common";
+import { Logger } from "../../../../_components/logger";
 
 export default function PlanRecipePage() {
   const { planId, optionId } = useParams<{ planId: string; optionId: string }>();
@@ -79,7 +80,7 @@ export default function PlanRecipePage() {
   }
   return (
     <div className="relative mx-auto flex h-full min-h-0 w-full max-w-3xl flex-1 flex-col overflow-hidden bg-panel">
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[calc(12rem+env(safe-area-inset-bottom))]">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain client-action-scroll">
         <div className="relative h-64 bg-sunken sm:h-80">
           {item?.imageUrl ? (
             <img src={item.imageUrl} alt="" className="size-full object-cover" />
@@ -237,7 +238,7 @@ export default function PlanRecipePage() {
         </article>
       </div>
       {item ? (
-        <div className="absolute inset-x-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] flex gap-3 lg:bottom-5">
+        <ClientActionBar>
           <Button
             variant="outline"
             aria-label="Add ingredients to shopping list"
@@ -254,7 +255,7 @@ export default function PlanRecipePage() {
             <Plus className="size-5" />
             Log this meal
           </Button>
-        </div>
+        </ClientActionBar>
       ) : null}
       {addedPortions === portions ? (
         <span role="status" className="sr-only">

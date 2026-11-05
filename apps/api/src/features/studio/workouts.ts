@@ -1,7 +1,25 @@
 import { newId, schema } from "@traiv/db";
+import { type ExerciseFacets, matchesExercise, normalizeFilters } from "@traiv/exercises";
 import { and, asc, desc, eq, inArray, isNull, notInArray, sql } from "drizzle-orm";
 import { db } from "../../db.js";
-import { badRequest, notFound } from "../../errors.js";
+import { AppError, badRequest, notFound } from "../../errors.js";
+import {
+  type CatalogOptions,
+  enrichDemonstration,
+  exerciseApiEnabled,
+  isProviderExercise,
+  materializeProviderExercise,
+  providerExercise,
+  providerExerciseFacets,
+  providerExercises,
+} from "../../library/exercise-api.js";
+import {
+  applyExerciseCustomizations,
+  customization,
+  studioExerciseEdits,
+} from "../../library/exercise-customizations.js";
+import { notifyClient } from "../notifications/service.js";
+import { verifyExerciseUploads } from "./uploads.js";
 
 /**
  * The coach's workout templates, and the client-side copies made from them.
@@ -195,6 +213,11 @@ export async function getTemplate(studioId: string, templateId: string) {
         .orderBy(asc(schema.exerciseSets.position))
     : [];
 
+  const displayExercises = await applyExerciseCustomizations(
+    studioId,
+    exerciseRows,
+    (e) => e.exerciseId,
+  );
   return {
     ...template,
     createdAt: template.createdAt.toISOString(),
@@ -202,7 +225,7 @@ export async function getTemplate(studioId: string, templateId: string) {
     archivedAt: template.archivedAt?.toISOString() ?? null,
     sessions: sessions.map((s) => ({
       ...s,
-      exercises: exerciseRows
+      exercises: displayExercises
         .filter((e) => e.sessionId === s.id)
         .map((e) => ({ ...e, sets: sets.filter((set) => set.sessionExerciseId === e.id) })),
     })),
@@ -269,7 +292,29 @@ async function writeTree(templateId: string, sessions: SessionInput[]) {
     throw badRequest("too_many_sessions", "That's too many sessions.");
   }
 
+  // Resolve only newly selected provider references before the atomic tree write.
+  for (const id of new Set(sessions.flatMap((s) => s.exercises.map((e) => e.exerciseId))))
+    await materializeProviderExercise(id);
   await db.transaction(async (tx) => {
+    // Free the positive ordering slots before inserting replacements or reordering
+    // retained rows. Deletion happens last to preserve references from workout logs.
+    // These temporary positions are never visible outside this transaction.
+    await tx.execute(sql`select id from workout_template where id = ${templateId} for update`);
+    await tx.execute(sql`
+      update exercise_set set position = -position - 1
+      where session_exercise_id in (
+        select id from session_exercise where session_id in (
+          select id from workout_session where template_id = ${templateId}
+        )
+      )
+    `);
+    await tx.execute(sql`
+      update session_exercise set position = -position - 1
+      where session_id in (select id from workout_session where template_id = ${templateId})
+    `);
+    await tx.update(schema.workoutSessions)
+      .set({ position: sql`-${schema.workoutSessions.position} - 1` })
+      .where(eq(schema.workoutSessions.templateId, templateId));
     const keptSessions: string[] = [];
 
     for (const [sIndex, session] of sessions.entries()) {
@@ -404,6 +449,16 @@ export async function setTemplateStatus(
     .update(schema.workoutTemplates)
     .set({ status })
     .where(eq(schema.workoutTemplates.id, templateId));
+  if (status === "active") {
+    const [published] = await db
+      .select({ clientId: schema.workoutTemplates.clientId })
+      .from(schema.workoutTemplates)
+      .where(eq(schema.workoutTemplates.id, templateId));
+    if (published?.clientId)
+      void notifyClient(published.clientId, "content", `workout:${templateId}`, "/workouts").catch(
+        () => console.warn("Workout push delivery failed"),
+      );
+  }
   return getTemplate(studioId, templateId);
 }
 
@@ -524,45 +579,98 @@ export async function saveClientProgramAsTemplate(
 /* Exercises                                                                   */
 /* -------------------------------------------------------------------------- */
 
-const EXERCISE_LIMIT = 200;
-
-export function listExercises(
-  studioId: string,
-  opts: { q?: string; muscle?: string; equipment?: string; category?: string } = {},
-) {
-  const term = opts.q?.trim();
-  return db
+export async function exerciseFacets(studioId: string): Promise<ExerciseFacets> {
+  if (exerciseApiEnabled()) return providerExerciseFacets();
+  const rows = await db
     .select({
-      id: schema.exercises.id,
-      name: schema.exercises.name,
-      pattern: schema.exercises.pattern,
       muscle: schema.exercises.muscle,
-      secondaryMuscles: schema.exercises.secondaryMuscles,
       equipment: schema.exercises.equipment,
-      imageUrl: schema.exercises.imageUrl,
-      videoUrl: schema.exercises.videoUrl,
-      stimulus: schema.exercises.stimulus,
-      level: schema.exercises.level,
       category: schema.exercises.category,
-      defaultFields: schema.exercises.defaultFields,
-      shared: sql<boolean>`${schema.exercises.studioId} is null`,
     })
     .from(schema.exercises)
     .where(
       and(
         sql`(${schema.exercises.studioId} is null or ${schema.exercises.studioId} = ${studioId})`,
         isNull(schema.exercises.deletedAt),
-        ...(term ? [sql`${schema.exercises.name} ilike ${`%${term}%`}`] : []),
-        ...(opts.muscle ? [eq(schema.exercises.muscle, opts.muscle)] : []),
-        ...(opts.equipment ? [eq(schema.exercises.equipment, opts.equipment)] : []),
-        ...(opts.category ? [eq(schema.exercises.category, opts.category)] : []),
+      ),
+    );
+  return {
+    source: "legacy",
+    muscles: [
+      ...new Set(rows.map((row) => normalizeFilters({ muscle: row.muscle }).muscle ?? row.muscle)),
+    ],
+    equipments: [...new Set(rows.map((row) => row.equipment))],
+    categories: [...new Set(rows.flatMap((row) => (row.category ? [row.category] : [])))],
+    muscleAliases: {},
+  };
+}
+
+export async function listExercises(studioId: string, opts: CatalogOptions = {}) {
+  const filters = normalizeFilters(opts);
+  const offset = opts.offset ?? 0;
+  if (exerciseApiEnabled()) {
+    try {
+      return {
+        ...(await providerExercises({ ...filters, offset })),
+        catalog: "exerciseapi" as const,
+      };
+    } catch (error) {
+      // Surface upstream failure explicitly while keeping owned exercises usable.
+      const own = await studioExerciseEdits(studioId);
+      if (!own.length || offset) throw error;
+      return {
+        exercises: [],
+        hasMore: false,
+        nextOffset: null,
+        total: null,
+        limitReached: false,
+        catalog: "exerciseapi" as const,
+        providerError:
+          error instanceof AppError ? error.message : "Couldn't load the shared exercise library.",
+      };
+    }
+  }
+  const rows = await db
+    .select()
+    .from(schema.exercises)
+    .where(
+      and(
+        sql`(${schema.exercises.studioId} is null or ${schema.exercises.studioId} = ${studioId})`,
+        isNull(schema.exercises.deletedAt),
       ),
     )
-    .orderBy(asc(schema.exercises.name))
-    .limit(EXERCISE_LIMIT);
+    .orderBy(asc(schema.exercises.name));
+  const display = await applyExerciseCustomizations(studioId, rows, (row) => row.id);
+  const matching = display.filter((row) => matchesExercise(row, filters));
+  const page = matching
+    .slice(offset, offset + 20)
+    .map((row) => ({ ...row, shared: row.studioId === null }));
+  const hasMore = offset + page.length < matching.length;
+  return {
+    exercises: page,
+    hasMore,
+    nextOffset: hasMore ? offset + page.length : null,
+    total: matching.length,
+    limitReached: false,
+    catalog: "legacy" as const,
+  };
 }
 
 export async function getExercise(studioId: string, exerciseId: string) {
+  const edited = await customization(studioId, exerciseId);
+  if (edited)
+    return {
+      ...edited.data,
+      defaultFields: edited.data.defaultFields ?? ["weight", "reps", "rest"],
+      id: exerciseId,
+      shared: false,
+      studioId,
+      customized: true,
+      mediaRevision: edited.updatedAt.toISOString(),
+      createdAt: edited.updatedAt,
+      deletedAt: null,
+    };
+  if (exerciseApiEnabled() && isProviderExercise(exerciseId)) return providerExercise(exerciseId);
   const [row] = await db
     .select()
     .from(schema.exercises)
@@ -575,7 +683,7 @@ export async function getExercise(studioId: string, exerciseId: string) {
     )
     .limit(1);
   if (!row) throw notFound("No such exercise.");
-  return row;
+  return row.studioId === null ? enrichDemonstration(row) : row;
 }
 
 export type ExerciseWrite = {
@@ -596,6 +704,7 @@ export type ExerciseWrite = {
 };
 
 export async function createExercise(studioId: string, input: ExerciseWrite) {
+  await verifyExerciseUploads(studioId, input);
   const [row] = await db
     .insert(schema.exercises)
     .values({ id: newId(), studioId, ...input })
@@ -604,14 +713,24 @@ export async function createExercise(studioId: string, input: ExerciseWrite) {
 }
 
 export async function updateExercise(studioId: string, exerciseId: string, input: ExerciseWrite) {
+  await verifyExerciseUploads(studioId, input);
   const [existing] = await db
     .select({ id: schema.exercises.id })
     .from(schema.exercises)
     .where(and(eq(schema.exercises.id, exerciseId), eq(schema.exercises.studioId, studioId)))
     .limit(1);
-  // Deliberately refuses the shared library here, not just a foreign studio's: editing
-  // "Barbell Squat" for everyone is a platform decision, not a coach's.
-  if (!existing) throw notFound("No such exercise.");
+  if (!existing) {
+    // Authorize against the visible shared exercise, then write a studio-only customization.
+    await getExercise(studioId, exerciseId);
+    await db
+      .insert(schema.exerciseCustomizations)
+      .values({ studioId, exerciseId, data: input })
+      .onConflictDoUpdate({
+        target: [schema.exerciseCustomizations.studioId, schema.exerciseCustomizations.exerciseId],
+        set: { data: input, updatedAt: new Date() },
+      });
+    return getExercise(studioId, exerciseId);
+  }
 
   const [row] = await db
     .update(schema.exercises)

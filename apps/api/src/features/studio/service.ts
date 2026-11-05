@@ -95,6 +95,7 @@ export async function listStudios(userId: string, tx: Tx = db) {
       id: schema.studios.id,
       slug: schema.studios.slug,
       name: schema.studios.name,
+      brandLogoUrl: schema.studios.brandLogoUrl,
       tier: schema.studios.tier,
       role: schema.memberships.role,
     })
@@ -126,6 +127,7 @@ export async function activateStudio(sessionId: string, studioId: string) {
       id: schema.studios.id,
       slug: schema.studios.slug,
       name: schema.studios.name,
+      brandLogoUrl: schema.studios.brandLogoUrl,
       tier: schema.studios.tier,
     })
     .from(schema.studios)

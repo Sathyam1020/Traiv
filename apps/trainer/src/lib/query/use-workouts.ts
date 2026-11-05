@@ -1,6 +1,16 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  CATALOG_CACHE_VERSION,
+  completeFilterOptions,
+  mergeExercisePages,
+  normalizeFilters,
+} from "@traiv/exercises";
+
+
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { clearExerciseCatalogCache, deviceCached } from "@traiv/ui/lib/device-cache";
+import { useEffect, useState } from "react";
 import type { ExerciseWrite, TemplateInput } from "@/lib/api";
 import { workoutApi } from "@/lib/api";
 import { queryKeys } from "./keys";
@@ -174,24 +184,119 @@ export function useExercises(
   studioId: string | null,
   opts: { q?: string; muscle?: string; equipment?: string; category?: string },
 ) {
-  return useQuery({
-    queryKey: queryKeys.workouts.exercises(studioId ?? "", opts),
-    queryFn: () => workoutApi.exercises.list(studioId as string, opts),
+  const normalized = normalizeFilters(opts);
+  const [term, setTerm] = useState(normalized.q);
+  useEffect(() => {
+    const timer = setTimeout(() => setTerm(normalized.q), 300);
+    return () => clearTimeout(timer);
+  }, [normalized.q]);
+  const filters = { ...normalized, q: term };
+  const debouncing = normalized.q !== term;
+  const references = useQuery({
+    queryKey: ["exercise-filters", studioId, CATALOG_CACHE_VERSION],
+    queryFn: ({ signal }) =>
+      deviceCached(`filters:${studioId}:${CATALOG_CACHE_VERSION}`, () =>
+        workoutApi.exercises.filters(studioId as string, signal),
+      ),
     enabled: Boolean(studioId),
+    staleTime: 24 * 60 * 60 * 1000,
+    retry: false,
   });
+  const query = useInfiniteQuery({
+    queryKey: queryKeys.workouts.exercises(studioId ?? "", {
+      ...filters,
+      version: CATALOG_CACHE_VERSION,
+    }),
+    initialPageParam: 0,
+    queryFn: ({ pageParam, signal }) =>
+      deviceCached(
+        `catalog:${studioId}:${CATALOG_CACHE_VERSION}:${JSON.stringify({ ...filters, offset: pageParam })}`,
+        () =>
+          workoutApi.exercises.list(studioId as string, { ...filters, offset: pageParam }, signal),
+        (page) => !page.providerError,
+      ),
+    getNextPageParam: (page) =>
+      page.hasMore && page.nextOffset !== null ? page.nextOffset : undefined,
+    enabled: Boolean(studioId) && !debouncing,
+    staleTime: 24 * 60 * 60 * 1000,
+    retry: false,
+  });
+  const studioEdits = useQuery({
+    queryKey: ["exercise-studio-data", studioId],
+    queryFn: () => workoutApi.exercises.local(studioId as string),
+    enabled: Boolean(studioId),
+    staleTime: 0,
+    refetchInterval: 15000,
+    retry: false,
+  });
+  const pages = query.data?.pages ?? [];
+  const edits =
+    studioEdits.data ?? pages.flatMap((page) => page.exercises.filter((row) => !row.shared));
+  const data =
+    query.data && !debouncing
+      ? mergeExercisePages(pages, edits, filters, references.data)
+      : undefined;
+  const options = completeFilterOptions(references.data, edits, normalized);
+  return {
+    ...query,
+    data,
+    isPending: query.isPending || debouncing,
+    isError: query.isError && !debouncing,
+    isSearching: debouncing || query.isFetching,
+    hasNextPage: !debouncing && query.hasNextPage,
+    filterKey: JSON.stringify({ studioId, ...normalized }),
+    filterOptions: options,
+    filtersReady: Boolean(references.data),
+    filterError: references.isError ? "Couldn't load the full filter options." : null,
+    retryFilters: references.refetch,
+    limitReached: !debouncing && Boolean(pages.at(-1)?.limitReached),
+    providerTotal: pages[0]?.total ?? null,
+    providerError: pages.find((page) => page.providerError)?.providerError,
+    studioError: studioEdits.isError ? "Couldn't refresh studio exercises." : null,
+    retryStudio: studioEdits.refetch,
+    async fetchNextPage() {
+      const result = await query.fetchNextPage();
+      return {
+        ...result,
+        visibleCount: result.data
+          ? mergeExercisePages(result.data.pages, edits, filters, references.data).length
+          : 0,
+      };
+    },
+  };
 }
 
 export function useExercise(studioId: string | null, exerciseId: string | null) {
   return useQuery({
     queryKey: ["exercise", studioId, exerciseId],
-    queryFn: () => workoutApi.exercises.get(studioId as string, exerciseId as string),
+    queryFn: async () => {
+      const local = await workoutApi.exercises.local(studioId as string);
+      const edited = local.find((e) => e.id === exerciseId);
+      if (edited) return edited;
+      return exerciseId?.startsWith("exa:")
+        ? deviceCached(`detail:${studioId}:${exerciseId}`, () =>
+            workoutApi.exercises.get(studioId as string, exerciseId),
+          )
+        : workoutApi.exercises.get(studioId as string, exerciseId as string);
+    },
+    staleTime: 0,
+    retry: false,
     enabled: Boolean(studioId && exerciseId),
   });
 }
 
 export function useExerciseActions(studioId: string) {
   const qc = useQueryClient();
-  const invalidate = () => qc.invalidateQueries({ queryKey: ["exercises", studioId] });
+  const invalidate = () => {
+    clearExerciseCatalogCache(studioId);
+    return Promise.all([
+      qc.invalidateQueries({ queryKey: ["exercises", studioId] }),
+      qc.invalidateQueries({ queryKey: ["exercise-studio-data", studioId] }),
+      qc.invalidateQueries({ queryKey: ["exercise", studioId] }),
+      qc.invalidateQueries({ queryKey: ["workout", studioId] }),
+      qc.invalidateQueries({ queryKey: ["client-workouts", studioId] }),
+    ]);
+  };
 
   return {
     create: useMutation({

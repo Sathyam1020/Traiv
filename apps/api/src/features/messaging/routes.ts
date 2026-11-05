@@ -1,3 +1,4 @@
+import { notifyClient } from "../notifications/service.js";
 import { schema } from "@traiv/db";
 import { and, eq, gt, isNull, sql } from "drizzle-orm";
 import { type Request, Router } from "express";
@@ -84,6 +85,7 @@ function mount(router: Router, coach: boolean) {
     if (!coach && v.channel === "photo") await allow(a.clientId, "photoLog");
     const sent = await send(a, v.channel, v);
     changed(a.clientId);
+    if (coach && v.channel === "chat") void notifyClient(a.clientId, "chat", `message:${v.id}`, "/chat").catch(() => console.warn("Chat push delivery failed"));
     res.status(201).json(sent);
   });
   router.post(`${prefix}/read`, gate, async (req, res) => {

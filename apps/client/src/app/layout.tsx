@@ -1,19 +1,29 @@
 import { Providers } from "@/app/providers";
 import "@traiv/ui/styles/globals.css";
 import "./client-polish.css";
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { DM_Sans } from "next/font/google";
 
-const inter = Inter({
+const dmSans = DM_Sans({
   subsets: ["latin"],
   weight: ["400", "500", "600"],
-  variable: "--font-inter",
+  variable: "--font-app-sans",
   display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "Traiv",
   description: "Train with your coach.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "Traiv" },
+  icons: { apple: "/icon-192.png" },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#2457b8",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -24,7 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     // pull-to-refresh, which would throw away unsaved work in a form. The marketing
     // site deliberately does not do this — there, both behaviours are what a reader
     // expects from a web page.
-    <html data-traiv-client="" lang="en" className={`${inter.variable} overscroll-none`}>
+    <html data-traiv-client="" lang="en" className={`${dmSans.variable} overscroll-none`}>
       <body>
         <Providers>{children}</Providers>
       </body>

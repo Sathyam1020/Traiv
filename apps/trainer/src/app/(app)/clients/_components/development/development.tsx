@@ -52,6 +52,7 @@ type CheckIn = {
 };
 type Data = {
   checkIns: CheckIn[];
+  progressEntries?: CheckIn[];
   weight: { start: number | null; latest: number | null; goal: number | null };
   goal: string | null;
   clientName: string;
@@ -497,12 +498,12 @@ export function Development({ studioId, clientId }: { studioId: string; clientId
               </div>
             </>
           ) : null}
-          <ProgressPhotos checkIns={data.checkIns} onImage={setImage} />
+          <ProgressPhotos checkIns={data.progressEntries ?? data.checkIns} onImage={setImage} />
           <div className="space-y-5">
             {current ? (
               <section className={card + " p-5"}>
                 <h3 className="mb-6 text-sm font-semibold">Average Rating</h3>
-                <RatingChart checkIns={data.checkIns} />
+                <RatingChart checkIns={data.progressEntries ?? data.checkIns} />
               </section>
             ) : null}
             <StepsProgress scope={clientId} load={load} saveGoal={goalSave} />

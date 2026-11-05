@@ -18,6 +18,14 @@ allowBuilds:
 # Packages reference these with "catalog:" — never a literal version.
 # Adding an entry here requires .ai/engineering/dependencies.md to have been followed.
 catalog:
+  "@capacitor/core": ^8.6.0
+  "@capacitor/cli": ^8.6.0
+  "@capacitor/ios": ^8.6.0
+  "@capacitor/android": ^8.6.0
+  "@capacitor/push-notifications": ^8.1.3
+  "@capgo/capacitor-health": ^8.11.14
+  web-push: ^3.6.7
+  "@types/web-push": ^3.6.4
   "@base-ui/react": ^1.9.0
   "@tabler/icons-react": ^3.50.0
   "@zxing/browser": ^0.2.1
@@ -41,6 +49,9 @@ catalog:
   # api
   express: ^5.2.1
   "@types/express": ^5.0.0
+
+  # PDF exports (lazy client chunk)
+  jspdf: ^4.2.1
 
   # web
   next: ^16.3.4

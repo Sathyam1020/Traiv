@@ -1,68 +1,106 @@
 "use client";
 
 import { Avatar } from "@traiv/ui/components/avatar";
-import { RailTip, useRailCollapsed } from "@traiv/ui/components/shell/rail";
-import { SolidSidebarIcon } from "@traiv/ui/components/shell/solid-sidebar-icon";
-import { LogOut } from "@traiv/ui/icons";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@traiv/ui/components/dropdown-menu";
+import { useRailCollapsed } from "@traiv/ui/components/shell/rail";
+import { ChevronsUpDown, LogOut, User } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
+import { useState } from "react";
+import { useActiveStudioId } from "@/lib/active-studio";
 import { useLogout, useSession } from "@/lib/query";
+import { ProfileSheet } from "./profile-sheet";
 
-/**
- * Who is signed in, and the way out.
- *
- * `compact` is the mobile header, where there is no room for a name — the same control,
- * not a second one, so signing out behaves identically at every width.
- */
 export function AccountButton({
   compact = false,
   tone = "surface",
 }: {
   compact?: boolean;
-  /** `rail` is the dark sidebar — `contrast-fg`, never `fg`. */
   tone?: "surface" | "rail";
 }) {
   const { data } = useSession();
+  const studioId = useActiveStudioId();
   const logout = useLogout();
-  const name = data?.user.name || "Coach";
+  const [profileOpen, setProfileOpen] = useState(false);
   const railCollapsed = useRailCollapsed();
-
-  // Collapsed the rail already carries this person's avatar at the top, so a second
-  // one at the bottom says nothing. The icon says what the row does instead, and the
-  // tooltip says it in words.
+  const name = data?.user.name || "Coach";
+  const role =
+    data?.studios.find((studio) => studio.id === studioId)?.role === "owner"
+      ? "Administrator"
+      : "Coach";
+  const small = compact || railCollapsed;
   const button = (
     <button
       type="button"
-      onClick={() => logout.mutate()}
-      disabled={logout.isPending}
-      aria-label="Sign out"
+      aria-label={`Account menu for ${name}`}
       className={cn(
-        "flex cursor-pointer items-center gap-2.5 rounded-control transition-colors focus-visible:outline-2 focus-visible:outline-offset-2",
+        "flex cursor-pointer items-center gap-3 rounded-control transition-colors focus-visible:outline-2 focus-visible:outline-offset-2",
         railCollapsed
           ? "mx-auto size-10 justify-center"
           : compact
-            ? "gap-1.5 px-1.5 py-1"
-            : "w-full px-2.5 py-2 text-left",
+            ? "p-1"
+            : "w-full px-2.5 py-2.5 text-left",
         tone === "rail"
-          ? "text-contrast-fg hover:bg-contrast-fg/8 focus-visible:outline-contrast-fg/40"
+          ? "text-contrast-fg hover:bg-contrast-fg/8 data-[popup-open]:bg-contrast-fg/15 focus-visible:outline-contrast-fg/40"
           : "hover:bg-hover focus-visible:outline-line-focus",
       )}
     >
-      {railCollapsed ? null : <Avatar name={name} size={26} />}
-      {!compact && !railCollapsed && (
-        <span className="min-w-0 flex-1 truncate text-body-sm">{name}</span>
-      )}
-      {tone === "rail" ? (
-        <SolidSidebarIcon
-          icon={LogOut}
-          className={cn("shrink-0", railCollapsed ? "size-4" : "size-3.5", "text-contrast-fg/50")}
-        />
-      ) : (
-        <LogOut
-          className={cn("shrink-0", railCollapsed ? "size-4" : "size-3.5", "text-fg-subtle")}
-        />
-      )}
+      <Avatar name={name} src={data?.user.avatarUrl} size={small ? 32 : 40} />
+      {!small ? (
+        <>
+          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span className="truncate text-body-sm font-semibold">{name}</span>
+            <span
+              className={cn(
+                "text-caption",
+                tone === "rail" ? "text-contrast-fg/60" : "text-fg-muted",
+              )}
+            >
+              {role}
+            </span>
+          </span>
+          <ChevronsUpDown
+            className={cn(
+              "size-4 shrink-0",
+              tone === "rail" ? "text-contrast-fg/60" : "text-fg-subtle",
+            )}
+          />
+        </>
+      ) : null}
     </button>
   );
-
-  return railCollapsed ? <RailTip label="Sign out">{button}</RailTip> : button;
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>{button}</DropdownMenuTrigger>
+        <DropdownMenuContent
+          side={tone === "rail" ? "right" : "bottom"}
+          align="end"
+          sideOffset={12}
+          className="w-56 p-1"
+        >
+          <DropdownMenuItem onSelect={() => setProfileOpen(true)} className="gap-3 px-3 py-3">
+            <User className="size-4" />
+            Edit profile
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            variant="destructive"
+            disabled={logout.isPending}
+            onSelect={() => logout.mutate()}
+            className="gap-3 px-3 py-3"
+          >
+            <LogOut className="size-4" />
+            {logout.isPending ? "Logging out…" : "Log out"}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <ProfileSheet open={profileOpen} onOpenChange={setProfileOpen} />
+    </>
+  );
 }

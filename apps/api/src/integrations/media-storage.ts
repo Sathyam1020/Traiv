@@ -19,7 +19,7 @@ export interface MediaStorage {
     type: ResourceType,
     access: "public" | "private",
   ): { url: string; fields: Record<string, string> };
-  inspect(key: string, type: ResourceType): Promise<StoredMedia>;
+  inspect(key: string, type: ResourceType, access?: "public" | "private"): Promise<StoredMedia>;
   delivery(asset: StoredMedia, type: ResourceType): string;
 }
 function credentials() {
@@ -55,10 +55,10 @@ export const mediaStorage: MediaStorage = {
       fields: { ...params, api_key: key, signature: sign(params, secret) },
     };
   },
-  async inspect(publicId, type) {
+  async inspect(publicId, type, access = "private") {
     const { cloud, key, secret } = credentials();
     const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${cloud}/resources/${type}/authenticated/${encodeURIComponent(publicId)}`,
+      `https://api.cloudinary.com/v1_1/${cloud}/resources/${type}/${access === "public" ? "upload" : "authenticated"}/${encodeURIComponent(publicId)}`,
       {
         headers: { Authorization: `Basic ${Buffer.from(`${key}:${secret}`).toString("base64")}` },
         signal: AbortSignal.timeout(15000),

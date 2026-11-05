@@ -66,10 +66,12 @@ export function StepsProgress(p: Props) {
     };
     const timer = window.setInterval(onFocus, 15000);
     window.addEventListener("focus", onFocus);
+    window.addEventListener("traiv:steps-updated", refresh);
     return () => {
       active = false;
       window.clearInterval(timer);
       window.removeEventListener("focus", onFocus);
+      window.removeEventListener("traiv:steps-updated", refresh);
     };
   }, [p.scope, first, last, revision, p.load]);
   const query = { isPending: pending, isError: failed, refetch: () => setRevision((n) => n + 1) };
@@ -297,7 +299,7 @@ export function StepsProgress(p: Props) {
                     }}
                   >
                     <span className="flex size-[82%] items-center justify-center rounded-full bg-surface">
-                      {n === undefined ? "—" : n.toLocaleString()}
+                      {n === undefined ? "—" : n >= 1000 ? Math.floor(n / 1000) : n}
                     </span>
                   </span>
                   <p className="mt-1 text-xs text-fg-subtle">
@@ -314,90 +316,94 @@ export function StepsProgress(p: Props) {
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetContent
             side="bottom"
-            className="mx-auto max-h-[92dvh] max-w-lg overflow-y-auto rounded-t-[28px] pb-8"
+            className="mx-auto h-[min(92dvh,900px)] max-h-[92dvh] max-w-lg gap-0 overflow-hidden p-0"
           >
-            <SheetHeader>
+            <SheetHeader className="shrink-0 px-5 py-4">
               <SheetTitle>Steps</SheetTitle>
               <SheetDescription>{short(selected)}</SheetDescription>
             </SheetHeader>
-            {query.isError ? (
-              <div role="alert" className="mb-4 text-sm text-danger">
-                Couldn't load steps.{" "}
-                <Button variant="outline" size="sm" onClick={() => void query.refetch()}>
-                  Retry
-                </Button>
-              </div>
-            ) : null}
-            <div className="rounded-2xl bg-selected p-4 text-sm">
-              <Trophy className="mr-2 inline size-5 text-signal-text" />
-              <strong>{onTarget} of 7 days on target</strong>
-              <p className="mt-1 text-fg-muted">Keep it up — your coach loves to see consistency</p>
-            </div>
-            <div className="mt-4 rounded-2xl border border-line bg-panel p-5 text-center">
-              <div
-                className="mx-auto flex size-48 items-center justify-center rounded-full"
-                style={{
-                  background: `conic-gradient(var(--color-signal,#2456b8) ${Math.min(100, (count / goal) * 100)}%, var(--color-line,#eee) 0)`,
-                }}
-              >
-                <div className="flex size-[88%] flex-col items-center justify-center rounded-full bg-panel">
-                  <strong className="text-4xl font-medium">{count.toLocaleString()}</strong>
-                  <span className="mt-2 text-sm text-fg-muted">of {goal.toLocaleString()}</span>
+            <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-5 pt-4 pb-[max(1.5rem,env(safe-area-inset-bottom))]">
+              {query.isError ? (
+                <div role="alert" className="mb-4 text-sm text-danger">
+                  Couldn't load steps.{" "}
+                  <Button variant="outline" size="sm" onClick={() => void query.refetch()}>
+                    Retry
+                  </Button>
                 </div>
+              ) : null}
+              <div className="rounded-2xl bg-selected p-4 text-sm">
+                <Trophy className="mr-2 inline size-5 text-signal-text" />
+                <strong>{onTarget} of 7 days on target</strong>
+                <p className="mt-1 text-fg-muted">
+                  Keep it up — your coach loves to see consistency
+                </p>
               </div>
-              <p className="mt-4 text-sm">
-                {Math.round((count / goal) * 100)}% · {Math.max(0, goal - count).toLocaleString()}{" "}
-                to go
-              </p>
-              <div className="mt-4 flex items-center justify-between border-t border-line pt-3 text-xs text-fg-subtle">
-                <span>
-                  {data?.days.find((d) => d.date === selected)?.updatedAt
-                    ? "Updated " +
-                      new Date(
-                        data.days.find((d) => d.date === selected)!.updatedAt,
-                      ).toLocaleString()
-                    : "No steps recorded"}
-                </span>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setRaw(String(count));
-                    setEdit(true);
+              <div className="rounded-2xl border border-line bg-panel p-5 text-center">
+                <div
+                  className="mx-auto flex size-48 items-center justify-center rounded-full"
+                  style={{
+                    background: `conic-gradient(var(--color-signal,#2456b8) ${Math.min(100, (count / goal) * 100)}%, var(--color-line,#eee) 0)`,
                   }}
                 >
-                  <Pencil className="size-3" />
-                  Edit steps
-                </Button>
-              </div>
-              {edit ? editor() : null}
-            </div>
-            <div className="mt-4 grid grid-cols-3 gap-2">
-              {[
-                [
-                  "Distance",
-                  heightCm ? "~" + ((count * heightCm * 0.00414) / 1000).toFixed(1) + " km" : "—",
-                ],
-                [
-                  "Calories",
-                  p.weightKg && heightCm
-                    ? "~" +
-                      Math.round(((count * heightCm * 0.00414) / 1000) * p.weightKg * 0.5) +
-                      " kcal"
-                    : "—",
-                ],
-                ["Active", "~" + Math.round(count / 100) + " min"],
-              ].map(([label, value]) => (
-                <div key={label} className="rounded-xl border border-line p-3 text-sm">
-                  <p className="text-fg-muted">{label}</p>
-                  <strong className="mt-2 block">{value}</strong>
+                  <div className="flex size-[88%] flex-col items-center justify-center rounded-full bg-panel">
+                    <strong className="text-4xl font-medium">{count.toLocaleString()}</strong>
+                    <span className="mt-2 text-sm text-fg-muted">of {goal.toLocaleString()}</span>
+                  </div>
                 </div>
-              ))}
+                <p className="mt-4 text-sm">
+                  {Math.round((count / goal) * 100)}% · {Math.max(0, goal - count).toLocaleString()}{" "}
+                  to go
+                </p>
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-line pt-3 text-xs text-fg-subtle">
+                  <span>
+                    {data?.days.find((d) => d.date === selected)?.updatedAt
+                      ? "Updated " +
+                        new Date(
+                          data.days.find((d) => d.date === selected)!.updatedAt,
+                        ).toLocaleString()
+                      : "No steps recorded"}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setRaw(String(count));
+                      setEdit(true);
+                    }}
+                  >
+                    <Pencil className="size-3" />
+                    Edit steps
+                  </Button>
+                </div>
+                {edit ? editor() : null}
+              </div>
+              <div className="grid grid-cols-3 gap-2">
+                {[
+                  [
+                    "Distance",
+                    heightCm ? "~" + ((count * heightCm * 0.00414) / 1000).toFixed(1) + " km" : "—",
+                  ],
+                  [
+                    "Calories",
+                    p.weightKg && heightCm
+                      ? "~" +
+                        Math.round(((count * heightCm * 0.00414) / 1000) * p.weightKg * 0.5) +
+                        " kcal"
+                      : "—",
+                  ],
+                  ["Active", "~" + Math.round(count / 100) + " min"],
+                ].map(([label, value]) => (
+                  <div key={label} className="rounded-xl border border-line p-3 text-sm">
+                    <p className="text-fg-muted">{label}</p>
+                    <strong className="mt-2 block">{value}</strong>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-fg-subtle">
+                Estimates from your steps and available profile data.
+              </p>
+              {chart()}
             </div>
-            <p className="mt-2 text-xs text-fg-subtle">
-              Estimates from your steps and available profile data.
-            </p>
-            {chart()}
           </SheetContent>
         </Sheet>
       </>

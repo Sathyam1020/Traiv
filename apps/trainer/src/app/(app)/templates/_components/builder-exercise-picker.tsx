@@ -1,9 +1,13 @@
 "use client";
 
+import { filterLabel } from "@traiv/exercises";
+
+
+import { Button } from "@traiv/ui/components/button";
 import { Input } from "@traiv/ui/components/input";
 import { Skeleton } from "@traiv/ui/components/skeleton";
 import { Plus, Search } from "@traiv/ui/icons";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import type { Exercise } from "@/lib/api";
 import { useExercises } from "@/lib/query";
 import { FilterPill } from "../../exercises/_components/filter-pill";
@@ -25,25 +29,14 @@ export function BuilderExercisePicker({
   onAdd: (e: Exercise) => void;
 }) {
   const [typed, setTyped] = useState("");
-  const [q, setQ] = useState("");
   const [muscle, setMuscle] = useState<string | undefined>();
   const [equipment, setEquipment] = useState<string | undefined>();
   const [category, setCategory] = useState<string | undefined>();
 
-  useEffect(() => {
-    const t = setTimeout(() => setQ(typed), 200);
-    return () => clearTimeout(t);
-  }, [typed]);
-
-  const exercises = useExercises(studioId, { q: q || undefined, muscle, equipment, category });
+  const exercises = useExercises(studioId, { q: typed || undefined, muscle, equipment, category });
   const rows = exercises.data ?? [];
 
-  const muscles = useMemo(() => [...new Set(rows.map((e) => e.muscle))].sort(), [rows]);
-  const equipments = useMemo(() => [...new Set(rows.map((e) => e.equipment))].sort(), [rows]);
-  const categories = useMemo(
-    () => [...new Set(rows.map((e) => e.category).filter((c): c is string => Boolean(c)))].sort(),
-    [rows],
-  );
+  const { muscles, equipments, categories } = exercises.filterOptions;
 
   return (
     <div className="flex h-full flex-col gap-3">
@@ -51,6 +44,7 @@ export function BuilderExercisePicker({
         <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-subtle" />
         <Input
           value={typed}
+          maxLength={200}
           onChange={(e) => setTyped(e.target.value)}
           placeholder="Search for exercises"
           className="h-9 pl-9"
@@ -58,24 +52,96 @@ export function BuilderExercisePicker({
       </div>
 
       <div className="flex flex-wrap gap-1.5">
-        <FilterPill label="Muscle" value={muscle} options={muscles} onChange={setMuscle} />
+        <FilterPill
+          label="Muscle"
+          value={muscle}
+          options={muscles}
+          format={filterLabel}
+          disabled={!exercises.filtersReady}
+          onChange={setMuscle}
+        />
         <FilterPill
           label="Equipment"
           value={equipment}
           options={equipments}
-          format={(v) => v.replace(/_/gu, " ")}
+          format={filterLabel}
+          disabled={!exercises.filtersReady}
           onChange={setEquipment}
         />
-        <FilterPill label="Type" value={category} options={categories} onChange={setCategory} />
+        <FilterPill
+          label="Type"
+          value={category}
+          options={categories}
+          format={filterLabel}
+          disabled={!exercises.filtersReady}
+          onChange={setCategory}
+        />
+        {(typed.trim() || muscle || equipment || category) && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              setTyped("");
+              setMuscle(undefined);
+              setEquipment(undefined);
+              setCategory(undefined);
+            }}
+          >
+            Clear all
+          </Button>
+        )}
       </div>
-
+      {!exercises.filtersReady && !exercises.filterError && (
+        <p role="status" className="text-xs text-fg-muted">
+          Loading filter options…
+        </p>
+      )}
+      {exercises.filterError && (
+        <p role="alert" className="text-sm text-danger">
+          {exercises.filterError}{" "}
+          <button type="button" className="underline" onClick={() => void exercises.retryFilters()}>
+            Retry
+          </button>
+        </p>
+      )}
+      {exercises.studioError && (
+        <p role="alert" className="text-sm text-danger">
+          {exercises.studioError}{" "}
+          <button type="button" className="underline" onClick={() => void exercises.retryStudio()}>
+            Retry
+          </button>
+        </p>
+      )}
+      {exercises.providerError && (
+        <div role="alert" className="text-sm text-danger">
+          <p>{exercises.providerError}</p>
+          <Button variant="ghost" onClick={() => void exercises.refetch()}>
+            Retry
+          </Button>
+        </div>
+      )}
       <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto">
         {exercises.isPending ? (
           Array.from({ length: 6 }, (_, n) => n).map((n) => (
             <Skeleton key={n} className="h-16 w-full rounded-control" />
           ))
+        ) : exercises.isError && !rows.length ? (
+          <div role="alert" className="p-3 text-sm">
+            <p>
+              {exercises.error instanceof Error
+                ? exercises.error.message
+                : "Couldn't load exercises."}
+            </p>
+            <Button variant="outline" onClick={() => void exercises.refetch()}>
+              Retry
+            </Button>
+          </div>
         ) : rows.length === 0 ? (
-          <p className="px-1 py-8 text-center text-caption text-fg-subtle">No matches.</p>
+          <p className="px-1 py-8 text-center text-caption text-fg-subtle">
+            {exercises.hasNextPage
+              ? "No matches loaded yet. Load more to continue."
+              : "No matches."}
+          </p>
         ) : (
           rows.map((e) => (
             <button
@@ -103,6 +169,26 @@ export function BuilderExercisePicker({
               <Plus className="size-4 shrink-0 text-fg-subtle" />
             </button>
           ))
+        )}
+        {exercises.hasNextPage && (
+          <Button
+            type="button"
+            variant="ghost"
+            disabled={exercises.isSearching}
+            onClick={() => void exercises.fetchNextPage()}
+          >
+            {exercises.isFetchingNextPage ? "Loading…" : "Load more"}
+          </Button>
+        )}
+        {exercises.limitReached && (
+          <p role="status" className="px-2 text-xs text-fg-muted">
+            Refine your search or filters to find exercises beyond the 500-result browse limit.
+          </p>
+        )}
+        {exercises.isFetchNextPageError && (
+          <p role="alert" className="text-sm text-danger">
+            Couldn't load more exercises. Try again.
+          </p>
         )}
       </div>
     </div>

@@ -1,6 +1,7 @@
 "use client";
+
 import { useQuery } from "@tanstack/react-query";
-import { readPlanDocument, type PlanDocument } from "@traiv/nutrition/meal-plans";
+import { type PlanDocument, readPlanDocument } from "@traiv/nutrition/meal-plans";
 import { Button } from "@traiv/ui/components/button";
 import {
   DropdownMenu,
@@ -25,6 +26,7 @@ import {
 } from "@traiv/ui/icons";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import { PdfDownloadMenuItem } from "@/components/common/pdf-download-menu-item";
 import { useActiveStudioId } from "@/lib/active-studio";
 import { mealPlansApi } from "@/lib/api/meal-plans";
 import { LibraryError, LibraryLoading, Pagination } from "../_components/controls";
@@ -175,6 +177,12 @@ export default function MealPlansPage() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <PdfDownloadMenuItem
+                      kind="mealplan"
+                      studioId={studioId}
+                      id={plan.id}
+                      disabled={busy}
+                    />
                     <DropdownMenuItem
                       disabled={busy}
                       onSelect={async () => {

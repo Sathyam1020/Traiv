@@ -9,10 +9,13 @@ import { StatusGate } from "@/components/common/status-gate";
 import { AccountButton } from "@/components/layout/account-button";
 import { BrandTheme } from "@/components/layout/brand-theme";
 import { navFor } from "@/components/layout/nav-items";
+import { PlatformServices } from "@/components/layout/platform-services";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import type { Today } from "@/lib/api";
 import { API_BASE, http } from "@/lib/api/client";
 import { useActiveStudio, useIntake, useSession, useToday } from "@/lib/query";
+
+import { useVault } from "@/lib/query/use-vault";
 
 const REVEAL_CACHE_KEY = "traiv.reveal-cache";
 
@@ -33,7 +36,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   // A workout in progress, and the screen right after it, are the one place Coachway
   // drops every bit of app chrome — no tab bar, no header, nothing to tap by accident
   // while a set is mid-rep.
-  const immersive = pathname?.startsWith("/check-in/") || /^\/workouts\/[^/]+\/[^/]+\/(active|finish)(\/|$)/.test(pathname ?? "");
+  const immersive =
+    pathname?.startsWith("/check-in/") ||
+    /^\/activity\/[^/]+$/.test(pathname ?? "") ||
+    /^\/workouts\/[^/]+\/[^/]+\/(active|finish)(\/|$)/.test(pathname ?? "");
 
   // Blocked only when nothing is running. With two coaches and one paused, the app works
   // and the paused one carries its state on its own card.
@@ -68,6 +74,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       window.removeEventListener("traiv:chat-read", update);
     };
   }, [studioId, signedIn, qc, session.data?.user.id]);
+  const vault = useVault(signedIn ? studioId : null);
+  const vaultUnread = vault.data?.filter((r) => !r.seenAt).length ?? 0;
   const brand = coaches.find((c) => c.studio.id === studioId)?.studio.color;
   const blocked = stalled !== null;
   const intake = useIntake(studioId);
@@ -133,6 +141,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     return (
       <>
         <BrandTheme color={brand} />
+        {studioId && <PlatformServices studioId={studioId} />}
         <div className="fixed inset-0 flex flex-col overflow-y-auto bg-panel">{children}</div>
       </>
     );
@@ -141,14 +150,20 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <BrandTheme color={brand} />
+      {studioId && <PlatformServices studioId={studioId} />}
       <AppShell
         nav={navFor(reveal).map((group) => ({
           ...group,
           items: group.items.map((item) =>
-            item.href === "/chat" ? { ...item, badge: chatUnread.data ?? 0 } : item,
+            item.href === "/chat"
+              ? { ...item, badge: chatUnread.data ?? 0 }
+              : item.href === "/you"
+                ? { ...item, badge: vaultUnread }
+                : item,
           ),
         }))}
         mobileGlass
+        reserveMobileBarSpace={!(pathname === "/food" || pathname.startsWith("/food/"))}
         sidebarBrand={
           <RailBrand name={session.data?.user.name || "You"} sub="Traiv">
             <ThemeToggle tone="rail" />

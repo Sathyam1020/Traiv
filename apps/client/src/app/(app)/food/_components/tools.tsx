@@ -1,6 +1,7 @@
 "use client";
 import type { Nutrients, FoodItem } from "@/lib/api/food";
-import { Shopping } from "./shopping";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { Photos } from "./photos";
 import { MyLibrary } from "./library";
 import { Goals } from "./goals";
@@ -24,7 +25,11 @@ export function FoodTools({
   onClose: () => void;
   onSaved: () => void;
 }) {
-  if (tool === "shopping") return <Shopping studio={studio} onClose={onClose} />;
+  const router = useRouter();
+  useEffect(() => {
+    if (tool === "shopping") router.replace("/food/shopping");
+  }, [tool, router]);
+  if (tool === "shopping") return null;
   if (tool === "photos") return <Photos studio={studio} onClose={onClose} />;
   if (tool === "goals")
     return (

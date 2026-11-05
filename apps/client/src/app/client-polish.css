@@ -117,3 +117,26 @@ html[data-traiv-client] .client-set-check[aria-pressed="true"] svg {
 @media (prefers-reduced-motion: reduce) {
   .check-in-success-tick { animation: none; }
 }
+
+/* Page-owned action bars share one navigation offset and one content clearance.
+   Their containing screen fills the shell; the scrolling content is a sibling. */
+html[data-traiv-client] .client-action-bar {
+  position: absolute;
+  inset-inline: 1rem;
+  bottom: calc(6.5rem + env(safe-area-inset-bottom));
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+html[data-traiv-client] .client-action-scroll {
+  padding-bottom: calc(11.5rem + env(safe-area-inset-bottom));
+  scroll-padding-bottom: calc(11.5rem + env(safe-area-inset-bottom));
+}
+@media (min-width: 1024px) {
+  html[data-traiv-client] .client-action-bar { bottom: 1.25rem; }
+  html[data-traiv-client] .client-action-scroll {
+    padding-bottom: 6.5rem;
+    scroll-padding-bottom: 6.5rem;
+  }
+}

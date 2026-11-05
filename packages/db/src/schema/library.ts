@@ -1,5 +1,14 @@
 import { sql } from "drizzle-orm";
-import { index, pgEnum, pgTable, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
+import {
+  index,
+  jsonb,
+  pgEnum,
+  pgTable,
+  primaryKey,
+  text,
+  timestamp,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 import { studios } from "./studio.js";
 
 export const movementPattern = pgEnum("movement_pattern", [
@@ -83,3 +92,34 @@ export const exercises = pgTable(
 );
 
 export type Exercise = typeof exercises.$inferSelect;
+
+/** A studio's edits to a system/provider exercise; never changes another studio's library. */
+export type ExerciseCustomization = {
+  name: string;
+  description?: string | null;
+  muscle: string;
+  secondaryMuscles?: string[];
+  equipment: string;
+  pattern: (typeof movementPattern.enumValues)[number];
+  imageUrl?: string | null;
+  videoUrl?: string | null;
+  stimulus?: string | null;
+  level?: string | null;
+  category?: string | null;
+  location?: string | null;
+  injuryRisk?: string | null;
+  defaultFields?: string[];
+};
+export const exerciseCustomizations = pgTable(
+  "exercise_customization",
+  {
+    studioId: text()
+      .notNull()
+      .references(() => studios.id, { onDelete: "cascade" }),
+    // Provider exercises are virtual until selected for a workout, so no exercise FK here.
+    exerciseId: text().notNull(),
+    data: jsonb().$type<ExerciseCustomization>().notNull(),
+    updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.studioId, t.exerciseId] })],
+);

@@ -216,3 +216,21 @@ ZXing library dependency; no new server dependency or camera framework. Camera s
 are explicitly stopped on selection and unmount. Manual barcode entry needs no decoder.
 
 Official reference: https://github.com/zxing-js/browser#readme
+
+| @capacitor/core, cli, ios, android | 8.6.0 | client | Native app containers required to access on-device HealthKit/Health Connect; the browser has no equivalent API. Registry and Capacitor v8 docs checked 2026-11-03. |
+| @capgo/capacitor-health | 8.11.14 | client | Maintained read-only health bridge for both platforms; avoids maintaining separate Swift/Kotlin implementations. Native-only code is lazy loaded. Docs/registry checked 2026-11-03. |
+| @capacitor/push-notifications | 8.1.3 | client | Official native permission/token bridge. Docs/registry checked 2026-11-03. |
+| web-push + @types/web-push | 3.6.7 / 3.6.4 | api | Standards-based Web Push encryption and VAPID signing; avoids bespoke crypto. Older release accepted because Web Push protocol is stable and this remains the upstream maintained Node implementation. Current README and registry checked 2026-11-03. |
+
+## Template PDF exports — 2026-11-04
+
+jsPDF **4.2.1** (npm stable verified; last modified 2026-03-17) generates actual
+downloadable A4 documents in the trainer app. Browser printing cannot reliably
+download a PDF with controlled pagination, clickable links and embedded fonts.
+The library is lazy imported only after export is requested; no initial-page cost
+and no headless browser/server runtime. Draw primitives are used directly, without
+HTML rendering, html2canvas, or auto-table dependencies. Upstream versioned README
+and API docs read before implementation. MIT licensed; browser distribution is a
+separate few-hundred-KB compressed chunk plus export-only font assets.
+
+Reference: https://github.com/parallax/jsPDF/tree/v4.2.1

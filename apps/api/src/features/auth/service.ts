@@ -471,6 +471,7 @@ export function publicUser(u: typeof schema.users.$inferSelect) {
   return {
     id: u.id,
     name: u.name,
+    avatarUrl: u.avatarUrl,
     email: u.email,
     phone: u.phone,
     // Every step is derived from the row, never stored — a stored step column drifts the

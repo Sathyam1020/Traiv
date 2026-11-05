@@ -1,14 +1,16 @@
 "use client";
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { type ReactNode, useRef, useState } from "react";
 import { Button } from "@traiv/ui/components/button";
 import { Input } from "@traiv/ui/components/input";
 import { Textarea } from "@traiv/ui/components/textarea";
-import { Plus, Minus, Camera, ArrowLeft, Trash, Copy } from "@traiv/ui/icons";
-import { foodApi, uploadFoodImage, type FoodItem } from "@/lib/api/food";
-import { Panel, Field, ErrorText, Macros, card } from "./common";
-import { useAction, Choice } from "./actions";
-import { FoodSearch, BarcodeScanner } from "./search";
+import { ArrowLeft, Camera, Copy, Minus, Plus, Trash } from "@traiv/ui/icons";
+import { type ReactNode, useRef, useState } from "react";
+import { ClientActionBar } from "@/components/layout/client-action-bar";
+import { type FoodItem, foodApi, uploadFoodImage } from "@/lib/api/food";
+import { Choice, useAction } from "./actions";
+import { card, ErrorText, Field, Macros, Panel } from "./common";
+import { BarcodeScanner, FoodSearch } from "./search";
 export function MyLibrary({
   studio,
   kind,
@@ -380,9 +382,51 @@ export function RecipeEditor({
           ],
     );
   }
+  const actions = (
+    <div className="flex w-full items-center gap-3">
+      <p className="min-w-0 flex-1 pl-3 text-caption text-fg-muted">
+        {lines.length
+          ? `${Math.round(lines.reduce((sum, line) => sum + ((line.nutrition?.kcal ?? 0) * line.grams) / 100, 0) / Math.max(1, Number(servings)))} kcal per serving`
+          : "Add ingredients to see nutrition"}
+      </p>
+      <Button
+        className="h-12 shrink-0 rounded-full bg-signal px-5 text-signal-fg hover:bg-signal/90"
+        disabled={
+          action.busy ||
+          !name.trim() ||
+          !lines.length ||
+          lines.some((l) => !Number.isFinite(l.grams) || l.grams <= 0) ||
+          !Number.isFinite(Number(servings)) ||
+          Number(servings) > 50 ||
+          Number(servings) < 1 ||
+          steps.some((s) => !s.trim())
+        }
+        onClick={() =>
+          action.run(async () => {
+            const value = {
+              id: id.current,
+              expectedUpdatedAt: initial?.id ? initial.updatedAt : undefined,
+              name,
+              servings: Number(servings),
+              imageUrl,
+              steps,
+              ingredients: lines.map((l) => ({ id: l.id, grams: l.grams })),
+            };
+            if (initial?.id) await api.put(`/recipes/${id.current}`, value);
+            else await api.post("/recipes", value);
+            onSaved();
+            onClose();
+          })
+        }
+      >
+        {initial?.id ? "Save recipe" : "Create"}
+      </Button>
+    </div>
+  );
   return (
     <RecipeFrame
       embedded={embedded}
+      actions={actions}
       title={initial?.id ? "Edit recipe" : "Create recipe"}
       onClose={onClose}
     >
@@ -543,51 +587,7 @@ export function RecipeEditor({
           Add step
         </Button>
         <ErrorText error={action.error} />
-        <div
-          className={
-            embedded
-              ? "absolute inset-x-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-10 flex items-center gap-3 rounded-full border border-line bg-surface p-2 shadow-float lg:bottom-5"
-              : "flex items-center gap-3"
-          }
-        >
-          <p className="min-w-0 flex-1 pl-3 text-caption text-fg-muted">
-            {lines.length
-              ? `${Math.round(lines.reduce((sum, line) => sum + ((line.nutrition?.kcal ?? 0) * line.grams) / 100, 0) / Math.max(1, Number(servings)))} kcal per serving`
-              : "Add ingredients to see nutrition"}
-          </p>
-          <Button
-            className="h-12 shrink-0 rounded-full bg-signal px-5 text-signal-fg hover:bg-signal/90"
-            disabled={
-              action.busy ||
-              !name.trim() ||
-              !lines.length ||
-              lines.some((l) => !Number.isFinite(l.grams) || l.grams <= 0) ||
-              !Number.isFinite(Number(servings)) ||
-              Number(servings) > 50 ||
-              Number(servings) < 1 ||
-              steps.some((s) => !s.trim())
-            }
-            onClick={() =>
-              action.run(async () => {
-                const value = {
-                  id: id.current,
-                  expectedUpdatedAt: initial?.id ? initial.updatedAt : undefined,
-                  name,
-                  servings: Number(servings),
-                  imageUrl,
-                  steps,
-                  ingredients: lines.map((l) => ({ id: l.id, grams: l.grams })),
-                };
-                if (initial?.id) await api.put(`/recipes/${id.current}`, value);
-                else await api.post("/recipes", value);
-                onSaved();
-                onClose();
-              })
-            }
-          >
-            {initial?.id ? "Save recipe" : "Create"}
-          </Button>
-        </div>
+        {!embedded ? actions : null}
       </div>
       {search ? (
         <FoodSearch
@@ -625,11 +625,13 @@ export function RecipeEditor({
 
 function RecipeFrame({
   embedded,
+  actions,
   title,
   onClose,
   children,
 }: {
   embedded: boolean;
+  actions: ReactNode;
   title: string;
   onClose: () => void;
   children: ReactNode;
@@ -655,7 +657,10 @@ function RecipeFrame({
         <h1 className="flex-1 text-center text-body font-semibold">{title}</h1>
         <span className="size-10" />
       </header>
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-48">{children}</div>
+      <div className="client-action-scroll min-h-0 flex-1 overflow-y-auto px-4">{children}</div>
+      <ClientActionBar className="rounded-full border border-line bg-surface p-2 shadow-float">
+        {actions}
+      </ClientActionBar>
     </div>
   );
 }

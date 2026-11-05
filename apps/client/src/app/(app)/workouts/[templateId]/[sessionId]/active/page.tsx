@@ -531,7 +531,7 @@ export default function ActiveSessionPage() {
             >
               {/* Exercise title and metadata */}
               <Link
-                href={`/workouts/${templateId}/${sessionId}/exercises/${exercise.exerciseId}`}
+                href={`/workouts/${templateId}/${sessionId}/exercises/${encodeURIComponent(exercise.exerciseId)}`}
                 className="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-hover"
               >
                 {exercise.imageUrl ? (

@@ -64,7 +64,7 @@ const TABS = [
   // ADR 0024: a client's own workout programmes. Flipped on now that the tab has a
   // real screen behind it — see `ClientWorkouts`.
   { label: "Workouts", icon: Dumbbell, ready: true },
-  { label: "Vault", icon: FileText, ready: false },
+  { label: "Vault", icon: FileText, ready: true },
   { label: "Payment", icon: CreditCard, ready: false },
   { label: "Automations", icon: Sparkles, ready: false },
   { label: "Settings", icon: Settings, ready: false },

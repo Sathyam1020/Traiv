@@ -1,12 +1,12 @@
-import { trainingRouter } from "./training.js";
-import { measurementsRouter } from "./measurements.js";
 import { schema } from "@traiv/db";
 import { Router } from "express";
 import { z } from "zod";
+import { studioExerciseEdits } from "../../library/exercise-customizations.js";
 import { requireStudio, requireStudioAuth } from "../../middleware/authorize.js";
 import { requireSession } from "../../middleware/session.js";
 import { stepsDate as developmentDay, stepsPeriod } from "../client/steps-validation.js";
 import { trainerMessaging } from "../messaging/routes.js";
+import { trainerVault } from "../vault/routes.js";
 import {
   checkInTrend,
   createMetric,
@@ -43,6 +43,7 @@ import {
   saveMealPlanPreset,
   updateMealPlan,
 } from "./meal-plans.js";
+import { measurementsRouter } from "./measurements.js";
 import {
   createIngredient,
   deleteIngredient,
@@ -72,6 +73,7 @@ import {
   updateClient,
 } from "./roster.js";
 import { activateStudio, listStudios, preferredStudio } from "./service.js";
+import { trainingRouter } from "./training.js";
 import { signStudioUpload, studioUploadsConfigured } from "./uploads.js";
 import {
   archiveTemplate,
@@ -81,6 +83,7 @@ import {
   deleteSavedSection,
   duplicateTemplate,
   duplicateTemplateForClient,
+  exerciseFacets,
   getExercise,
   getTemplate,
   listClientPrograms,
@@ -318,7 +321,14 @@ studios.post("/:id/uploads/sign", requireStudio({ param: "id" }), async (req, re
   const { studioId } = requireStudioAuth(req);
   const { kind } = z
     .object({
-      kind: z.enum(["recipe-image", "recipe-video", "ingredient-image", "mealplan-cover"]),
+      kind: z.enum([
+        "recipe-image",
+        "recipe-video",
+        "ingredient-image",
+        "mealplan-cover",
+        "exercise-image",
+        "exercise-video",
+      ]),
     })
     .parse(req.body ?? {});
   res.json(signStudioUpload(studioId, kind));
@@ -382,7 +392,7 @@ const templateInput = z.object({
           .array(
             z.object({
               id: z.string().max(64).optional(),
-              exerciseId: z.string().max(64),
+              exerciseId: z.string().max(256),
               fields: z.array(z.enum(FIELD_NAMES)).max(7).optional(),
               supersetGroup: z.int().min(0).max(20).nullable().optional(),
               note: z.string().max(1000).nullable().optional(),
@@ -395,28 +405,41 @@ const templateInput = z.object({
     .max(20),
 });
 
+studios.get("/:id/exercise-customizations", requireStudio({ param: "id" }), async (req, res) => {
+  res.setHeader("Cache-Control", "private, no-store");
+  res.json({ exercises: await studioExerciseEdits(requireStudioAuth(req).studioId) });
+});
+
+studios.get("/:id/exercise-filters", requireStudio({ param: "id" }), async (req, res) => {
+  res.setHeader("Cache-Control", "private, no-store");
+  res.json(await exerciseFacets(requireStudioAuth(req).studioId));
+});
+
 studios.get("/:id/exercises", requireStudio({ param: "id" }), async (req, res) => {
   const { studioId } = requireStudioAuth(req);
   const opts = z
     .object({
-      q: z.string().max(80).optional(),
+      offset: z.coerce.number().int().min(0).max(100000).optional(),
+      q: z.string().trim().max(200).optional(),
       muscle: z.string().max(60).optional(),
       equipment: z.string().max(60).optional(),
       category: z.string().max(60).optional(),
     })
     .parse(req.query);
-  res.json({ exercises: await listExercises(studioId, opts) });
+  res.setHeader("Cache-Control", "private, no-store");
+  res.json(await listExercises(studioId, opts));
 });
 
 studios.get("/:id/exercises/:exerciseId", requireStudio({ param: "id" }), async (req, res) => {
   const { studioId } = requireStudioAuth(req);
-  const { exerciseId } = z.object({ exerciseId: z.string().max(64) }).parse(req.params);
+  const { exerciseId } = z.object({ exerciseId: z.string().max(256) }).parse(req.params);
+  res.setHeader("Cache-Control", "private, no-store");
   res.json({ exercise: await getExercise(studioId, exerciseId) });
 });
 
 const exerciseWrite = z.object({
-  name: z.string().trim().min(1).max(120),
-  description: z.string().max(4096).nullable().optional(),
+  name: z.string().trim().min(1).max(255),
+  description: z.string().max(8192).nullable().optional(),
   muscle: z.string().trim().min(1).max(60),
   secondaryMuscles: z.array(z.string().max(60)).max(6).optional(),
   equipment: z.string().trim().min(1).max(60),
@@ -438,13 +461,13 @@ studios.post("/:id/exercises", requireStudio({ param: "id" }), async (req, res) 
 
 studios.patch("/:id/exercises/:exerciseId", requireStudio({ param: "id" }), async (req, res) => {
   const { studioId } = requireStudioAuth(req);
-  const { exerciseId } = z.object({ exerciseId: z.string().max(64) }).parse(req.params);
+  const { exerciseId } = z.object({ exerciseId: z.string().max(256) }).parse(req.params);
   res.json({ exercise: await updateExercise(studioId, exerciseId, exerciseWrite.parse(req.body)) });
 });
 
 studios.delete("/:id/exercises/:exerciseId", requireStudio({ param: "id" }), async (req, res) => {
   const { studioId } = requireStudioAuth(req);
-  const { exerciseId } = z.object({ exerciseId: z.string().max(64) }).parse(req.params);
+  const { exerciseId } = z.object({ exerciseId: z.string().max(256) }).parse(req.params);
   await deleteExercise(studioId, exerciseId);
   res.status(204).end();
 });
@@ -909,3 +932,5 @@ studios.post(
     res.json({ saved: true });
   },
 );
+
+studios.use("/:id/vault", trainerVault);

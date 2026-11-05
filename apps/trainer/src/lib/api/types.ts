@@ -1,6 +1,7 @@
 export type User = {
   id: string;
   name: string;
+  avatarUrl?: string | null;
   email: string | null;
   phone: string | null;
   needsPhone: boolean;
@@ -11,6 +12,7 @@ export type Studio = {
   id: string;
   slug: string;
   name: string;
+  brandLogoUrl?: string | null;
   tier: "free" | "starter" | "pro" | "studio";
   role: "owner" | "coach";
 };
@@ -246,6 +248,7 @@ export type Exercise = {
   equipment: string;
   imageUrl: string | null;
   videoUrl: string | null;
+  videoAspectRatio?: string | null;
   description?: string | null;
   stimulus: string | null;
   level: string | null;
@@ -375,4 +378,6 @@ export type StudioUploadKind =
   | "recipe-image"
   | "recipe-video"
   | "ingredient-image"
-  | "mealplan-cover";
+  | "mealplan-cover"
+  | "exercise-image"
+  | "exercise-video";

@@ -281,6 +281,55 @@
       "when": 1793642119034,
       "tag": "0039_sloppy_lockjaw",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1793695837138,
+      "tag": "0040_clumsy_kingpin",
+      "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1793726016436,
+      "tag": "0041_many_iron_fist",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1793726707797,
+      "tag": "0042_lowly_norman_osborn",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1793727855967,
+      "tag": "0043_quick_brother_voodoo",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1793728623098,
+      "tag": "0044_curly_odin",
+      "breakpoints": true
+    },
+    {
+      "idx": 45,
+      "version": "7",
+      "when": 1793746844626,
+      "tag": "0045_many_ravenous",
+      "breakpoints": true
+    },
+    {
+      "idx": 46,
+      "version": "7",
+      "when": 1793778134298,
+      "tag": "0046_curly_frog_thor",
+      "breakpoints": true
     }
   ]
 }

@@ -9,6 +9,7 @@ export const dailySteps = pgTable(
       .references(() => clients.id, { onDelete: "cascade" }),
     date: date().notNull(),
     count: integer().notNull(),
+    source: text().notNull().default("manual"),
     updatedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [

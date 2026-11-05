@@ -1,3 +1,10 @@
+import { clientActivity } from "./activity.js";
+import { clientFeedbackRouter } from "./feedback.js";
+import { clientPush } from "../notifications/routes.js";
+import { clientHealth } from "./health.js";
+import { clientSettingsRouter } from "./settings.js";
+import { clientMeasurementsRouter } from "./measurements.js";
+import { clientVault } from "../vault/routes.js";
 import { newId, schema } from "@traiv/db";
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { Router } from "express";
@@ -13,7 +20,12 @@ import {
 import { requireSession } from "../../middleware/session.js";
 import { clientMessaging } from "../messaging/routes.js";
 import { readSteps, saveSteps } from "../studio/development.js";
-import { getClientCheckIn, listClientCheckIns, submitClientCheckIn } from "./check-ins.js";
+import {
+  clientProfileHistory,
+  getClientCheckIn,
+  listClientCheckIns,
+  submitClientCheckIn,
+} from "./check-ins.js";
 import { allow as allowFoodTool } from "./food.js";
 import { foodRouter } from "./food-routes.js";
 import { completeIntake, FIRST_STEP, getIntake, LAST_STEP, saveStep } from "./intake.js";
@@ -521,8 +533,10 @@ clientApp.post(
 
 clientApp.get("/:studioId/exercises/:exerciseId", requireClient(), async (req, res) => {
   const { clientId } = requireClientAuth(req);
-  const { exerciseId } = z.object({ exerciseId: z.string().max(64) }).parse(req.params);
-  res.json(await getExerciseDetail(clientId, exerciseId));
+  const { exerciseId } = z.object({ exerciseId: z.string().max(256) }).parse(req.params);
+  const media = z.enum(["0", "1"]).default("1").parse(req.query.media);
+  res.setHeader("Cache-Control", "private, no-store");
+  res.json(await getExerciseDetail(clientId, exerciseId, media === "1"));
 });
 
 clientApp.get("/:studioId/mealplans", requireClient(), async (req, res) => {
@@ -546,3 +560,21 @@ clientApp.put("/:studioId/steps", requireClient({ write: true }), async (req, re
   await saveSteps(clientId, date, count);
   res.json({ saved: true });
 });
+
+clientApp.use("/:studioId/vault", clientVault);
+
+clientApp.get("/:studioId/profile-history", requireClient(), async (req, res) => {
+  res.json(await clientProfileHistory(requireClientAuth(req).clientId));
+});
+
+clientApp.use("/:studioId/measurements", clientMeasurementsRouter);
+
+clientApp.use("/:studioId/settings", clientSettingsRouter);
+
+clientApp.use("/:studioId/health", clientHealth);
+
+clientApp.use("/:studioId/push", clientPush);
+
+clientApp.use("/:studioId/feedback", clientFeedbackRouter);
+
+clientApp.use("/:studioId/activity", clientActivity);

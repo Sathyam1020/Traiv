@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { unregisterPush } from "@/lib/push";
 import { authApi } from "@/lib/api";
 import { queryKeys } from "./keys";
 
@@ -43,8 +44,11 @@ export function useVerifyCode() {
 export function useLogout() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: authApi.logout,
-    onSettled: () => qc.clear(),
+    mutationFn: async () => {
+      await unregisterPush().catch(() => {});
+      return authApi.logout();
+    },
+    onSuccess: () => qc.clear(),
   });
 }
 

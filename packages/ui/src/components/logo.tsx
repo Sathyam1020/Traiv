@@ -1,39 +1,22 @@
-/**
- * The Traiv mark: a T with downward tabs at the arms, inside a rounded square.
- *
- * Four rounded rectangles on one radius, on a 24-unit grid — no curves to get wrong at
- * small sizes, and the whole thing stays legible at 16px where a favicon lives. The
- * container is deliberately part of the mark rather than an app-icon wrapper, because
- * that is what makes it read at a glance in a sidebar next to the wordmark.
- *
- * Both colours come from props, not tokens, so the mark can sit on a light surface, on
- * `bg-contrast`, or inside an OS app icon without the palette following the theme
- * somewhere it should not. See `.ai/design/colors.md`.
- */
 export type LogoProps = {
-  /** Edge length in px. 16 is the favicon floor; 28 is the sidebar size. */
   size?: number;
-  /** The rounded square. */
+  /** Optional surface behind the transparent mark. */
   bg?: string;
-  /** The glyph. */
+  /** Override both mark colors for monochrome uses. */
   fg?: string;
-  /** Paired with visible text, so the mark itself should announce nothing. */
   decorative?: boolean;
   className?: string;
 };
 
-export function Logo({
-  size = 28,
-  bg = "currentColor",
-  fg = "var(--color-surface)",
-  decorative = false,
-  className,
-}: LogoProps) {
+const wing = "M30 99 C43 72 59 63 90 63 H270 L255 94 C241 123 221 136 191 136 H17 Z";
+const stem = "M116 146 H188 L125 274 C118 288 107 294 91 294 H34 L93 164 C98 152 104 146 116 146 Z";
+
+export function Logo({ size = 28, bg, fg, decorative = false, className }: LogoProps) {
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 24 24"
+      viewBox="0 0 300 300"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
@@ -41,33 +24,40 @@ export function Logo({
       aria-label={decorative ? undefined : "Traiv"}
       aria-hidden={decorative || undefined}
     >
-      <rect width="24" height="24" rx="5.4" fill={bg} />
-      {/* crossbar */}
-      <rect x="5.6" y="7" width="12.8" height="2.8" rx="1.4" fill={fg} />
-      {/* the two tabs that turn a plain T into the mark */}
-      <rect x="5.6" y="7" width="2.8" height="5.4" rx="1.4" fill={fg} />
-      <rect x="15.6" y="7" width="2.8" height="5.4" rx="1.4" fill={fg} />
-      {/* stem — 7 units of margin above and below, so the glyph sits optically centred */}
-      <rect x="10.6" y="7" width="2.8" height="10" rx="1.4" fill={fg} />
+      {bg ? <rect width="300" height="300" rx="60" fill={bg} /> : null}
+      <path fill={fg ?? "#2459B8"} d={wing} />
+      <path fill={fg ?? "#182D4B"} d={stem} />
     </svg>
   );
 }
 
-export type WordmarkProps = {
-  size?: number;
-  className?: string;
-};
+export type WordmarkProps = { size?: number; className?: string };
 
-/**
- * Mark plus name. The name is live text in Inter rather than part of the SVG — it stays
- * selectable, it is read by a screen reader, and it never ships a second copy of the
- * typeface. The mark's own label is hidden here so the pair announces once.
- */
+/** Original supplied wordmark; size controls its height. */
 export function Wordmark({ size = 26, className }: WordmarkProps) {
   return (
-    <span className={`inline-flex items-center gap-2 ${className ?? ""}`}>
-      <Logo size={size} decorative />
-      <span className="text-subheading font-semibold tracking-[-0.02em]">Traiv</span>
-    </span>
+    <svg
+      width={(size * 1040) / 310}
+      height={size}
+      viewBox="0 0 1040 310"
+      xmlns="http://www.w3.org/2000/svg"
+      role="img"
+      aria-label="Traiv"
+      className={className}
+    >
+      <path fill="#2459B8" d={wing} />
+      <path fill="#182D4B" d={stem} />
+      <text
+        x="313"
+        y="236"
+        fill="#182D4B"
+        fontFamily="Arial, Helvetica, sans-serif"
+        fontSize="205"
+        fontWeight="800"
+        letterSpacing="-10"
+      >
+        Traiv
+      </text>
+    </svg>
   );
 }

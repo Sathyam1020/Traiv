@@ -6,6 +6,8 @@ import { ActiveStateIcon } from "@traiv/ui/components/shell/solid-sidebar-icon";
 import { motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 
 /** Default shell spring; the client glass selection uses a quicker response. */
 const SPRING = { type: "spring", mass: 1, stiffness: 90, damping: 14 } as const;
@@ -31,13 +33,15 @@ const GLASS_SPRING = { type: "spring", mass: 0.55, stiffness: 500, damping: 32 }
  * stretches, and the spring lives on the element being animated *to*.
  */
 export function MobileBar({ nav, glass = false }: { nav: readonly NavItem[]; glass?: boolean }) {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const pathname = usePathname();
   const current = useNavOverride() ?? pathname;
   // Motion does not read prefers-reduced-motion on its own — the CSS reset in
   // globals.css only reaches CSS transitions, not this. spacing.md makes it mandatory.
   const reduce = useReducedMotion();
 
-  return (
+  const bar = (
     <nav
       // Lifts clear of the iPhone home indicator; resolves to a plain 16px elsewhere.
       className="fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 flex justify-center px-4 lg:hidden"
@@ -107,4 +111,7 @@ export function MobileBar({ nav, glass = false }: { nav: readonly NavItem[]; gla
       </div>
     </nav>
   );
+  // Keep glass navigation above the quick-action backdrop, outside the shell’s
+  // fixed stacking context. Ordinary sheets/dialogs still cover it at z-100.
+  return glass ? (mounted ? createPortal(bar, document.body) : null) : bar;
 }

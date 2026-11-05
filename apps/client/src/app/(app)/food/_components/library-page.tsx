@@ -1,4 +1,5 @@
 "use client";
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@traiv/ui/components/button";
 import { Input } from "@traiv/ui/components/input";
@@ -7,6 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { QueryError } from "@/components/common/query-state";
+import { ClientActionBar } from "@/components/layout/client-action-bar";
 import { type FoodItem, foodApi, localDay, type Slot, slots } from "@/lib/api/food";
 import { useActiveStudio } from "@/lib/query";
 import { useAction } from "./actions";
@@ -67,7 +69,7 @@ export function LibraryPage({ kind }: { kind: "food" | "recipe" }) {
     i.name.toLowerCase().includes(search.toLowerCase()),
   );
   return (
-    <div className="relative mx-auto flex h-full min-h-0 w-full max-w-3xl flex-1 flex-col overflow-hidden bg-panel">
+    <div className="relative mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col overflow-hidden bg-panel">
       <header className="flex shrink-0 items-center justify-between px-4 py-5">
         <Link
           href={fromFood ? `/food?date=${date}` : `/food/log?date=${date}&meal=${slot}`}
@@ -80,8 +82,8 @@ export function LibraryPage({ kind }: { kind: "food" | "recipe" }) {
         <span className="size-10" />
       </header>
       {kind === "recipe" ? (
-        <div className="relative mx-4 mb-5">
-          <Search className="absolute top-3.5 left-4 size-4 text-fg-muted" />
+        <div className="relative mx-4 mb-5 shrink-0">
+          <Search className="pointer-events-none absolute top-1/2 left-4 z-10 size-4 -translate-y-1/2 text-fg-muted" />
           <Input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -90,7 +92,7 @@ export function LibraryPage({ kind }: { kind: "food" | "recipe" }) {
           />
         </div>
       ) : null}
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-44">
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain px-4 client-action-scroll">
         <ErrorText error={action.error} />
         {query.isError ? (
           <QueryError
@@ -177,17 +179,19 @@ export function LibraryPage({ kind }: { kind: "food" | "recipe" }) {
           </p>
         ) : null}
       </div>
-      <Button
-        disabled={!studio || Boolean(stalled)}
-        onClick={() => {
-          setEditing(null);
-          setCreate(true);
-        }}
-        className="absolute inset-x-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] h-14 rounded-full bg-signal text-signal-fg hover:bg-signal/90 lg:bottom-5"
-      >
-        <Plus className="size-5" />
-        Create {kind}
-      </Button>
+      <ClientActionBar>
+        <Button
+          disabled={!studio || Boolean(stalled)}
+          onClick={() => {
+            setEditing(null);
+            setCreate(true);
+          }}
+          className="h-14 w-full rounded-full bg-signal text-signal-fg hover:bg-signal/90"
+        >
+          <Plus className="size-5" />
+          Create {kind}
+        </Button>
+      </ClientActionBar>
       {logging ? (
         <Logger
           studio={studio}

@@ -1,5 +1,10 @@
 "use client";
-import { AvatarFallback, type AvatarSize, Avatar as WensityAvatar } from "./wensity/avatar";
+import {
+  AvatarFallback,
+  AvatarImage,
+  type AvatarSize,
+  Avatar as WensityAvatar,
+} from "./wensity/avatar";
 
 export { AvatarFallback, AvatarImage } from "./wensity/avatar";
 
@@ -24,9 +29,18 @@ function nearestSize(px: number): AvatarSize {
   ).size;
 }
 
-export function Avatar({ name, size = 34 }: { name: string; size?: number }) {
+export function Avatar({
+  name,
+  size = 34,
+  src,
+}: {
+  name: string;
+  size?: number;
+  src?: string | null;
+}) {
   return (
     <WensityAvatar aria-hidden="true" size={nearestSize(size)}>
+      {src ? <AvatarImage src={src} alt="" className="object-cover" /> : null}
       <AvatarFallback tone="neutral">{name}</AvatarFallback>
     </WensityAvatar>
   );

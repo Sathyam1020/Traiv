@@ -85,6 +85,10 @@ export const workoutApi = {
       )
     ).data.session,
 
-  getExercise: async (studioId: string, exerciseId: string) =>
-    (await http.get<ExerciseDetail>(`/c/${studioId}/exercises/${exerciseId}`)).data,
+  getExercise: async (studioId: string, exerciseId: string, includeMedia = true) =>
+    (
+      await http.get<ExerciseDetail>(`/c/${studioId}/exercises/${encodeURIComponent(exerciseId)}`, {
+        params: { media: includeMedia ? "1" : "0" },
+      })
+    ).data,
 };

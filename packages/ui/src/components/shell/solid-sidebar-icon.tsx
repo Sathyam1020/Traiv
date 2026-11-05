@@ -17,28 +17,7 @@ import {
   IconToolsKitchen2Filled,
   IconUserFilled,
 } from "@tabler/icons-react";
-import {
-  Apple,
-  BookOpen,
-  ChartArea,
-  ClipboardList,
-  CreditCard,
-  Dumbbell,
-  FileText,
-  Home,
-  type Icon,
-  Inbox,
-  LayoutGrid,
-  MessageSquareText,
-  Moon,
-  Salad,
-  Settings,
-  Sparkles,
-  Sun,
-  User,
-  Users,
-  Utensils,
-} from "@traiv/ui/icons";
+import type { Icon } from "@traiv/ui/icons";
 import { cn } from "../../lib/utils";
 
 /**
@@ -47,48 +26,33 @@ import { cn } from "../../lib/utils";
  * Not every icon has one — Tabler ships no filled `ChartBar`, for one — so a lookup
  * miss is expected and handled by each caller, not an error.
  */
+const filledIcons = {
+  Inbox: IconMessageFilled,
+  Users: IconUserFilled,
+  User: IconUserFilled,
+  Dumbbell: IconBarbellFilled,
+  LayoutGrid: IconLayoutGridFilled,
+  ClipboardList: IconClipboardListFilled,
+  BookOpen: IconBookFilled,
+  Salad: IconBowlSpoonFilled,
+  Apple: IconAppleFilled,
+  CreditCard: IconCreditCardFilled,
+  FileText: IconFileTextFilled,
+  Sparkles: IconSparklesFilled,
+  Settings: IconSettingsFilled,
+  ChartArea: IconChartAreaFilled,
+  Moon: IconMoonFilled,
+  Sun: IconSunFilled,
+  Home: IconHomeFilled,
+  MessageSquareText: IconMessageFilled,
+  Utensils: IconToolsKitchen2Filled,
+};
+
 function filledVariant(Outline: Icon) {
-  switch (Outline) {
-    case Inbox:
-      return IconMessageFilled;
-    case Users:
-    case User:
-      return IconUserFilled;
-    case Dumbbell:
-      return IconBarbellFilled;
-    case LayoutGrid:
-      return IconLayoutGridFilled;
-    case ClipboardList:
-      return IconClipboardListFilled;
-    case BookOpen:
-      return IconBookFilled;
-    case Salad:
-      return IconBowlSpoonFilled;
-    case Apple:
-      return IconAppleFilled;
-    case CreditCard:
-      return IconCreditCardFilled;
-    case FileText:
-      return IconFileTextFilled;
-    case Sparkles:
-      return IconSparklesFilled;
-    case Settings:
-      return IconSettingsFilled;
-    case ChartArea:
-      return IconChartAreaFilled;
-    case Moon:
-      return IconMoonFilled;
-    case Sun:
-      return IconSunFilled;
-    case Home:
-      return IconHomeFilled;
-    case MessageSquareText:
-      return IconMessageFilled;
-    case Utensils:
-      return IconToolsKitchen2Filled;
-    default:
-      return null;
-  }
+  // Stable adapter names survive module refreshes and compiler-created function
+  // wrappers; reference equality between imported components does not.
+  const name = Outline.displayName;
+  return name && name in filledIcons ? filledIcons[name as keyof typeof filledIcons] : null;
 }
 
 /** Library-drawn solids only in the desktop sidebar; mobile/content icons retain their style. */

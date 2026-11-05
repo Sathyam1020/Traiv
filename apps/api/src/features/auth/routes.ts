@@ -11,6 +11,7 @@ import { clearSessionCookie, readCookie, setSessionCookie } from "../../lib/cook
 import { newSessionToken } from "../../lib/crypto.js";
 import { requireSession } from "../../middleware/session.js";
 import { listStudios, preferredStudio } from "../studio/service.js";
+import { trainerAccount } from "./account.js";
 import { authorizeUrl, completeGoogleLogin, googleEnabled } from "./google.js";
 import {
   completeProfile,
@@ -24,6 +25,7 @@ import {
 } from "./service.js";
 
 export const auth: Router = Router();
+auth.use("/account", trainerAccount);
 
 /** What the sign-in screen is allowed to offer. Keeps the UI from promising what isn't wired. */
 auth.get("/config", (_req, res) => {

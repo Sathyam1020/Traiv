@@ -1,3 +1,4 @@
+import { applyExerciseCustomizations } from "../../library/exercise-customizations.js";
 import { Router } from "express";
 import { schema } from "@traiv/db";
 import { and, asc, desc, eq, isNotNull, inArray } from "drizzle-orm";
@@ -49,12 +50,18 @@ trainingRouter.get("/", async (req, res) => {
         .where(inArray(schema.setLogs.sessionId, ids))
         .orderBy(asc(schema.setLogs.setNumber))
     : [];
+  const displayExercises = await applyExerciseCustomizations(
+    studioId!,
+    logs.map((l) => l.exercise),
+    (e) => e.id,
+  );
+  const displayLogs = logs.map((log, i) => ({ ...log, exercise: displayExercises[i] }));
   res.json(
     sessions.map((r) => ({
       ...r.session,
       name: r.name ?? "Workout",
       programName: r.programName,
-      exercises: logs.filter((l) => l.log.sessionId === r.session.id),
+      exercises: displayLogs.filter((l) => l.log.sessionId === r.session.id),
     })),
   );
 });

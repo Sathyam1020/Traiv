@@ -1,0 +1,1 @@
+ALTER TABLE "client_measurement" ADD COLUMN "image_urls" jsonb DEFAULT '{}'::jsonb NOT NULL;

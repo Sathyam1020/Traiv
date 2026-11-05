@@ -4,20 +4,19 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Logo } from "@traiv/ui/components/logo";
 import { AppShell } from "@traiv/ui/components/shell/app-shell";
 import { MobileHeader } from "@traiv/ui/components/shell/mobile-header";
-import { RailBrand, RailLink } from "@traiv/ui/components/shell/rail";
+import { RailLink } from "@traiv/ui/components/shell/rail";
 import { Settings } from "@traiv/ui/icons";
 import { useEffect } from "react";
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { AccountButton } from "@/components/layout/account-button";
 import { navItems } from "@/components/layout/nav-items";
+import { OrganisationBrand } from "@/components/layout/organisation-brand";
 import { StudioSwitcher } from "@/components/layout/studio-switcher";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { useActiveStudioId } from "@/lib/active-studio";
 import { http } from "@/lib/api/client";
-import { useSession } from "@/lib/query";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
-  const { data } = useSession();
   const studioId = useActiveStudioId();
   const qc = useQueryClient();
   useEffect(() => {
@@ -39,7 +38,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     enabled: Boolean(studioId),
     refetchInterval: 10000,
   });
-  const name = data?.user.name || "Coach";
 
   return (
     <AuthGuard>
@@ -50,11 +48,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             item.href === "/inbox" ? { ...item, badge: unread.data ?? 0 } : item,
           ),
         }))}
-        sidebarBrand={
-          <RailBrand name={name} sub={<StudioSwitcher tone="rail" />}>
-            <ThemeToggle tone="rail" />
-          </RailBrand>
-        }
+        sidebarBrand={<OrganisationBrand />}
         sidebarFooter={<RailLink href="/settings" label="Settings" icon={Settings} />}
         sidebarAccount={<AccountButton tone="rail" />}
         header={

@@ -5,7 +5,6 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@traiv/ui/components/dialog";
@@ -61,44 +60,64 @@ export function LogWeightDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-sm">
-        <DialogHeader>
+      <DialogContent
+        variant="scrollable"
+        className="max-w-sm p-0"
+        onInteractOutside={(e) => log.isPending && e.preventDefault()}
+      >
+        <DialogHeader className="shrink-0 px-5 py-5">
           <DialogTitle>Log your weight</DialogTitle>
           <DialogDescription>
-            Weigh yourself at the same time of day — first thing, before eating, is the easiest to
-            repeat.
+            Weigh yourself at the same time each day, ideally before eating.
           </DialogDescription>
         </DialogHeader>
-
-        <div className="flex flex-col gap-2">
-          <Label htmlFor={id}>Weight</Label>
-          <div className="flex items-center gap-2">
-            <Input
-              id={id}
-              // `decimal` rather than `numeric`: Android's numeric pad has no decimal
-              // point, and 71.4 is the normal case.
-              inputMode="decimal"
-              autoFocus
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") void submit();
-              }}
-              className="tabular-nums"
-            />
-            <span className="shrink-0 text-body-sm text-fg-muted">kg</span>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            void submit();
+          }}
+          className="flex min-h-0 flex-col"
+        >
+          <div className="space-y-2 overflow-y-auto px-5 py-5">
+            <Label htmlFor={id}>Weight</Label>
+            <div className="relative">
+              <Input
+                id={id}
+                type="number"
+                inputMode="decimal"
+                min={MIN}
+                max={MAX}
+                step="any"
+                required
+                value={value}
+                disabled={log.isPending}
+                onChange={(e) => setValue(e.target.value)}
+                className="h-12 w-full pr-14 tabular-nums"
+              />
+              <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-sm text-fg-muted">
+                kg
+              </span>
+            </div>
+            {error && (
+              <p role="alert" className="text-caption text-danger">
+                {error}
+              </p>
+            )}
           </div>
-          {error ? <p className="text-caption text-danger">{error}</p> : null}
-        </div>
-
-        <DialogFooter>
-          <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button disabled={!valid || log.isPending} onClick={() => void submit()}>
-            {log.isPending ? "Saving…" : "Save"}
-          </Button>
-        </DialogFooter>
+          <footer className="grid shrink-0 grid-cols-2 gap-3 border-t border-line px-5 py-4">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={log.isPending}
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={!valid || log.isPending}>
+              {log.isPending ? "Saving…" : "Save"}
+            </Button>
+          </footer>
+        </form>
       </DialogContent>
     </Dialog>
   );

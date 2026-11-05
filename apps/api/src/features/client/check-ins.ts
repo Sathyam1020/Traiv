@@ -1,5 +1,5 @@
 import { schema } from "@traiv/db";
-import { desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { db } from "../../db.js";
 import { badRequest, notFound } from "../../errors.js";
 import {
@@ -192,3 +192,59 @@ export async function submitClientCheckIn(
 }
 
 export type { AnswerInput };
+
+/** Submitted history with answer previews, fetched in one batch for the profile. */
+export async function clientProfileHistory(clientId: string) {
+  const submitted = await db
+    .select({
+      id: schema.checkIns.id,
+      dueOn: schema.checkIns.dueOn,
+      closesOn: schema.checkIns.closesOn,
+      completedAt: schema.checkIns.completedAt,
+    })
+    .from(schema.checkIns)
+    .where(and(eq(schema.checkIns.clientId, clientId), eq(schema.checkIns.status, "completed")))
+    .orderBy(desc(schema.checkIns.completedAt), desc(schema.checkIns.id));
+  const completed = submitted.map((c) => ({
+    ...c,
+    completedAt: c.completedAt?.toISOString() ?? null,
+    state: "completed" as const,
+  }));
+  const [answers, workouts] = await Promise.all([
+    completed.length
+      ? db
+          .select({
+            checkInId: schema.checkInAnswers.checkInId,
+            metricId: schema.metrics.id,
+            code: schema.metrics.code,
+            name: schema.metrics.name,
+            type: schema.metrics.type,
+            unit: schema.metrics.unit,
+            numberValue: schema.checkInAnswers.numberValue,
+            textValue: schema.checkInAnswers.textValue,
+            ratingValue: schema.checkInAnswers.ratingValue,
+            imageUrl: schema.checkInAnswers.imageUrl,
+          })
+          .from(schema.checkInAnswers)
+          .innerJoin(schema.metrics, eq(schema.metrics.id, schema.checkInAnswers.metricId))
+          .where(
+            inArray(
+              schema.checkInAnswers.checkInId,
+              completed.map((c) => c.id),
+            ),
+          )
+          .orderBy(asc(schema.metrics.position))
+      : [],
+    db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(schema.sessions_)
+      .where(and(eq(schema.sessions_.clientId, clientId), isNotNull(schema.sessions_.completedAt))),
+  ]);
+  return {
+    checkIns: completed.map((c) => ({
+      ...c,
+      answers: answers.filter((a) => a.checkInId === c.id),
+    })),
+    workouts: workouts[0]?.count ?? 0,
+  };
+}

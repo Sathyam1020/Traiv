@@ -19,7 +19,9 @@
     "react-dom": "catalog:",
     "zustand": "catalog:",
     "@traiv/phone": "workspace:*",
-    "@traiv/nutrition": "workspace:*"
+    "@traiv/nutrition": "workspace:*",
+    "@traiv/exercises": "workspace:*",
+    "jspdf": "catalog:"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "catalog:",

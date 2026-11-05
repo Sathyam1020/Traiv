@@ -1,10 +1,12 @@
 "use client";
 
+import { filterLabel } from "@traiv/exercises";
+
 import { Button } from "@traiv/ui/components/button";
 import { Input } from "@traiv/ui/components/input";
 import { Page } from "@traiv/ui/components/shell/page";
-import { StickyPageHeader } from "@traiv/ui/components/shell/sticky-page-header";
 import { SidebarToggle } from "@traiv/ui/components/shell/page-header";
+import { StickyPageHeader } from "@traiv/ui/components/shell/sticky-page-header";
 import { Skeleton } from "@traiv/ui/components/skeleton";
 import {
   Table,
@@ -16,14 +18,14 @@ import {
 } from "@traiv/ui/components/table";
 import { Dumbbell, Image, Plus, Search, Video } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
-import { useMemo, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useActiveStudioId } from "@/lib/active-studio";
 import type { Exercise } from "@/lib/api";
 import { useExercises } from "@/lib/query";
 import { ExercisePanel } from "./_components/exercise-panel";
 import { FilterPill } from "./_components/filter-pill";
 
-const PAGE_SIZE = 25;
+const PAGE_SIZE = 20;
 
 /**
  * Exercises — the shared library plus the studio's own.
@@ -44,24 +46,23 @@ export default function ExercisesPage() {
     exerciseId: null,
   });
 
+  useEffect(() => {
+    const exerciseId = new URLSearchParams(window.location.search).get("exercise");
+    if (exerciseId && exerciseId.length <= 256) setPanel({ open: true, exerciseId });
+  }, []);
+
   const exercises = useExercises(studioId, { q: q || undefined, muscle, equipment, category });
   const rows = exercises.data ?? [];
 
-  const muscles = useMemo(
-    () => [...new Set(rows.map((e) => e.muscle))].sort((a, b) => a.localeCompare(b)),
-    [rows],
-  );
-  const equipments = useMemo(
-    () => [...new Set(rows.map((e) => e.equipment))].sort((a, b) => a.localeCompare(b)),
-    [rows],
-  );
-  const categories = useMemo(
-    () => [...new Set(rows.map((e) => e.category).filter((c): c is string => Boolean(c)))].sort(),
-    [rows],
-  );
-
+  const { muscles, equipments, categories } = exercises.filterOptions;
   const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
-  const shown = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const visiblePage = Math.min(page, pageCount);
+  const shown = rows.slice((visiblePage - 1) * PAGE_SIZE, visiblePage * PAGE_SIZE);
+  const filterKey = useRef(exercises.filterKey);
+  filterKey.current = exercises.filterKey;
+  useEffect(() => {
+    if (!exercises.isPending) setPage((value) => Math.min(value, pageCount));
+  }, [pageCount, exercises.isPending]);
 
   return (
     <Page className="max-w-none gap-5">
@@ -82,6 +83,7 @@ export default function ExercisesPage() {
             <Search className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-fg-subtle" />
             <Input
               value={q}
+              maxLength={200}
               onChange={(e) => {
                 setQ(e.target.value);
                 setPage(1);
@@ -94,6 +96,8 @@ export default function ExercisesPage() {
             label="Muscle Group"
             value={muscle}
             options={muscles}
+            format={filterLabel}
+            disabled={!exercises.filtersReady}
             onChange={(v) => {
               setMuscle(v);
               setPage(1);
@@ -103,7 +107,8 @@ export default function ExercisesPage() {
             label="Equipment"
             value={equipment}
             options={equipments}
-            format={(v) => v.replace(/_/gu, " ")}
+            format={filterLabel}
+            disabled={!exercises.filtersReady}
             onChange={(v) => {
               setEquipment(v);
               setPage(1);
@@ -113,18 +118,80 @@ export default function ExercisesPage() {
             label="Type"
             value={category}
             options={categories}
+            format={filterLabel}
+            disabled={!exercises.filtersReady}
             onChange={(v) => {
               setCategory(v);
               setPage(1);
             }}
           />
+          {(q.trim() || muscle || equipment || category) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setQ("");
+                setMuscle(undefined);
+                setEquipment(undefined);
+                setCategory(undefined);
+                setPage(1);
+              }}
+            >
+              Clear all
+            </Button>
+          )}
         </div>
+        {!exercises.filtersReady && !exercises.filterError && (
+          <p role="status" className="text-xs text-fg-muted">
+            Loading filter options…
+          </p>
+        )}
+        {exercises.filterError && (
+          <p role="alert" className="text-sm text-danger">
+            {exercises.filterError}{" "}
+            <button
+              type="button"
+              className="underline"
+              onClick={() => void exercises.retryFilters()}
+            >
+              Retry
+            </button>
+          </p>
+        )}
       </StickyPageHeader>
+      {exercises.providerError && (
+        <div
+          role="alert"
+          className="flex items-center justify-between gap-3 rounded-surface border border-line bg-surface p-4 text-sm"
+        >
+          <p>{exercises.providerError}</p>
+          <Button variant="outline" onClick={() => void exercises.refetch()}>
+            Retry
+          </Button>
+        </div>
+      )}
+      {exercises.isError && (
+        <div
+          role="alert"
+          className="flex items-center justify-between gap-3 rounded-surface border border-line bg-surface p-4 text-sm"
+        >
+          <p>
+            {exercises.error instanceof Error
+              ? exercises.error.message
+              : "Couldn't load exercises."}
+          </p>
+          <Button variant="outline" onClick={() => void exercises.refetch()}>
+            Retry
+          </Button>
+        </div>
+      )}
       {exercises.isPending ? (
         <Loading />
-      ) : rows.length === 0 ? (
+      ) : rows.length === 0 && !exercises.isError ? (
         <p className="rounded-surface border border-line border-dashed bg-surface p-8 text-center text-body-sm text-fg-muted">
-          Nothing matches those filters.
+          {exercises.hasNextPage
+            ? "No matches loaded yet. Select Next to continue."
+            : "Nothing matches those filters."}
         </p>
       ) : (
         <div className="overflow-x-auto rounded-surface border border-line bg-surface">
@@ -153,33 +220,64 @@ export default function ExercisesPage() {
 
       <div className="flex items-center justify-between text-caption text-fg-subtle">
         <span>
-          Viewing {shown.length} of {rows.length}
+          {exercises.isPending
+            ? "Searching…"
+            : rows.length
+              ? `Showing ${(visiblePage - 1) * PAGE_SIZE + 1}–${(visiblePage - 1) * PAGE_SIZE + shown.length} · ${rows.length} loaded`
+              : "0 results"}
         </span>
-        {pageCount > 1 ? (
+        {pageCount > 1 || exercises.hasNextPage ? (
           <div className="flex items-center gap-1">
             <Button
               variant="ghost"
               size="sm"
-              disabled={page === 1}
-              onClick={() => setPage((p) => p - 1)}
+              disabled={visiblePage === 1 || exercises.isSearching}
+              onClick={() => setPage(visiblePage - 1)}
             >
               Previous
             </Button>
             <span className="tabular-nums">
-              {page} / {pageCount}
+              Page {visiblePage}
+              {exercises.hasNextPage ? "" : ` / ${pageCount}`}
             </span>
             <Button
               variant="ghost"
               size="sm"
-              disabled={page === pageCount}
-              onClick={() => setPage((p) => p + 1)}
+              disabled={
+                exercises.isSearching || (visiblePage >= pageCount && !exercises.hasNextPage)
+              }
+              onClick={async () => {
+                const requestedKey = exercises.filterKey;
+                const target = visiblePage + 1;
+                if (target * PAGE_SIZE > rows.length && exercises.hasNextPage) {
+                  const result = await exercises.fetchNextPage();
+                  if (result.isError || filterKey.current !== requestedKey) return;
+                  setPage(
+                    Math.min(target, Math.max(1, Math.ceil(result.visibleCount / PAGE_SIZE))),
+                  );
+                } else if (target <= pageCount) setPage(target);
+              }}
             >
-              Next
+              {exercises.isFetchingNextPage ? "Loading…" : "Next"}
             </Button>
           </div>
         ) : null}
       </div>
 
+      {exercises.limitReached && (
+        <p role="status" className="text-xs text-fg-muted">
+          Catalog browsing is limited to 500 results per search. Refine your search or filters to
+          find other exercises.
+        </p>
+      )}
+      {exercises.studioError && (
+        <p role="alert" className="text-sm text-danger">
+          {exercises.studioError}{" "}
+          <button type="button" className="underline" onClick={() => void exercises.retryStudio()}>
+            Retry
+          </button>
+        </p>
+      )}
       <ExercisePanel
         studioId={studioId ?? ""}
         open={panel.open}

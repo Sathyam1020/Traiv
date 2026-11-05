@@ -53,7 +53,7 @@ const sideLayout: Record<SheetSide, string> = {
     "fixed inset-y-0 right-0 z-[var(--primitive-z-overlay)] flex h-full w-[min(100vw,24rem)] flex-col rounded-none",
   top: "fixed left-1/2 top-4 z-[var(--primitive-z-overlay)] w-[min(calc(100vw-2rem),26rem)] max-w-full -translate-x-1/2 rounded-[var(--primitive-radius-surface)]",
   bottom:
-    "fixed bottom-4 left-1/2 z-[var(--primitive-z-overlay)] w-[min(calc(100vw-2rem),26rem)] max-w-full -translate-x-1/2 rounded-[var(--primitive-radius-surface)]",
+    "fixed bottom-0 left-1/2 z-[var(--primitive-z-overlay)] max-h-[94dvh] w-full max-w-lg -translate-x-1/2 rounded-t-[28px] rounded-b-none pb-[env(safe-area-inset-bottom)]",
 };
 
 function adaptOpenChange(

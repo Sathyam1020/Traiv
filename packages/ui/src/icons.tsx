@@ -106,7 +106,7 @@ import type * as React from "react";
 
 /** Central Tabler icon adapter. Existing screen imports, sizing and colors stay stable. */
 export type IconProps = TablerIconProps;
-export type Icon = (props: IconProps) => React.JSX.Element;
+export type Icon = ((props: IconProps) => React.JSX.Element) & { displayName?: string };
 
 function icon(Svg: React.ElementType<TablerIconProps>, name: string): Icon {
   const Component = (props: IconProps) => <Svg aria-hidden="true" stroke={1.8} {...props} />;
@@ -223,3 +223,13 @@ export {
 
 export const ExternalLink = icon(IconExternalLink, "ExternalLink");
 export const SlidersHorizontal = icon(IconAdjustmentsHorizontal, "SlidersHorizontal");
+
+export {
+  IconFile as File,
+  IconLink as Link,
+  IconMusic as Music,
+  IconShare as Share,
+  IconShoe as Footprints,
+} from "@tabler/icons-react";
+
+export { IconBell as Bell, IconMail as Mail, IconPuzzle as Puzzle } from "@tabler/icons-react";

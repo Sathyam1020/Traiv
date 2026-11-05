@@ -1,3 +1,8 @@
+import {
+  customization,
+  applyExerciseCustomizations,
+} from "../../library/exercise-customizations.js";
+import { enrichDemonstration } from "../../library/exercise-api.js";
 import { activity } from "../messaging/service.js";
 import { newId, schema } from "@traiv/db";
 import { and, asc, desc, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
@@ -67,8 +72,28 @@ export async function listClientPrograms(clientId: string) {
     )
     .orderBy(desc(schema.workoutTemplates.updatedAt));
 
+  const ids = rows.map((r) => r.id);
+  const sessions = ids.length
+    ? await db
+        .select({
+          id: schema.workoutSessions.id,
+          templateId: schema.workoutSessions.templateId,
+          name: schema.workoutSessions.name,
+          exercises: sql<number>`(select count(*)::int from session_exercise se where se.session_id = ${sql.raw('"workout_session"."id"')})`,
+          muscleGroups: sql<
+            string[]
+          >`(select coalesce(array_agg(distinct ex.muscle order by ex.muscle), '{}') from session_exercise se join exercise ex on ex.id = se.exercise_id where se.session_id = ${sql.raw('"workout_session"."id"')})`,
+        })
+        .from(schema.workoutSessions)
+        .where(inArray(schema.workoutSessions.templateId, ids))
+        .orderBy(asc(schema.workoutSessions.position), asc(schema.workoutSessions.id))
+    : [];
+
   return rows.map((r) => ({
     ...r,
+    sessionItems: sessions
+      .filter((session) => session.templateId === r.id)
+      .map((session) => ({ ...session, exercises: Number(session.exercises) })),
     sessions: Number(r.sessions),
     exercises: Number(r.exercises),
     updatedAt: r.updatedAt.toISOString(),
@@ -177,10 +202,17 @@ export async function getSession(clientId: string, templateId: string, sessionId
     lastTimeFor(clientId, exerciseIds),
   ]);
 
+  const [client] = await db
+    .select({ studioId: schema.clients.studioId })
+    .from(schema.clients)
+    .where(eq(schema.clients.id, clientId));
+  const displayExercises = client
+    ? await applyExerciseCustomizations(client.studioId, exerciseRows, (e) => e.exerciseId)
+    : exerciseRows;
   return {
     session: { id: session.id, name: session.name },
     live,
-    exercises: exerciseRows.map((e) => ({
+    exercises: displayExercises.map((e) => ({
       ...e,
       sets: sets.filter((s) => s.sessionExerciseId === e.id),
       lastTime: history.get(e.id) ?? [],
@@ -384,7 +416,12 @@ export async function finishSession(
     totalSeconds?: number | null;
   },
 ) {
-  const [prior] = await db.select().from(schema.sessions_).where(and(eq(schema.sessions_.id, trainingSessionId), eq(schema.sessions_.clientId, clientId)));
+  const [prior] = await db
+    .select()
+    .from(schema.sessions_)
+    .where(
+      and(eq(schema.sessions_.id, trainingSessionId), eq(schema.sessions_.clientId, clientId)),
+    );
   if (!prior) throw notFound();
   if (prior.completedAt) return prior;
   await assertSession(clientId, trainingSessionId);
@@ -392,39 +429,42 @@ export async function finishSession(
   const sets = await setsFor(trainingSessionId);
   const completed = sets.filter((s) => s.completed);
 
-  return db.transaction(async tx => {
+  return db.transaction(async (tx) => {
     await tx.execute(sql`select id from training_session where id=${trainingSessionId} for update`);
-    const [locked] = await tx.select().from(schema.sessions_).where(eq(schema.sessions_.id, trainingSessionId));
+    const [locked] = await tx
+      .select()
+      .from(schema.sessions_)
+      .where(eq(schema.sessions_.id, trainingSessionId));
     if (locked?.completedAt) return locked;
-  await tx
-    .update(schema.sessions_)
-    .set({
-      completedAt: new Date(),
-      quality: input.quality ?? null,
-      intensity: input.intensity ?? null,
-      note: input.note ?? null,
-      totalSeconds: input.totalSeconds ?? null,
-      totalSets: sets.length,
-      totalCompletedSets: completed.length,
-      totalReps: sum(completed.map((s) => s.reps)),
-      totalWeightLiftedKg: sum(
-        completed.map((s) => (s.reps && s.loadKg ? s.reps * s.loadKg : null)),
-      ),
-    })
-    .where(eq(schema.sessions_.id, trainingSessionId));
+    await tx
+      .update(schema.sessions_)
+      .set({
+        completedAt: new Date(),
+        quality: input.quality ?? null,
+        intensity: input.intensity ?? null,
+        note: input.note ?? null,
+        totalSeconds: input.totalSeconds ?? null,
+        totalSets: sets.length,
+        totalCompletedSets: completed.length,
+        totalReps: sum(completed.map((s) => s.reps)),
+        totalWeightLiftedKg: sum(
+          completed.map((s) => (s.reps && s.loadKg ? s.reps * s.loadKg : null)),
+        ),
+      })
+      .where(eq(schema.sessions_.id, trainingSessionId));
 
-  await tx
-    .update(schema.clients)
-    .set({ activatedAt: new Date() })
-    .where(and(eq(schema.clients.id, clientId), isNull(schema.clients.activatedAt)));
+    await tx
+      .update(schema.clients)
+      .set({ activatedAt: new Date() })
+      .where(and(eq(schema.clients.id, clientId), isNull(schema.clients.activatedAt)));
 
-  const [row] = await tx
-    .select()
-    .from(schema.sessions_)
-    .where(eq(schema.sessions_.id, trainingSessionId))
-    .limit(1);
-  await activity(tx, clientId, "workout", trainingSessionId);
-  return row;
+    const [row] = await tx
+      .select()
+      .from(schema.sessions_)
+      .where(eq(schema.sessions_.id, trainingSessionId))
+      .limit(1);
+    await activity(tx, clientId, "workout", trainingSessionId);
+    return row;
   });
 }
 
@@ -443,7 +483,12 @@ const sum = (values: (number | null)[]): number | null => {
  * across different templates and sessions over time, and "my history with Bench Press"
  * means all of it, not just the copy sitting in the workout open right now.
  */
-export async function getExerciseDetail(clientId: string, exerciseId: string) {
+export async function getExerciseDetail(clientId: string, exerciseId: string, includeMedia = true) {
+  const [client] = await db
+    .select({ studioId: schema.clients.studioId })
+    .from(schema.clients)
+    .where(eq(schema.clients.id, clientId));
+  if (!client) throw notFound("No such client.");
   const [exercise] = await db
     .select({
       id: schema.exercises.id,
@@ -452,9 +497,17 @@ export async function getExerciseDetail(clientId: string, exerciseId: string) {
       equipment: schema.exercises.equipment,
       imageUrl: schema.exercises.imageUrl,
       videoUrl: schema.exercises.videoUrl,
+      description: schema.exercises.description,
+      cues: schema.exercises.cues,
+      studioId: schema.exercises.studioId,
     })
     .from(schema.exercises)
-    .where(eq(schema.exercises.id, exerciseId))
+    .where(
+      and(
+        eq(schema.exercises.id, exerciseId),
+        sql`(${schema.exercises.studioId} is null or ${schema.exercises.studioId} = ${client.studioId})`,
+      ),
+    )
     .limit(1);
   if (!exercise) throw notFound("No such exercise.");
 
@@ -505,8 +558,18 @@ export async function getExerciseDetail(clientId: string, exerciseId: string) {
     }))
     .sort((a, b) => a.date.localeCompare(b.date));
 
+  const edited = client ? await customization(client.studioId, exerciseId) : undefined;
+  const display = edited
+    ? {
+        ...exercise,
+        ...edited.data,
+        customized: true,
+        mediaRevision: edited.updatedAt.toISOString(),
+      }
+    : { ...exercise, customized: Boolean(exercise.studioId) };
   return {
-    exercise,
+    exercise:
+      edited || exercise.studioId || !includeMedia ? display : await enrichDemonstration(display),
     history,
     stats: {
       maxWeightKg: loads.length ? Math.max(...loads) : null,

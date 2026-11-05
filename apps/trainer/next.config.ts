@@ -3,8 +3,8 @@ import type { NextConfig } from "next";
 const config: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
-  // @traiv/ui ships TypeScript source rather than a build step, so Next compiles it.
-  transpilePackages: ["@traiv/ui"],
+  // Workspace UI and catalog rules ship TypeScript source; Next compiles both.
+  transpilePackages: ["@traiv/ui", "@traiv/exercises"],
 };
 
 export default config;

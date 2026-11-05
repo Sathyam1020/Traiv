@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { env } from "../../env.js";
+import { AppError } from "../../errors.js";
 import { mediaStorage } from "../../integrations/media-storage.js";
 
 /**
@@ -24,9 +25,13 @@ export type StudioUploadKind =
   | "recipe-image"
   | "recipe-video"
   | "ingredient-image"
-  | "mealplan-cover";
+  | "mealplan-cover"
+  | "exercise-image"
+  | "exercise-video";
 
 const RESOURCE_TYPE: Record<StudioUploadKind, "image" | "video"> = {
+  "exercise-image": "image",
+  "exercise-video": "video",
   "recipe-image": "image",
   "recipe-video": "video",
   "ingredient-image": "image",
@@ -53,3 +58,50 @@ export function signStudioUpload(studioId: string, kind: StudioUploadKind): Uplo
  *  an upload button, same as the client app does for check-in photos. */
 export const studioUploadsConfigured = (): boolean =>
   Boolean(env.CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET);
+
+/** Verify the actual uploaded asset before attaching it to an exercise. */
+export async function verifyExerciseUploads(
+  studioId: string,
+  input: { imageUrl?: string | null; videoUrl?: string | null },
+) {
+  for (const [kind, raw] of [
+    ["image", input.imageUrl],
+    ["video", input.videoUrl],
+  ] as const) {
+    if (!raw) continue;
+    let url: URL;
+    try {
+      url = new URL(raw);
+    } catch {
+      throw new AppError(400, "invalid_media_url", "Enter a valid media URL.");
+    }
+    if (url.hostname !== "res.cloudinary.com") continue; // External/provider links are not uploaded assets.
+    const path = decodeURIComponent(url.pathname);
+    const marker = "/traiv/exercise-";
+    const index = path.indexOf(marker);
+    if (index < 0) continue; // Existing media from other supported upload workflows.
+    const key = path.slice(index + 1).replace(/\.[^/.]+$/, "");
+    if (
+      !key.startsWith(`traiv/exercise-${kind}/${studioId}/`) ||
+      !path.startsWith(`/${env.CLOUDINARY_CLOUD_NAME}/${kind}/upload/`)
+    )
+      throw new AppError(
+        403,
+        "foreign_exercise_media",
+        "Choose a file uploaded to your own studio.",
+      );
+    const asset = await mediaStorage.inspect(key, kind, "public");
+    const allowed = kind === "video" ? ["mp4", "mov"] : ["png", "jpg", "jpeg", "gif"];
+    if (
+      !allowed.includes(asset.format.toLowerCase()) ||
+      asset.bytes > (kind === "video" ? 150 : 10) * 1024 * 1024
+    )
+      throw new AppError(
+        400,
+        "invalid_exercise_media",
+        kind === "video"
+          ? "Choose an MP4 or MOV up to 150 MB."
+          : "Choose a PNG, JPG or GIF up to 10 MB.",
+      );
+  }
+}

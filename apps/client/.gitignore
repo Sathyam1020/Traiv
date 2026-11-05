@@ -1,0 +1,10 @@
+
+# Native credentials and generated build output
+android/app/google-services.json
+android/local.properties
+android/.gradle/
+android/**/build/
+ios/App/Pods/
+ios/App/build/
+*.keystore
+*.p8

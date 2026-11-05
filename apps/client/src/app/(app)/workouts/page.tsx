@@ -2,7 +2,7 @@
 
 import { Page } from "@traiv/ui/components/shell/page";
 import { Skeleton } from "@traiv/ui/components/skeleton";
-import { Dumbbell, Play } from "@traiv/ui/icons";
+import { Dumbbell } from "@traiv/ui/icons";
 import Link from "next/link";
 import { QueryError } from "@/components/common/query-state";
 import type { WorkoutListItem } from "@/lib/api";
@@ -46,7 +46,7 @@ export default function WorkoutsPage() {
             <ProgramCard
               key={program.id}
               program={program}
-              onIntent={() => prefetch.program(program.id)}
+              onIntent={(sessionId) => prefetch.session(program.id, sessionId)}
             />
           ))}
         </ul>
@@ -55,9 +55,13 @@ export default function WorkoutsPage() {
   );
 }
 
-function ProgramCard({ program, onIntent }: { program: WorkoutListItem; onIntent: () => void }) {
-  const workoutName = program.sessionNames[0] ?? program.name;
-
+function ProgramCard({
+  program,
+  onIntent,
+}: {
+  program: WorkoutListItem;
+  onIntent: (sessionId: string) => void;
+}) {
   return (
     <li className="overflow-hidden rounded-surface border border-line bg-surface">
       {/* Programme header */}
@@ -89,38 +93,51 @@ function ProgramCard({ program, onIntent }: { program: WorkoutListItem; onIntent
             </span>
           )}
         </div>
-
-        <p className="mt-3 text-body-sm text-fg-muted">{program.name}</p>
       </div>
 
-      <div className="border-t border-line" />
+      {/* Every session opens its workout directly. */}
+      {program.sessionItems.map((session) => (
+        <Link
+          key={session.id}
+          href={`/workouts/${program.id}/${session.id}`}
+          onPointerEnter={() => onIntent(session.id)}
+          onFocus={() => onIntent(session.id)}
+          onPointerDown={() => onIntent(session.id)}
+          className="client-tappable flex min-w-0 items-center gap-3 border-t border-line px-4 py-3 transition-colors hover:bg-hover"
+        >
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-control bg-signal-subtle text-signal p-3">
+            <Dumbbell
+              aria-hidden="true"
+              className="size-5 rotate-[-35deg] fill-current text-signal"
+            />
+          </div>
 
-      {/* Session row */}
-      <Link
-        href={`/workouts/${program.id}`}
-        onPointerEnter={onIntent}
-        onFocus={onIntent}
-        onPointerDown={onIntent}
-        className="client-tappable flex min-w-0 items-center gap-3 px-4 py-3 transition-colors hover:bg-hover"
-      >
-        <div className="flex size-11 shrink-0 items-center justify-center rounded-control p-3 bg-sunken">
-          <Dumbbell aria-hidden="true" className="size-5 text-brand" />
-        </div>
+          <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+            <span className="truncate font-semibold">{session.name}</span>
 
-        <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-          <span className="truncate font-semibold">{workoutName}</span>
-
-          <span className="truncate text-caption text-fg-muted">
-            {program.muscleGroups.length > 0 ? program.muscleGroups.join(" & ") : "Workout"}
-            {" · "}
-            {program.exercises} {program.exercises === 1 ? "Exercise" : "Exercises"}
+            <span className="truncate text-caption text-fg-muted">
+              {session.muscleGroups.length > 0 ? session.muscleGroups.join(" & ") : "Workout"}
+              {" · "}
+              {session.exercises} {session.exercises === 1 ? "Exercise" : "Exercises"}
+            </span>
           </span>
-        </span>
 
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-sunken p-2">
-          <Play aria-hidden="true" className="size-4 fill-brand text-brand" />
-        </div>
-      </Link>
+          <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-signal-subtle p-2">
+            <svg
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+              className="ml-0.5 size-5 fill-current text-signal"
+            >
+              <path d="M8.5 4.8C6.5 3.65 4 5.1 4 7.4v9.2c0 2.3 2.5 3.75 4.5 2.6l8-4.6c2-1.15 2-4.05 0-5.2l-8-4.6Z" />
+            </svg>
+          </div>
+        </Link>
+      ))}
+      {!program.sessionItems.length && (
+        <p className="border-t border-line px-4 py-3 text-sm text-fg-muted">
+          No sessions in this plan yet.
+        </p>
+      )}
     </li>
   );
 }

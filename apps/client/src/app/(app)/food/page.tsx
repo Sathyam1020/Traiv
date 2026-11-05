@@ -1,4 +1,5 @@
 "use client";
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@traiv/ui/components/button";
 import {
@@ -15,6 +16,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { QueryError } from "@/components/common/query-state";
+import { ClientActionBar } from "@/components/layout/client-action-bar";
 import { http } from "@/lib/api/client";
 import {
   type Diary,
@@ -112,12 +114,12 @@ export default function FoodPage() {
     setView(null);
   }
   return (
-    <div className="relative mx-auto flex h-full min-h-0 w-full max-w-3xl flex-1 flex-col overflow-hidden bg-panel">
+    <div className="relative mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col overflow-hidden bg-panel">
       <FoodHeader
         date={date}
         onDateChange={setDate}
         loggedDays={data?.loggedDays ?? []}
-        onShopping={() => setView("shopping")}
+        onShopping={() => router.push("/food/shopping")}
         onCopyDay={
           data?.entries.length && !stalled
             ? () => {
@@ -128,8 +130,8 @@ export default function FoodPage() {
             : undefined
         }
       />
-      <div className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
-        <Page className="gap-5 pt-2 pb-[calc(12rem+env(safe-area-inset-bottom))] lg:pb-28">
+      <div className="client-action-scroll min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+        <Page className="gap-5 pt-2 pb-0">
           <ErrorText error={error} />
           {plans.isError ? (
             <QueryError
@@ -292,8 +294,8 @@ export default function FoodPage() {
           )}
         </Page>
       </div>
-      <div
-        className="pointer-events-none absolute inset-x-0 bottom-[calc(6.5rem+env(safe-area-inset-bottom))] z-20 flex items-center justify-center gap-3 px-4 lg:bottom-5"
+      <ClientActionBar
+        className="pointer-events-none justify-center"
         role="toolbar"
         aria-label="Food logging actions"
       >
@@ -324,7 +326,7 @@ export default function FoodPage() {
         >
           <Barcode className="size-6" />
         </button>
-      </div>
+      </ClientActionBar>
       {view === "barcode" ? (
         <BarcodeScanner
           studio={studio}

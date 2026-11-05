@@ -1,11 +1,12 @@
 "use client";
-import { useRef, useState } from "react";
 import { Button } from "@traiv/ui/components/button";
 import { Input } from "@traiv/ui/components/input";
-import { ArrowLeft, Camera, ClipboardList, ChevronRight } from "@traiv/ui/icons";
-import { foodApi, uploadFoodImage, type FoodItem } from "@/lib/api/food";
-import { Field, ErrorText } from "./common";
+import { ArrowLeft, Camera, ChevronRight, ClipboardList } from "@traiv/ui/icons";
+import { useRef, useState } from "react";
+import { type FoodItem, foodApi, uploadFoodImage } from "@/lib/api/food";
 import { useAction } from "./actions";
+import { ErrorText, Field } from "./common";
+
 const categories = [
   "Meal",
   "Bread",
@@ -146,7 +147,7 @@ export function PersonalFoodEditor({
           e.target.value = "";
         }}
       />
-      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-4 pb-28">
+      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-4 pb-[calc(7rem+env(safe-area-inset-bottom))] lg:pb-6">
         {!method ? (
           <>
             <div className="text-center">

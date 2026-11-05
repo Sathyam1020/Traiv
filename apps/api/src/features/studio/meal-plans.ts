@@ -1,3 +1,4 @@
+import { notifyClient } from "../notifications/service.js";
 import { newId, schema } from "@traiv/db";
 import {
   optionConflicts,
@@ -526,6 +527,14 @@ export async function publishMealPlan(studioId: string, id: string, expected: st
       })
       .where(eq(schema.mealPlanTemplates.id, id));
   });
+  const [published] = await db
+    .select({ clientId: schema.mealPlanTemplates.clientId })
+    .from(schema.mealPlanTemplates)
+    .where(eq(schema.mealPlanTemplates.id, id));
+  if (published?.clientId)
+    void notifyClient(published.clientId, "content", `mealplan:${id}:${expected}`, "/food").catch(
+      () => console.warn("Meal plan push delivery failed"),
+    );
   return getMealPlan(studioId, id);
 }
 export async function discardMealPlan(

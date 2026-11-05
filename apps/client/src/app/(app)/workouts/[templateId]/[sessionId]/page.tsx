@@ -91,7 +91,7 @@ export default function SessionPreviewPage() {
             return (
               <li key={e.id}>
                 <Link
-                  href={`/workouts/${templateId}/${sessionId}/exercises/${e.exerciseId}`}
+                  href={`/workouts/${templateId}/${sessionId}/exercises/${encodeURIComponent(e.exerciseId)}`}
                   onPointerEnter={() => prefetch.exercise(e.exerciseId)}
                   onFocus={() => prefetch.exercise(e.exerciseId)}
                   onPointerDown={() => prefetch.exercise(e.exerciseId)}

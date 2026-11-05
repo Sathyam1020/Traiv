@@ -1,7 +1,5 @@
-<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="24" height="24" rx="5.4" fill="#111111"/>
-  <rect x="5.6" y="7.0" width="12.8" height="2.8" rx="1.4" fill="#FFFFFF"/>
-  <rect x="5.6" y="7.0" width="2.8" height="5.4" rx="1.4" fill="#FFFFFF"/>
-  <rect x="15.6" y="7.0" width="2.8" height="5.4" rx="1.4" fill="#FFFFFF"/>
-  <rect x="10.6" y="7.0" width="2.8" height="10.0" rx="1.4" fill="#FFFFFF"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 310" role="img" aria-label="Traiv logo">
+<path fill="#2459B8" d="M30 99 C43 72 59 63 90 63 H270 L255 94 C241 123 221 136 191 136 H17 Z"/>
+<path fill="#182D4B" d="M116 146 H188 L125 274 C118 288 107 294 91 294 H34 L93 164 C98 152 104 146 116 146 Z"/>
+<text x="313" y="236" fill="#182D4B" font-family="Arial, Helvetica, sans-serif" font-size="205" font-weight="800" letter-spacing="-10">Traiv</text>
 </svg>

@@ -2,18 +2,20 @@ export * from "./analytics.js";
 export * from "./auth.js";
 export * from "./check-in.js";
 export * from "./client.js";
+export * from "./client-settings.js";
 export * from "./endorse.js";
+export * from "./feedback.js";
 export * from "./intake.js";
 export * from "./job.js";
 export * from "./library.js";
 export * from "./marketing.js";
+export * from "./measurements.js";
+export * from "./messaging.js";
 export * from "./nutrition.js";
+export * from "./steps.js";
 export * from "./studio.js";
 export * from "./tag.js";
+export * from "./trainer-settings.js";
 export * from "./user.js";
+export * from "./vault.js";
 export * from "./workout.js";
-
-export * from "./messaging.js";
-
-export * from "./steps.js";
-export * from "./measurements.js";

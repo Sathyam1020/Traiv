@@ -1,7 +1,9 @@
 "use client";
 
 import { Button } from "@traiv/ui/components/button";
+import { ExerciseDemo } from "@traiv/ui/components/exercise-demo";
 import { Skeleton } from "@traiv/ui/components/skeleton";
+import { Tabs, TabsList, TabsTrigger } from "@traiv/ui/components/tabs";
 import {
   ArrowLeft,
   CalendarDays,
@@ -31,11 +33,17 @@ const tabs: { value: TabName; label: string }[] = [
 ];
 
 export default function ExerciseDetailPage() {
-  const { templateId, sessionId, exerciseId } = useParams<{
+  const { templateId, sessionId, exerciseId: routeExerciseId } = useParams<{
     templateId: string;
     sessionId: string;
     exerciseId: string;
   }>();
+
+  // Next's route params can retain the encoded provider separator. Decode at
+  // this boundary so queries, cache keys and session matching use the raw ID.
+  const exerciseId = routeExerciseId.startsWith("exa:")
+    ? routeExerciseId
+    : decodeExerciseRouteId(routeExerciseId);
 
   const { studioId } = useActiveStudio();
   const session = useWorkoutSession(studioId, templateId, sessionId);
@@ -73,10 +81,9 @@ export default function ExerciseDetailPage() {
 
   const summary = formatSetSummary(sessionExercise.fields, sessionExercise.sets);
 
-  const activeIndex = tabs.findIndex((tab) => tab.value === activeTab);
 
   return (
-    <div className="flex min-h-0 w-full flex-1 flex-col">
+    <div className="flex w-full shrink-0 flex-col">
       {/* Responsive exercise header */}
       <header className="client-workout-header w-full bg-brand px-4 pt-4 pb-7 text-brand-fg sm:px-6 sm:pt-6 sm:pb-8 lg:px-10">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-3">
@@ -121,64 +128,21 @@ export default function ExerciseDetailPage() {
       </header>
 
       {/* Responsive content panel */}
-      <main className="relative z-10 -mt-3 flex min-h-0 w-full flex-1 flex-col rounded-t-panel bg-panel px-4 pt-4 pb-8 sm:px-6 lg:px-10">
-        <div className="mx-auto w-full max-w-4xl">
-          {/* Custom animated segmented tabs */}
-          <div
-            role="tablist"
-            aria-label="Exercise information"
-            className="relative grid h-12 w-full grid-cols-4 rounded-full border border-line bg-sunken p-1"
-          >
-            <span
-              aria-hidden="true"
-              className="pointer-events-none absolute bottom-1 top-1 rounded-full border border-line bg-panel shadow-sm transition-transform duration-180 ease-out motion-reduce:transition-none motion-reduce:transition-none"
-              style={{
-                left: "4px",
-                width: "calc((100% - 8px) / 4)",
-                transform: `translateX(${activeIndex * 100}%)`,
-              }}
-            />
-
-            {tabs.map((tab) => {
-              const selected = activeTab === tab.value;
-
-              return (
-                <button
-                  key={tab.value}
-                  type="button"
-                  role="tab"
-                  id={`exercise-tab-${tab.value}`}
-                  aria-selected={selected}
-                  aria-controls={`exercise-panel-${tab.value}`}
-                  tabIndex={selected ? 0 : -1}
-                  onClick={() => setActiveTab(tab.value)}
-                  onKeyDown={(event) => {
-                    const index = tabs.findIndex((item) => item.value === activeTab);
-                    const next =
-                      event.key === "ArrowRight"
-                        ? (index + 1) % tabs.length
-                        : event.key === "ArrowLeft"
-                          ? (index + tabs.length - 1) % tabs.length
-                          : event.key === "Home"
-                            ? 0
-                            : event.key === "End"
-                              ? tabs.length - 1
-                              : null;
-                    const target = next === null ? undefined : tabs[next];
-                    if (!target) return;
-                    event.preventDefault();
-                    setActiveTab(target.value);
-                    document.getElementById(`exercise-tab-${target.value}`)?.focus();
-                  }}
-                  className={`relative z-10 flex min-w-0 items-center justify-center rounded-full px-1 text-caption font-medium transition-colors duration-200 motion-reduce:transition-none ${
-                    selected ? "text-fg" : "text-fg-muted"
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
+      <main className="relative z-10 -mt-3 flex w-full flex-col rounded-t-panel bg-panel px-4 pt-4 pb-8 sm:px-6 lg:px-10">
+        <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as TabName)} className="mx-auto w-full max-w-4xl">
+          <TabsList variant="line" aria-label="Exercise information" className="grid w-full grid-cols-4">
+            {tabs.map((tab) => (
+              <TabsTrigger
+                key={tab.value}
+                value={tab.value}
+                id={`exercise-tab-${tab.value}`}
+                aria-controls={`exercise-panel-${tab.value}`}
+                className="h-11 min-w-0 px-1 text-body-sm"
+              >
+                {tab.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
           {/* Details */}
           <section
@@ -192,24 +156,21 @@ export default function ExerciseDetailPage() {
               <div className="mb-3 flex items-center gap-2">
                 <Dumbbell className="size-4 text-fg-muted" />
 
-                <h2 className="text-body-sm font-semibold">Exercise image</h2>
+                <h2 className="text-body-sm font-semibold">Demonstration</h2>
               </div>
 
-              <div className="overflow-hidden rounded-control bg-sunken">
-                {exercise.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={exercise.imageUrl}
-                    alt={sessionExercise.name}
-                    className="aspect-video max-h-[220px] w-full object-cover sm:max-h-[300px] lg:max-h-[360px]"
-                  />
-                ) : (
-                  <div className="flex aspect-video max-h-[360px] w-full items-center justify-center">
-                    <Dumbbell className="size-8 text-fg-subtle" />
-                  </div>
-                )}
-              </div>
+              <ExerciseDemo
+                src={exercise.videoUrl}
+                poster={exercise.imageUrl}
+                name={sessionExercise.name}
+                aspectRatio={exercise.videoAspectRatio}
+              />
 
+              {exercise.description && (
+                <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-fg-muted">
+                  {exercise.description}
+                </p>
+              )}
               <div className="mt-3 flex flex-wrap gap-2">
                 <span className="rounded-full bg-sunken px-2.5 py-1 text-caption text-fg-muted">
                   {exercise.muscle}
@@ -342,7 +303,7 @@ export default function ExerciseDetailPage() {
               />
             </div>
           </section>
-        </div>
+        </Tabs>
       </main>
     </div>
   );
@@ -411,4 +372,12 @@ function Loading() {
       <Skeleton className="h-48 w-full rounded-surface" />
     </div>
   );
+}
+
+function decodeExerciseRouteId(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
 }

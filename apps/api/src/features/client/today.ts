@@ -1,5 +1,5 @@
 import { schema } from "@traiv/db";
-import { and, asc, desc, eq, gte, isNotNull, isNull } from "drizzle-orm";
+import { and, asc, desc, eq, gte, isNotNull, isNull, lte } from "drizzle-orm";
 import { db } from "../../db.js";
 import { checkInState, type Day, ensureCheckIns, today } from "../studio/check-ins.js";
 
@@ -29,8 +29,26 @@ export async function getToday(clientId: string, userId: string | null, now: Day
   // client who signed up between cron runs still has a check-in to do, and the horizon
   // never runs dry because a scheduled job was quietly failing.
   await ensureCheckIns(clientId, now);
+  const weekStartDate = new Date(`${now}T12:00:00Z`);
+  weekStartDate.setUTCDate(weekStartDate.getUTCDate() - ((weekStartDate.getUTCDay() + 6) % 7));
+  const weekStart = weekStartDate.toISOString().slice(0, 10);
+  const weekEndDate = new Date(weekStartDate);
+  weekEndDate.setUTCDate(weekEndDate.getUTCDate() + 6);
+  const weekEnd = weekEndDate.toISOString().slice(0, 10);
+  const [completedThisWeek] = await db
+    .select({ id: schema.checkIns.id })
+    .from(schema.checkIns)
+    .where(
+      and(
+        eq(schema.checkIns.clientId, clientId),
+        eq(schema.checkIns.status, "completed"),
+        gte(schema.checkIns.dueOn, weekStart),
+        lte(schema.checkIns.dueOn, weekEnd),
+      ),
+    )
+    .limit(1);
 
-  const [client, due, weights, measurements, sessions, workoutPlan, goal, first] =
+  const [client, due, weights, measurements, sessions, workoutPlan, goal, first, healthSessions] =
     await Promise.all([
       db
         .select({ name: schema.clients.name, goal: schema.clients.goal })
@@ -58,6 +76,7 @@ export async function getToday(clientId: string, userId: string | null, now: Day
             eq(schema.checkIns.clientId, clientId),
             eq(schema.checkIns.status, "pending"),
             gte(schema.checkIns.closesOn, now),
+            lte(schema.checkIns.dueOn, weekEnd),
           ),
         )
         .orderBy(asc(schema.checkIns.dueOn))
@@ -159,9 +178,16 @@ export async function getToday(clientId: string, userId: string | null, now: Day
             .orderBy(asc(schema.bodyMetrics.takenAt))
             .limit(1)
         : Promise.resolve([]),
+      db
+        .select()
+        .from(schema.healthWorkouts)
+        .where(eq(schema.healthWorkouts.clientId, clientId))
+        .orderBy(desc(schema.healthWorkouts.startedAt))
+        .limit(RECENT_SESSIONS),
     ]);
 
-  const open = due[0] ? { ...due[0], state: checkInState(due[0], now) } : null;
+  const open =
+    !completedThisWeek && due[0] ? { ...due[0], state: checkInState(due[0], now) } : null;
 
   // Oldest first for a chart; the query took the newest N, so reverse rather than sort.
   const series = weights
@@ -200,11 +226,20 @@ export async function getToday(clientId: string, userId: string | null, now: Day
         checkInId: m.checkInId,
       })),
 
-    recentSessions: sessions.map((s) => ({
-      id: s.id,
-      date: s.date,
-      completedAt: s.completedAt?.toISOString() ?? null,
-    })),
+    recentSessions: [
+      ...sessions.map((s) => ({
+        id: s.id,
+        date: s.date,
+        completedAt: s.completedAt?.toISOString() ?? null,
+      })),
+      ...healthSessions.map((s) => ({
+        id: `health:${s.externalId}`,
+        date: s.startedAt.toISOString().slice(0, 10),
+        completedAt: s.endedAt.toISOString(),
+      })),
+    ]
+      .sort((a, b) => (b.completedAt ?? b.date).localeCompare(a.completedAt ?? a.date))
+      .slice(0, RECENT_SESSIONS),
 
     /**
      * Which tabs this client should see.

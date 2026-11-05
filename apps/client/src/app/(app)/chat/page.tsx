@@ -39,7 +39,7 @@ export default function ChatPage() {
       </div>
     );
   return (
-    <div className="flex min-h-0 flex-1 flex-col pb-[calc(6.5rem+env(safe-area-inset-bottom))] lg:pb-0">
+    <div className="flex min-h-0 flex-1 flex-col">
       <ChatConversation key={studioId} transport={transport} name="Your coach" />
     </div>
   );

@@ -1,14 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@traiv/ui/components/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@traiv/ui/components/tabs";
-import { ArrowLeft, Protein, Carbs, Fat, Clock, Salad } from "@traiv/ui/icons";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@traiv/ui/components/tabs";
+import { ArrowLeft, Carbs, Clock, Fat, Protein, Salad } from "@traiv/ui/icons";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import { http } from "@/lib/api/client";
-import { localDay, slots, type PublishedPlan } from "@/lib/api/food";
+import { localDay, type PublishedPlan, slots } from "@/lib/api/food";
 import { useActiveStudio } from "@/lib/query";
 import { ErrorText } from "../../_components/common";
 
@@ -143,7 +143,7 @@ export default function ClientMealPlanPage() {
             <TabsContent
               key={meal.id}
               value={meal.id}
-              className="min-h-0 overflow-y-auto overscroll-contain px-4 pt-4 pb-[calc(6rem+env(safe-area-inset-bottom))] sm:px-6"
+              className="min-h-0 overflow-y-auto overscroll-contain px-4 pt-4 pb-[calc(7rem+env(safe-area-inset-bottom))] sm:px-6"
             >
               <div className="grid grid-cols-2 items-stretch gap-3">
                 {meal.options.map((option) => (

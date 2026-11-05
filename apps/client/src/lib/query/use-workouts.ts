@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { deviceCached } from "@traiv/ui/lib/device-cache";
 import { type SessionDetail, workoutApi } from "@/lib/api";
 import { queryKeys } from "./keys";
 
@@ -122,6 +123,8 @@ export function useFinishSession(studioId: string) {
       totalSeconds?: number;
     }) => workoutApi.finish(studioId, trainingSessionId, input),
     onSuccess: (finished) => {
+      void qc.invalidateQueries({ queryKey: ["activity", studioId] });
+      qc.invalidateQueries({ queryKey: ["profile-history", studioId] });
       // Remove the finished live session so Back cannot offer to resume it from cache.
       qc.setQueriesData<SessionDetail>(
         { queryKey: ["client", "workout-session", studioId] },
@@ -137,7 +140,24 @@ export function useFinishSession(studioId: string) {
 export function useExercise(studioId: string | null, exerciseId: string | null) {
   return useQuery({
     queryKey: queryKeys.client.exercise(studioId ?? "", exerciseId ?? ""),
-    queryFn: () => workoutApi.getExercise(studioId as string, exerciseId as string),
+    queryFn: async () => {
+      const detail = await workoutApi.getExercise(studioId as string, exerciseId as string, false);
+      if (detail.exercise.customized) return detail;
+      const media = await deviceCached(
+        `demo:${studioId}:${exerciseId}`,
+        async () => {
+          const data = await workoutApi.getExercise(studioId as string, exerciseId as string);
+          return {
+            demonstrationUnavailable: data.exercise.demonstrationUnavailable,
+            videoUrl: data.exercise.videoUrl,
+            videoAspectRatio: data.exercise.videoAspectRatio,
+            description: data.exercise.description,
+          };
+        },
+        (value) => !value.demonstrationUnavailable,
+      );
+      return { ...detail, exercise: { ...detail.exercise, ...media } };
+    },
     enabled: Boolean(studioId && exerciseId),
     retry: false,
   });

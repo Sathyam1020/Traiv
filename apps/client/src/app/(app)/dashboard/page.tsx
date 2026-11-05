@@ -8,10 +8,12 @@ import { useState } from "react";
 import type { ClientStatus, Coach } from "@/lib/api";
 import { useActiveStudio, useToday } from "@/lib/query";
 import { CheckInCard } from "./_components/check-in-card";
+import { HomeQuickActions } from "./_components/home-quick-actions";
 import { LogWeightDialog } from "./_components/log-weight-dialog";
 import { MeasurementsCard } from "./_components/measurements-card";
 import { RecentActivity } from "./_components/recent-activity";
 import { StepsCard } from "./_components/steps-card";
+import { VaultCard } from "./_components/vault-card";
 import { WeightCard } from "./_components/weight-card";
 
 /**
@@ -22,9 +24,6 @@ import { WeightCard } from "./_components/weight-card";
  * already done. The one actionable thing is above the fold on a 360px phone; everything
  * below it is feedback.
  *
- * There is no quick-actions FAB yet. Coachway's has three entries and ours would have
- * one — logging a weight, which is already a word on the card it belongs to. It arrives
- * with "start today's workout", when there is a workout to start.
  */
 export default function TodayPage() {
   const { studioId, coaches, stalled, isPending } = useActiveStudio();
@@ -40,7 +39,7 @@ export default function TodayPage() {
   const data = today.data;
 
   return (
-    <Page className="w-full max-w-3xl gap-8">
+    <Page className="w-full max-w-3xl gap-8 pb-20">
       {/* Coachway's greeting carries the exclamation; it is the one place in the app
           that is pleased to see you, and the rest of the screen is deliberately flat. */}
       <header className="flex flex-col gap-1">
@@ -81,16 +80,13 @@ export default function TodayPage() {
               difference legible instead of forcing a row into half a grid cell. */}
           <div className="flex flex-col gap-3">
             <WeightCard weight={data.weight} onLog={() => setLogging(true)} />
-            <MeasurementsCard
-              measurements={data.measurements}
-              href={data.measurements[0] ? `/check-in/${data.measurements[0].checkInId}` : null}
-            />
+            {studioId && <MeasurementsCard studioId={studioId} />}
+            {studioId ? (
+              <StepsCard studioId={studioId} weightKg={data.weight.latest ?? undefined} />
+            ) : null}
           </div>
-
-          {studioId ? (
-            <StepsCard studioId={studioId} weightKg={data.weight.latest ?? undefined} />
-          ) : null}
-          <RecentActivity sessions={data.recentSessions} />
+          {studioId && <RecentActivity studioId={studioId} />}
+          {studioId ? <VaultCard studioId={studioId} /> : null}
         </>
       ) : null}
 
@@ -109,6 +105,7 @@ export default function TodayPage() {
         </section>
       ) : null}
 
+      {studioId && <HomeQuickActions studioId={studioId} />}
       {studioId ? (
         <LogWeightDialog
           studioId={studioId}

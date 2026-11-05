@@ -28,7 +28,13 @@ export function StudioSwitcher({ tone = "surface" }: { tone?: "surface" | "rail"
 
   if (studios.length === 1) {
     return (
-      <span className="truncate text-body-sm font-medium" title={active.name}>
+      <span
+        className={cn(
+          "truncate font-medium",
+          tone === "rail" ? "text-label text-contrast-fg" : "text-body-sm",
+        )}
+        title={active.name}
+      >
         {active.name}
       </span>
     );
@@ -41,7 +47,7 @@ export function StudioSwitcher({ tone = "surface" }: { tone?: "surface" | "rail"
         className={cn(
           "flex max-w-[12rem] cursor-pointer items-center gap-1.5 rounded-control px-2 py-1 text-body-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2",
           tone === "rail"
-            ? "-mx-1 max-w-none px-1 py-0 text-caption font-normal text-contrast-fg/50 hover:bg-contrast-fg/8 hover:text-contrast-fg focus-visible:outline-contrast-fg/40"
+            ? "-mx-1 max-w-none px-1 py-0 text-label font-semibold text-contrast-fg hover:bg-contrast-fg/8 hover:text-contrast-fg focus-visible:outline-contrast-fg/40"
             : "hover:bg-hover focus-visible:outline-line-focus",
         )}
       >

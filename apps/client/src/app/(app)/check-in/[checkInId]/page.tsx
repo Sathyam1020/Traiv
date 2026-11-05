@@ -5,7 +5,7 @@ import { Page } from "@traiv/ui/components/shell/page";
 import { Skeleton } from "@traiv/ui/components/skeleton";
 import { ArrowLeft, ArrowRight, Check } from "@traiv/ui/icons";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { CheckInAnswers } from "@/components/check-in/answers";
 import {
@@ -29,6 +29,7 @@ import { useActiveStudio, useCheckIn, useUploadsConfigured } from "@/lib/query";
  * theirs to need, because their form is a separate entity from its answers.
  */
 export default function CheckInPage() {
+  const returnTo = useCheckInReturn();
   const { checkInId } = useParams<{ checkInId: string }>();
   const { studioId } = useActiveStudio();
   const detail = useCheckIn(studioId, checkInId);
@@ -47,7 +48,7 @@ export default function CheckInPage() {
           onRetry={() => void detail.refetch()}
         />
         <Button asChild variant="secondary" className="mt-2 self-start">
-          <Link href="/dashboard">Back to today</Link>
+          <Link href={returnTo}>Go back</Link>
         </Button>
       </Page>
     );
@@ -74,6 +75,7 @@ function Wizard({
   onSubmitted: () => void;
 }) {
   const router = useRouter();
+  const returnTo = useCheckInReturn();
   const uploads = useUploadsConfigured(studioId);
   const { state, answer, clear, next, back } = useCheckInFlow(studioId, detail, onSubmitted);
   const [uploadCount, setUploadCount] = useState(0);
@@ -131,17 +133,17 @@ function Wizard({
       </div>
       <footer className="shrink-0 pt-4">
         <div className="flex items-center gap-2.5">
-          {state.index > 0 ? (
+          {
             <button
               type="button"
-              aria-label="Previous step"
+              aria-label={state.index > 0 ? "Previous step" : "Go back"}
               disabled={state.busy || uploadCount > 0}
-              onClick={back}
+              onClick={() => (state.index > 0 ? back() : router.push(returnTo))}
               className="flex size-[52px] shrink-0 items-center justify-center rounded-full border border-line bg-surface disabled:opacity-40"
             >
               <ArrowLeft className="size-5" />
             </button>
-          ) : null}
+          }
           <button
             type="button"
             disabled={!state.valid || state.busy || uploadCount > 0}
@@ -159,7 +161,7 @@ function Wizard({
           <button
             type="button"
             disabled={state.busy || uploadCount > 0}
-            onClick={() => router.push("/dashboard")}
+            onClick={() => router.push(returnTo)}
             className="mt-3 h-10 w-full text-sm text-fg-subtle disabled:opacity-40"
           >
             Continue Later
@@ -171,7 +173,11 @@ function Wizard({
     </div>
   );
 }
+function useCheckInReturn() {
+  return useSearchParams().get("from") === "profile" ? "/you" : "/dashboard";
+}
 function Success() {
+  const returnTo = useCheckInReturn();
   const played = useRef(false);
   useEffect(() => {
     if (!played.current) {
@@ -191,7 +197,7 @@ function Success() {
         </p>
       </div>
       <Button asChild className="h-[52px] w-full rounded-full text-base">
-        <Link href="/dashboard">
+        <Link href={returnTo}>
           Continue <ArrowRight className="size-5" />
         </Link>
       </Button>

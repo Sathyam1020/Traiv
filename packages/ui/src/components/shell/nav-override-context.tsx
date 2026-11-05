@@ -29,10 +29,10 @@ export function useNavOverride(): string | null {
  * with a real href when the route itself cannot say which section the screen belongs to.
  */
 export function useActiveNav(href: string | null) {
-  const ctx = useContext(NavOverrideContext);
+  const setHref = useContext(NavOverrideContext)?.setHref;
   useEffect(() => {
-    if (!ctx || !href) return;
-    ctx.setHref(href);
-    return () => ctx.setHref(null);
-  }, [ctx, href]);
+    if (!setHref || !href) return;
+    setHref(href);
+    return () => setHref(null);
+  }, [setHref, href]);
 }

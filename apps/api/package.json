@@ -27,7 +27,9 @@
     "@traiv/phone": "workspace:*",
     "drizzle-orm": "catalog:",
     "express": "catalog:",
-    "zod": "catalog:"
+    "zod": "catalog:",
+    "web-push": "catalog:",
+    "@traiv/exercises": "workspace:*"
   },
   "devDependencies": {
     "@types/express": "catalog:",
@@ -35,6 +37,7 @@
     "dotenv": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:",
-    "vitest": "catalog:"
+    "vitest": "catalog:",
+    "@types/web-push": "catalog:"
   }
 }

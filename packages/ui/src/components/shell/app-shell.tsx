@@ -66,6 +66,7 @@ export function AppShell({
   sidebarAccount,
   header,
   mobileGlass = false,
+  reserveMobileBarSpace = true,
   children,
 }: {
   nav: readonly NavGroup[];
@@ -78,6 +79,8 @@ export function AppShell({
   /** Shown below `lg` only; above it everything lives in the rail. */
   header: ReactNode;
   mobileGlass?: boolean;
+  /** Disable when a screen owns its scrolling and bottom navigation clearance. */
+  reserveMobileBarSpace?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -90,6 +93,7 @@ export function AppShell({
           sidebarAccount={sidebarAccount}
           header={header}
           mobileGlass={mobileGlass}
+          reserveMobileBarSpace={reserveMobileBarSpace}
         >
           {children}
         </Shell>
@@ -105,6 +109,7 @@ function Shell({
   sidebarAccount,
   header,
   mobileGlass = false,
+  reserveMobileBarSpace = true,
   children,
 }: {
   nav: readonly NavGroup[];
@@ -113,6 +118,8 @@ function Shell({
   sidebarAccount: ReactNode;
   header: ReactNode;
   mobileGlass?: boolean;
+  /** Disable when a screen owns its scrolling and bottom navigation clearance. */
+  reserveMobileBarSpace?: boolean;
   children: ReactNode;
 }) {
   const sidebar = useSidebar();
@@ -172,7 +179,18 @@ function Shell({
               refuses to shrink below its content, so without it this box grows to fit
               the page, nothing ever overflows, and the whole panel scrolls away
               instead — which is the bug this layout exists to fix. */}
-          <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">{children}</div>
+          <div
+            className={cn(
+              "flex min-h-0 flex-1 flex-col overflow-y-auto",
+              // Reserve the glass bar's height, bottom offset, and home-indicator inset
+              // in the shared scroll area, including screens with their own scrollers.
+              mobileGlass &&
+                reserveMobileBarSpace &&
+                "pb-[calc(6.5rem+env(safe-area-inset-bottom))] scroll-pb-[calc(6.5rem+env(safe-area-inset-bottom))] lg:pb-0 lg:scroll-pb-0",
+            )}
+          >
+            {children}
+          </div>
         </main>
       </div>
 

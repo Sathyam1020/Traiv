@@ -229,6 +229,7 @@ export type UploadTicket = {
 
 /** One row on `/workouts` — a published programme that's this client's own copy. */
 export type WorkoutListItem = {
+  sessionItems: { id: string; name: string; exercises: number; muscleGroups: string[] }[];
   id: string;
   name: string;
   description: string | null;
@@ -327,6 +328,11 @@ export type ExerciseDetail = {
     equipment: string;
     imageUrl: string | null;
     videoUrl: string | null;
+    customized?: boolean;
+    mediaRevision?: string;
+    demonstrationUnavailable?: boolean;
+    videoAspectRatio?: string | null;
+    description?: string | null;
   };
   history: {
     date: string;
