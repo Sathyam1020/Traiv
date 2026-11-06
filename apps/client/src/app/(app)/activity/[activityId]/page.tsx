@@ -6,7 +6,7 @@ import { Input } from "@traiv/ui/components/wensity/input";
 import { ArrowLeft, Check, Clock, Dumbbell, Pencil, Star } from "@traiv/ui/icons";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { http } from "@/lib/api/client";
 import { useActiveStudio } from "@/lib/query";
 import { queryKeys } from "@/lib/query/keys";
@@ -25,7 +25,16 @@ const fields: { key: Field; label: string; max: number; flag: string }[] = [
   { key: "restSeconds", label: "Rest (s)", max: 100000, flag: "rest" },
 ];
 
+/** `useSearchParams` below requires a Suspense boundary for static prerendering. */
 export default function ActivityPage() {
+  return (
+    <Suspense fallback={<div className="p-6" />}>
+      <ActivityPageContent />
+    </Suspense>
+  );
+}
+
+function ActivityPageContent() {
   const { activityId } = useParams<{ activityId: string }>();
   const { studioId } = useActiveStudio();
   const query = useActivity(studioId, activityId);

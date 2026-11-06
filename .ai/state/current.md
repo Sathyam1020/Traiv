@@ -1,8 +1,10 @@
 # Current state
 
-## Public website SEO work — 2026-11-06 (in progress)
+## Public website SEO work — 2026-11-06, done and pushed
 
-Audit, metadata/canonical/schema fixes, image optimization and SEO crawl implemented in the uncommitted working tree. Phase 5 repository work closed; user requests phase-by-phase checkpoints. Next agent starts Phase 6 only. Build and 35-route SEO crawl pass; mobile small-text warnings and final performance/reporting remain. No push/deploy. Read `docs/seo/HANDOFF.md` before continuing.
+All 13 phases closed and committed (`a134656`, `748c330` on `main`, pushed to `origin`). Metadata/schema/sitemap, pSEO gates with all 5 `/compare/*` pages and 7 of 8 `/features/*` pages indexable (real sourced competitor data, re-verified live against traiv.fit once it went live), performance (-80% page weight), accessibility (100 on every checked route), UTM attribution, favicon-in-Google-Search fix (SVG → ImageResponse PNG, Google's favicon crawler doesn't support SVG). Full detail in `docs/seo/final-audit.md` and `docs/seo/HANDOFF.md`.
+
+**Owner follow-up, not yet done:** Search Console/Bing setup (external account access); Organization schema's `sameAs` (LinkedIn/Twitter/Instagram links) and formal legal/contact fields are deliberately empty — no real profiles/entity exist yet to cite, and nothing was invented. Give the real URLs once they exist and it's a small code change in `structured-data.tsx`. Blog is empty in production (no posts published yet, not a bug — `/blog` correctly shows its empty state).
 
 **Updated:** 2026-11-01
 **Phase:** nutrition A–F implemented; founder functional/UI acceptance pending

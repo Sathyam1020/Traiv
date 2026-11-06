@@ -31,7 +31,7 @@ import { Activity, Apple, ChevronLeft, ChevronRight, Search } from "@traiv/ui/ic
 import { cn } from "@traiv/ui/lib/cn";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useActiveStudioId } from "@/lib/active-studio";
 import type { RosterClient, RosterFilter, RosterStatus } from "@/lib/api";
 import { useRoster, useTags } from "@/lib/query";
@@ -66,7 +66,16 @@ const PER_PAGE = 25;
  * Two columns are still sample content — the last message and which plans exist — and
  * both say so. Everything else is the database.
  */
+/** `useSearchParams` below requires a Suspense boundary for static prerendering. */
 export default function ClientsPage() {
+  return (
+    <Suspense fallback={<div className="flex flex-1 flex-col" />}>
+      <ClientsPageContent />
+    </Suspense>
+  );
+}
+
+function ClientsPageContent() {
   const router = useRouter();
   const params = useSearchParams();
   const studioId = useActiveStudioId();
@@ -370,9 +379,26 @@ function StatusBadge({ status }: { status: RosterStatus }) {
  * There is no messages table. Rather than an empty column that looks broken, the cell
  * shows the one real fact it has — when they last logged a session — and says what it is.
  */
-function LastMessage({client}:{client:RosterClient}) {
- const m=client.lastMessage;
- return m ? <Link href={`/inbox?client=${client.id}`} onClick={e=>e.stopPropagation()} className="flex max-w-[15rem] flex-col gap-1 py-2"><span className="truncate text-body-sm">{m.kind==="workout"?"Completed a workout":m.kind==="check-in"?"Submitted a check-in":m.body||"Sent an attachment"}</span><span className="text-caption text-fg-subtle">{shortDate(new Date(m.createdAt))}</span></Link> : <span className="text-body-sm text-fg-subtle">No messages yet</span>;
+function LastMessage({ client }: { client: RosterClient }) {
+  const m = client.lastMessage;
+  return m ? (
+    <Link
+      href={`/inbox?client=${client.id}`}
+      onClick={(e) => e.stopPropagation()}
+      className="flex max-w-[15rem] flex-col gap-1 py-2"
+    >
+      <span className="truncate text-body-sm">
+        {m.kind === "workout"
+          ? "Completed a workout"
+          : m.kind === "check-in"
+            ? "Submitted a check-in"
+            : m.body || "Sent an attachment"}
+      </span>
+      <span className="text-caption text-fg-subtle">{shortDate(new Date(m.createdAt))}</span>
+    </Link>
+  ) : (
+    <span className="text-body-sm text-fg-subtle">No messages yet</span>
+  );
 }
 
 /** Sample content — there is no plan generator yet, so both icons are dimmed. */

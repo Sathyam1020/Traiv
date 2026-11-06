@@ -6,7 +6,7 @@ import { Skeleton } from "@traiv/ui/components/skeleton";
 import { ArrowLeft, ArrowRight, Check } from "@traiv/ui/icons";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { CheckInAnswers } from "@/components/check-in/answers";
 import {
   playCompletionSound,
@@ -28,7 +28,16 @@ import { useActiveStudio, useCheckIn, useUploadsConfigured } from "@/lib/query";
  * Coachway splits these into `StepsScreen` and `CheckInDetailScreen`; the split is
  * theirs to need, because their form is a separate entity from its answers.
  */
+/** `useCheckInReturn` reads `useSearchParams`, which requires a Suspense boundary. */
 export default function CheckInPage() {
+  return (
+    <Suspense fallback={<Loading />}>
+      <CheckInPageContent />
+    </Suspense>
+  );
+}
+
+function CheckInPageContent() {
   const returnTo = useCheckInReturn();
   const { checkInId } = useParams<{ checkInId: string }>();
   const { studioId } = useActiveStudio();

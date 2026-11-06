@@ -3,14 +3,14 @@
 import { Button } from "@traiv/ui/components/button";
 import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useActiveStudioId } from "@/lib/active-studio";
 import { useCheckIns, useClient, useClientOverview, useTags } from "@/lib/query";
+import { Vault } from "../../vault/vault";
 import { ClientHeader, ClientHeaderSkeleton } from "../_components/client-header";
 import { Development } from "../_components/development/development";
 import { ClientNutrition } from "../_components/nutrition/client-nutrition";
 import { Overview, OverviewSkeleton } from "../_components/overview/overview";
-import { Vault } from "../../vault/vault";
 import { ClientWorkouts } from "../_components/workouts/client-workouts";
 
 /**
@@ -21,7 +21,22 @@ import { ClientWorkouts } from "../_components/workouts/client-workouts";
  * tooltip rather than being left off the bar, so the real app's shape stays visible.
  * This page only has to say which of the *ready* tabs is open.
  */
+/** `useSearchParams` below requires a Suspense boundary for static prerendering. */
 export default function ClientPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex flex-1 flex-col">
+          <ClientHeaderSkeleton />
+        </div>
+      }
+    >
+      <ClientPageContent />
+    </Suspense>
+  );
+}
+
+function ClientPageContent() {
   const { clientId } = useParams<{ clientId: string }>();
   const searchParams = useSearchParams();
   const studioId = useActiveStudioId();
@@ -30,13 +45,15 @@ export default function ClientPage() {
   const checkIns = useCheckIns(studioId, clientId);
   const tags = useTags(studioId);
   const [tab, setTab] = useState<"Overview" | "Workouts" | "Nutrition" | "Development" | "Vault">(
-    searchParams.get("tab") === "vault" ? "Vault" : searchParams.get("tab") === "development"
-      ? "Development"
-      : searchParams.get("tab") === "nutrition"
-        ? "Nutrition"
-        : searchParams.get("tab") === "workouts"
-          ? "Workouts"
-          : "Overview",
+    searchParams.get("tab") === "vault"
+      ? "Vault"
+      : searchParams.get("tab") === "development"
+        ? "Development"
+        : searchParams.get("tab") === "nutrition"
+          ? "Nutrition"
+          : searchParams.get("tab") === "workouts"
+            ? "Workouts"
+            : "Overview",
   );
 
   if (client.isPending) {
@@ -68,12 +85,20 @@ export default function ClientPage() {
         tags={tags.data ?? []}
         activeTab={tab}
         onTabChange={(t) => {
-          if (t === "Overview" || t === "Workouts" || t === "Nutrition" || t === "Development" || t === "Vault")
+          if (
+            t === "Overview" ||
+            t === "Workouts" ||
+            t === "Nutrition" ||
+            t === "Development" ||
+            t === "Vault"
+          )
             setTab(t);
         }}
       />
 
-      {tab === "Vault" ? <Vault clientId={clientId} /> : tab === "Development" && studioId ? (
+      {tab === "Vault" ? (
+        <Vault clientId={clientId} />
+      ) : tab === "Development" && studioId ? (
         <Development studioId={studioId} clientId={clientId} />
       ) : tab === "Nutrition" ? (
         <ClientNutrition

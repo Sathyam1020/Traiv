@@ -12,7 +12,7 @@ import {
 import { Search as IconSearch } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useActiveStudioId } from "@/lib/active-studio";
 import { API_BASE, http } from "@/lib/api/client";
 import { useSession } from "@/lib/query";
@@ -29,7 +29,16 @@ type Conversation = {
   unread: number;
   last: null | { body: string; kind: string; createdAt: string };
 };
+/** `useSearchParams` below requires a Suspense boundary for static prerendering. */
 export default function InboxPage() {
+  return (
+    <Suspense fallback={<div className="flex flex-1 flex-col" />}>
+      <InboxPageContent />
+    </Suspense>
+  );
+}
+
+function InboxPageContent() {
   const userId = useSession().data?.user.id ?? "loading";
   const studioId = useActiveStudioId(),
     params = useSearchParams();

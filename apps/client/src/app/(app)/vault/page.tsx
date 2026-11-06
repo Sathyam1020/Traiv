@@ -26,14 +26,28 @@ import {
 import { fileSize, resourceCategory, type VaultResource } from "@traiv/ui/lib/vault";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { http } from "@/lib/api/client";
 import { useActiveStudio } from "@/lib/query";
 import { useVault } from "@/lib/query/use-vault";
 
 const categories = ["All", "Documents", "Images", "Videos", "Other"];
 const icons = { Document: FileText, Image: ImageIcon, Video, Audio: Music, Link: LinkIcon, File };
+
+/** `useSearchParams` below requires a Suspense boundary for static prerendering. */
 export default function ClientVaultPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="mx-auto flex min-h-[75dvh] w-full max-w-3xl flex-1 flex-col px-4 pb-5" />
+      }
+    >
+      <VaultPageContent />
+    </Suspense>
+  );
+}
+
+function VaultPageContent() {
   const { studioId } = useActiveStudio();
   const resources = useVault(studioId);
   const qc = useQueryClient();
