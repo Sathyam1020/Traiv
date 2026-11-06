@@ -15,7 +15,7 @@ export default function HomePage() {
   return (
     <>
       <section className="marketing-hero">
-        <div className="marketing-container hero-layout">
+        <div className="traiv-content-wrap hero-layout">
           <div className="hero-copy">
             <span className="hero-context">
               <span />
@@ -59,7 +59,7 @@ export default function HomePage() {
         </div>
       </section>
       <section className="replaces-strip">
-        <div className="marketing-container">
+        <div className="traiv-content-wrap">
           <p>
             Fewer places to check.
             <br />
@@ -74,7 +74,7 @@ export default function HomePage() {
         </div>
       </section>
       <section className="marketing-section workflow-section" id="how-it-works">
-        <div className="marketing-container">
+        <div className="traiv-content-wrap">
           <div className="section-intro">
             <span className="section-note">Your coaching, connected</span>
             <h2>
@@ -141,7 +141,7 @@ export default function HomePage() {
         </div>
       </section>
       <section className="marketing-section payment-section">
-        <div className="marketing-container workflow-row">
+        <div className="traiv-content-wrap workflow-row">
           <div className="workflow-copy">
             <span className="section-note">Client payments</span>
             <h2>
@@ -161,7 +161,7 @@ export default function HomePage() {
         </div>
       </section>
       <section className="marketing-section">
-        <div className="marketing-container workflow-row workflow-reverse brand-section">
+        <div className="traiv-content-wrap workflow-row workflow-reverse brand-section">
           <div className="workflow-copy">
             <span className="section-note">A familiar place for your clients</span>
             <h2>
@@ -185,7 +185,7 @@ export default function HomePage() {
         </div>
       </section>
       <section className="marketing-section getting-started">
-        <div className="marketing-container">
+        <div className="traiv-content-wrap">
           <div className="section-intro">
             <span className="section-note">From signup to the first session</span>
             <h2>Start with one client.</h2>
@@ -219,7 +219,7 @@ export default function HomePage() {
       </section>
       <CustomerStories />
       <section className="marketing-section" id="pricing">
-        <div className="marketing-container">
+        <div className="traiv-content-wrap">
           <div className="section-intro">
             <span className="section-note">Room for your coaching to grow</span>
             <h2>

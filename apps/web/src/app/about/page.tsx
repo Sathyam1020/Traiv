@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function AboutPage() {
   return (
     <>
-      <section className="subpage-hero marketing-container">
+      <section className="subpage-hero traiv-content-wrap">
         <span className="section-note">About Traiv</span>
         <h1>
           Built around
@@ -23,7 +23,7 @@ export default function AboutPage() {
         </p>
       </section>
       <section className="marketing-section">
-        <div className="marketing-container workflow-row">
+        <div className="traiv-content-wrap workflow-row">
           <div className="workflow-copy">
             <h2>
               One routine.

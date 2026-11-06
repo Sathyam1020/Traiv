@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function GymsPage() {
   return (
     <>
-      <section className="subpage-hero marketing-container">
+      <section className="subpage-hero traiv-content-wrap">
         <span className="section-note">Traiv for gyms</span>
         <h1>
           One gym.
@@ -30,7 +30,7 @@ export default function GymsPage() {
         </p>
       </section>
       <section className="marketing-section">
-        <div className="marketing-container workflow-row">
+        <div className="traiv-content-wrap workflow-row">
           <div className="workflow-copy">
             <h2>
               The coaching stays
@@ -46,7 +46,7 @@ export default function GymsPage() {
         </div>
       </section>
       <section className="marketing-section payment-section">
-        <div className="marketing-container workflow-row workflow-reverse">
+        <div className="traiv-content-wrap workflow-row workflow-reverse">
           <div className="workflow-copy">
             <h2>
               Your gym's name
@@ -62,7 +62,7 @@ export default function GymsPage() {
         </div>
       </section>
       <section className="marketing-section">
-        <div className="marketing-container">
+        <div className="traiv-content-wrap">
           <div className="section-intro">
             <h2>For your training team.</h2>
             <p>₹2,499 per month for gyms with 3+ trainers.</p>
@@ -71,7 +71,7 @@ export default function GymsPage() {
         </div>
       </section>
       <section className="marketing-section" id="contact">
-        <div className="marketing-container section-intro">
+        <div className="traiv-content-wrap section-intro">
           <h2>
             Let's talk about
             <br />

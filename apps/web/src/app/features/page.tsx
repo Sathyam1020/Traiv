@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export default function FeaturesPage() {
   return (
     <>
-      <section className="subpage-hero marketing-container">
+      <section className="subpage-hero traiv-content-wrap">
         <span className="section-note">Inside Traiv</span>
         <h1>
           The plan. The person.
@@ -25,7 +25,7 @@ export default function FeaturesPage() {
         </p>
       </section>
       <section className="marketing-section">
-        <div className="marketing-container feature-overview-list">
+        <div className="traiv-content-wrap feature-overview-list">
           {FEATURES.map((f, i) => (
             <div className={`workflow-row ${i % 2 ? "workflow-reverse" : ""}`} key={f.slug}>
               <div className="workflow-copy">

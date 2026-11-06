@@ -4,7 +4,7 @@ import { SITE } from "@/content/site";
 export function Footer() {
   return (
     <footer className="marketing-footer">
-      <div className="marketing-container">
+      <div className="traiv-content-wrap">
         <div className="footer-main">
           <div>
             <Link href="/" aria-label="Traiv home">

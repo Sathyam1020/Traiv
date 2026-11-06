@@ -36,7 +36,7 @@ html.traiv-marketing {
   outline: 3px solid #2459b8;
   outline-offset: 5px;
 }
-.marketing-container {
+.traiv-content-wrap {
   width: min(1180px, calc(100% - 64px));
   margin-inline: auto;
 }
@@ -254,7 +254,7 @@ html.traiv-marketing {
   border-block: 1px solid #d9dfd8;
   padding: 30px 0;
 }
-.replaces-strip > .marketing-container {
+.replaces-strip > .traiv-content-wrap {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -269,14 +269,14 @@ html.traiv-marketing {
   font-weight: 500;
   color: #252b28;
 }
-.replaces-strip .marketing-container > div {
+.replaces-strip .traiv-content-wrap > div {
   display: flex;
   flex-wrap: wrap;
   gap: 26px;
   font-size: 14px;
   color: #657168;
 }
-.replaces-strip .marketing-container > div span {
+.replaces-strip .traiv-content-wrap > div span {
   text-decoration: line-through;
   text-decoration-color: #b5bfb7;
 }
@@ -1169,12 +1169,12 @@ html.traiv-marketing {
   .product-scene {
     padding: 24px;
   }
-  .replaces-strip .marketing-container > div {
+  .replaces-strip .traiv-content-wrap > div {
     gap: 16px;
   }
 }
 @media (max-width: 1023px) {
-  .marketing-container {
+  .traiv-content-wrap {
     width: calc(100% - 40px);
   }
   .marketing-section {
@@ -1325,12 +1325,12 @@ html.traiv-marketing {
     padding: 0 10px;
     font-size: 8px;
   }
-  .replaces-strip > .marketing-container {
+  .replaces-strip > .traiv-content-wrap {
     flex-direction: column;
     align-items: flex-start;
     gap: 18px;
   }
-  .replaces-strip .marketing-container > div {
+  .replaces-strip .traiv-content-wrap > div {
     gap: 12px 20px;
     font-size: 12px;
   }
@@ -3396,7 +3396,7 @@ html.traiv-marketing {
     overflow-y: auto;
     overscroll-behavior: contain;
   }
-  .marketing-container {
+  .traiv-content-wrap {
     width: calc(100% - 32px);
   }
   .hero-copy h1 {

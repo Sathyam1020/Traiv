@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 export default function PricingPage() {
   return (
     <>
-      <section className="subpage-hero marketing-container">
+      <section className="subpage-hero traiv-content-wrap">
         <span className="section-note">Traiv pricing</span>
         <h1>
           Your coaching.
@@ -21,7 +21,7 @@ export default function PricingPage() {
         </p>
       </section>
       <section className="marketing-section" style={{ paddingTop: 20 }}>
-        <div className="marketing-container">
+        <div className="traiv-content-wrap">
           <PricingCards />
         </div>
       </section>

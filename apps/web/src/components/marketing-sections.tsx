@@ -73,7 +73,7 @@ export const HOME_FAQ = [
 export function MarketingFaq() {
   return (
     <section className="marketing-section faq-section" id="questions">
-      <div className="marketing-container faq-layout">
+      <div className="traiv-content-wrap faq-layout">
         <div>
           <span className="section-note">A few things you might be wondering</span>
           <h2>
@@ -100,7 +100,7 @@ export function MarketingFaq() {
 export function ClosingCta() {
   return (
     <section className="marketing-close">
-      <div className="marketing-container">
+      <div className="traiv-content-wrap">
         <span className="section-note">Your next client. Your next chapter.</span>
         <h2>
           Give your coaching

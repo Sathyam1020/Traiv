@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 export default function CoachesPage() {
   return (
     <>
-      <section className="subpage-hero marketing-container">
+      <section className="subpage-hero traiv-content-wrap">
         <span className="section-note">For personal trainers</span>
         <h1>
           Your coaching method.
@@ -24,7 +24,7 @@ export default function CoachesPage() {
         <TrialLink location="coaches" />
       </section>
       <section className="marketing-section">
-        <div className="marketing-container workflow-row">
+        <div className="traiv-content-wrap workflow-row">
           <div className="workflow-copy">
             <h2>
               Start with
