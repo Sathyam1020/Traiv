@@ -171,7 +171,7 @@ export default function ClientsPage() {
           {/* Below `sm` the table becomes a list of cards. A seven-column table on a
               360px screen is a horizontal scroll nobody discovers. */}
           <div className="hidden sm:block">
-            <Table>
+            <Table data-surface={undefined} className="rounded-none">
               <TableHeader>
                 <TableRow className="bg-sunken/60 hover:bg-sunken/60">
                   <TableHead className="pl-4 sm:pl-6">Name</TableHead>

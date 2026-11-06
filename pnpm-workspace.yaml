@@ -13,6 +13,8 @@ packages:
 # Nothing else in the tree is allowed to run a script.
 allowBuilds:
   esbuild: true
+  # Its postinstall prints funding information; no generated runtime files are needed.
+  core-js: false
 
 # Single source of truth for every dependency version in the monorepo.
 # Packages reference these with "catalog:" — never a literal version.
