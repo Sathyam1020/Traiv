@@ -1,5 +1,9 @@
 # Current state
 
+## Public website SEO work — 2026-11-06 (in progress)
+
+Audit, metadata/canonical/schema fixes, image optimization and SEO crawl implemented in the uncommitted working tree. Phase 5 repository work closed; user requests phase-by-phase checkpoints. Next agent starts Phase 6 only. Build and 35-route SEO crawl pass; mobile small-text warnings and final performance/reporting remain. No push/deploy. Read `docs/seo/HANDOFF.md` before continuing.
+
 **Updated:** 2026-11-01
 **Phase:** nutrition A–F implemented; founder functional/UI acceptance pending
 

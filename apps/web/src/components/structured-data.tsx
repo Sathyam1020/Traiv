@@ -1,4 +1,5 @@
 import { SITE, TIERS } from "@/content/site";
+import { serializeJsonLd } from "@/lib/seo";
 
 /**
  * JSON-LD for the organisation and the product.
@@ -31,6 +32,9 @@ export function StructuredData() {
       },
       {
         "@type": "SoftwareApplication",
+        "@id": `${SITE.url}/#software`,
+        url: SITE.url,
+        publisher: { "@id": `${SITE.url}/#organization` },
         name: SITE.name,
         applicationCategory: "BusinessApplication",
         operatingSystem: "Web",
@@ -47,9 +51,11 @@ export function StructuredData() {
     ],
   };
 
-  // JSON-LD has to be a raw script body. The content is our own constant object, never
-  // anything a user supplied, so there is nothing here to escape.
+  // Escape script bodies even when today’s inputs are editorial constants.
   return (
-    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: serializeJsonLd(data) }}
+    />
   );
 }

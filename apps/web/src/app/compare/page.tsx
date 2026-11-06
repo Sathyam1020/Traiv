@@ -6,13 +6,14 @@ import { Container, PageHero, Section, SectionHeading } from "@/components/layou
 import { PriceWall } from "@/components/price-wall";
 import { Reveal } from "@/components/reveal";
 import { COMPETITORS } from "@/content/competitors";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Compare Traiv to other coaching platforms",
   description:
     "Traiv against Trainerize, FitBudd, Everfit, TrueCoach and Coachway. Every competitor figure carries the page it came from and the date it was read.",
   alternates: { canonical: "/compare" },
-};
+});
 
 export default function ComparePage() {
   return (
@@ -36,7 +37,9 @@ export default function ComparePage() {
                     Traiv vs {c.name}
                     <ArrowRight className="size-4 text-fg-subtle" />
                   </h3>
-                  <p className="text-body-sm leading-relaxed text-fg-muted">{c.blurb}</p>
+                  <p className="text-body-sm leading-relaxed text-fg-muted">
+                    Compare coaching workflows, plan details and switching considerations.
+                  </p>
                 </Link>
               </Reveal>
             ))}

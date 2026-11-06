@@ -5,20 +5,8 @@ export const SITE = {
   tagline: "Coaching app for trainers and gyms",
   description:
     "Workout plans, diet plans, check-ins and client payments for personal trainers and gyms. Start your 14-day free trial.",
-  /**
-   * Where this deployment actually lives.
-   *
-   * Everything canonical hangs off it — `metadataBase`, every page's canonical tag,
-   * `sitemap.xml`, `robots.txt` and the JSON-LD. Hardcoding the production domain means
-   * a preview deployment tells Google its pages live at traiv.fit, which is a slow,
-   * quiet way to lose the real ones. Vercel sets `VERCEL_PROJECT_PRODUCTION_URL` on
-   * every build, so the fallback is right without anybody configuring it.
-   */
-  url:
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    (process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL
-      ? `https://${process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL}`
-      : "https://traiv.fit"),
+  /** Stable production identity; preview deployments must never become canonicals. */
+  url: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.traiv.fit").origin,
   /** The product apps, for links out of the marketing site. */
   app: {
     signup: "https://app.traiv.fit/signup",

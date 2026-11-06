@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import { CtaBand } from "@/components/cta-band";
 import { Container, PageHero, Section, SectionHeading } from "@/components/layout";
 import { RateCalculator } from "@/components/rate-calculator";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "What should I charge for coaching?",
   description:
     "A defensible monthly rate, worked backwards from what you want to earn and the hours you have. Free, no signup.",
   alternates: { canonical: "/tools/pricing-calculator" },
-};
+});
 
 export default function RateCalculatorPage() {
   return (

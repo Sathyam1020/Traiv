@@ -4,12 +4,13 @@ import Link from "next/link";
 import { ClosingCta, PricingCards } from "@/components/marketing-sections";
 import { ProductScene } from "@/components/product-scenes";
 import { TrialLink } from "@/components/trial-link";
-export const metadata: Metadata = {
+import { pageMetadata } from "@/lib/seo";
+export const metadata: Metadata = pageMetadata({
   title: "Coaching software for gyms",
   description:
     "Bring your gym's workout plans, diet plans, check-ins and client fees into Traiv. ₹2,499/month for gyms with 3+ trainers.",
   alternates: { canonical: "/gyms" },
-};
+});
 export default function GymsPage() {
   return (
     <>

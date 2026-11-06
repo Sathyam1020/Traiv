@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { CtaBand } from "@/components/cta-band";
 import { Container, PageHero, Section } from "@/components/layout";
 import { LEGAL, legalBySlug } from "@/content/legal";
+import { pageMetadata } from "@/lib/seo";
 
 type Params = { params: Promise<{ doc: string }> };
 
@@ -14,13 +15,13 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const d = legalBySlug((await params).doc);
   if (!d) return {};
-  return {
+  return pageMetadata({
     title: d.title,
     description: d.summary,
     alternates: { canonical: `/legal/${d.slug}` },
     // A draft policy has no business ranking for anything.
     robots: { index: false, follow: true },
-  };
+  });
 }
 
 export default async function LegalPage({ params }: Params) {

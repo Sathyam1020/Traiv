@@ -15,6 +15,7 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: false },
   title: "Traiv",
   description: "Run your coaching practice in one place.",
 };

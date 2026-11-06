@@ -4,12 +4,13 @@ import Link from "next/link";
 import { ClosingCta } from "@/components/marketing-sections";
 import { ProductScene, sceneForFeature } from "@/components/product-scenes";
 import { FEATURES } from "@/content/features";
-export const metadata: Metadata = {
+import { pageMetadata } from "@/lib/seo";
+export const metadata: Metadata = pageMetadata({
   title: "Coaching features",
   description:
     "Explore Traiv's workout plans, diet plans, check-ins, client payments and client app.",
   alternates: { canonical: "/features" },
-};
+});
 export default function FeaturesPage() {
   return (
     <>

@@ -74,7 +74,7 @@ const probe = (touch) => `(() => {
       let scroller = false;
       for (let p = el.parentElement; p; p = p.parentElement) {
         const o = getComputedStyle(p).overflowX;
-        if (o === 'auto' || o === 'scroll') { scroller = true; break; }
+        if (['auto', 'scroll', 'hidden', 'clip'].includes(o)) { scroller = true; break; }
       }
       // Wide content inside its own horizontal scroller is the sanctioned way to carry
       // a table on a phone; only the page scrolling sideways is a defect.
@@ -84,15 +84,16 @@ const probe = (touch) => `(() => {
     const tappable = el.matches('a[href],button,[role="button"],input:not([type=hidden]),select,textarea,[role="tab"],[role="menuitem"]');
     // A link inside a sentence is exempt — it cannot be 44px tall without wrecking the
     // paragraph, and WCAG 2.5.8 says the same.
+    const visuallyHidden = s.clip === 'rect(0px, 0px, 0px, 0px)' || (r.width <= 1 && r.height <= 1);
     const inlineInProse = el.tagName === 'A' && s.display.startsWith('inline') &&
       el.parentElement && /^(P|LI|DD|SPAN|DT)$/.test(el.parentElement.tagName) &&
       el.parentElement.textContent.trim().length > (el.textContent || '').trim().length + 10;
-    if (TOUCH && tappable && !inlineInProse && r.height > 0 && (r.height < 44 || r.width < 44)) {
+    if (TOUCH && tappable && !inlineInProse && !visuallyHidden && r.height > 0 && (r.height < 44 || r.width < 44)) {
       out.small.push({ el: describe(el), size: Math.round(r.width) + 'x' + Math.round(r.height) });
     }
 
     const size = parseFloat(s.fontSize);
-    if (size && size < 11.5 && !el.children.length && (el.textContent || '').trim()) {
+    if (!el.closest('[role="img"]') && size && size < 11.5 && !el.children.length && (el.textContent || '').trim()) {
       out.tiny.push({ el: describe(el), size });
     }
   }

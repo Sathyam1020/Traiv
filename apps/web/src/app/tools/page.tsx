@@ -5,13 +5,14 @@ import { CtaBand } from "@/components/cta-band";
 import { Container, PageHero, Section } from "@/components/layout";
 import { Reveal } from "@/components/reveal";
 import { TOOLS } from "@/content/tools";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Free tools for coaches",
   description:
     "A macro calculator that shows its working, an income calculator, a rate calculator, guides and templates. Free, no signup, no email gate.",
   alternates: { canonical: "/tools" },
-};
+});
 
 export default function ToolsPage() {
   return (

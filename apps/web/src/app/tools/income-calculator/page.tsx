@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import { CtaBand } from "@/components/cta-band";
 import { IncomeCalculator } from "@/components/income-calculator";
 import { Container, PageHero, Section, SectionHeading } from "@/components/layout";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Coaching income calculator",
   description:
     "What your coaching business earns at your rate and client count, and what each platform takes out of it. Free, no signup.",
   alternates: { canonical: "/tools/income-calculator" },
-};
+});
 
 export default function IncomeCalculatorPage() {
   return (

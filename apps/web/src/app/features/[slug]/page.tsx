@@ -5,7 +5,9 @@ import { notFound } from "next/navigation";
 import { CtaBand } from "@/components/cta-band";
 import { Container, PageHero, Section } from "@/components/layout";
 import { ProductScene, sceneForFeature } from "@/components/product-scenes";
-import { FEATURES, featureBySlug } from "@/content/features";
+import { Breadcrumbs } from "@/components/seo-schema";
+import { FEATURES, featureBySlug, featureIsIndexable } from "@/content/features";
+import { pageMetadata } from "@/lib/seo";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -16,11 +18,12 @@ export function generateStaticParams() {
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const f = featureBySlug((await params).slug);
   if (!f) return {};
-  return {
+  return pageMetadata({
     title: f.name,
+    robots: { index: featureIsIndexable(f), follow: true },
     description: f.blurb,
     alternates: { canonical: `/features/${f.slug}` },
-  };
+  });
 }
 
 export default async function FeaturePage({ params }: Params) {
@@ -34,6 +37,12 @@ export default async function FeaturePage({ params }: Params) {
 
   return (
     <>
+      <Breadcrumbs
+        items={[
+          { name: "Features", path: "/features" },
+          { name: f.name, path: `/features/${f.slug}` },
+        ]}
+      />
       <PageHero title={f.headline} lede={f.body}>
         {f.status === "building" ? (
           <p className="inline-flex items-center rounded-full border border-line-strong bg-surface px-3 py-1.5 text-caption font-medium text-fg-muted">

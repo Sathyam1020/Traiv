@@ -31,6 +31,7 @@ import {
   Utensils,
   X,
 } from "@traiv/ui/icons";
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { demoExercises, demoRecipes } from "./demo-media";
 
@@ -130,7 +131,7 @@ export function ClientDemo({ brand = false }: { brand?: boolean }) {
                 <span>Arjun Fitness</span>
               </div>
             ) : null}
-            <h3>Hey Rohan!</h3>
+            <p className="live-greeting">Hey Rohan!</p>
             {!checkedIn ? (
               <div className="live-checkin">
                 <h4>Time for a check-in</h4>
@@ -262,7 +263,14 @@ export function ClientDemo({ brand = false }: { brand?: boolean }) {
             {demoExercises.map((e, i) => (
               <div className="live-card live-exercise" key={e.name}>
                 <div>
-                  <img src={e.image} alt={e.name} loading="lazy" />
+                  <Image
+                    width={400}
+                    height={300}
+                    sizes="(max-width: 600px) 160px, 240px"
+                    src={e.image}
+                    alt={e.name}
+                    loading="lazy"
+                  />
                   <strong>{e.name}</strong>
                 </div>
                 <div className="live-set-labels">
@@ -376,7 +384,14 @@ export function ClientDemo({ brand = false }: { brand?: boolean }) {
               className="live-card live-recipe-row"
               onClick={() => setScreen("recipe")}
             >
-              <img src={demoRecipes[0]!.image} alt={demoRecipes[0]!.name} loading="lazy" />
+              <Image
+                width={400}
+                height={300}
+                sizes="(max-width: 600px) 160px, 240px"
+                src={demoRecipes[0]!.image}
+                alt={demoRecipes[0]!.name}
+                loading="lazy"
+              />
               <div>
                 <strong>{demoRecipes[0]!.name}</strong>
                 <small>Breakfast · 420 kcal</small>
@@ -387,7 +402,10 @@ export function ClientDemo({ brand = false }: { brand?: boolean }) {
         ) : null}
         {screen === "recipe" ? (
           <div>
-            <img
+            <Image
+              width={400}
+              height={300}
+              sizes="(max-width: 600px) 160px, 240px"
               className="live-recipe-photo"
               src={demoRecipes[0]!.image}
               alt={demoRecipes[0]!.name}

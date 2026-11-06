@@ -1,0 +1,67 @@
+{
+  "lighthouseVersion": "13.6.0",
+  "requestedUrl": "http://localhost:3104/",
+  "formFactor": "desktop",
+  "note": "Final repeat measurements (3 runs) against the fully current build, taken after the tiny-text/compare-copy adjustments that the earlier single-run after-snapshot predated. Median reported per metric; see runs for per-run spread.",
+  "runs": [
+    {
+      "performance": 1,
+      "accessibility": 0.99,
+      "best-practices": 0.96,
+      "seo": 1,
+      "fetchTime": "2026-11-06T17:44:56.312Z",
+      "fcp": 327.5932,
+      "lcp": 728.3898,
+      "speedIndex": 327.5932,
+      "tbt": 0,
+      "cls": 0,
+      "totalBytes": 480090,
+      "ttfb": 9,
+      "networkRequests": 41
+    },
+    {
+      "performance": 1,
+      "accessibility": 0.99,
+      "best-practices": 0.96,
+      "seo": 1,
+      "fetchTime": "2026-11-06T17:45:39.949Z",
+      "fcp": 328.3426,
+      "lcp": 328.3426,
+      "speedIndex": 328.3426,
+      "tbt": 0,
+      "cls": 0,
+      "totalBytes": 480090,
+      "ttfb": 16,
+      "networkRequests": 41
+    },
+    {
+      "performance": 1,
+      "accessibility": 0.99,
+      "best-practices": 0.96,
+      "seo": 1,
+      "fetchTime": "2026-11-06T17:45:50.831Z",
+      "fcp": 327.6874,
+      "lcp": 327.6874,
+      "speedIndex": 327.6874,
+      "tbt": 0,
+      "cls": 0,
+      "totalBytes": 480096,
+      "ttfb": 19,
+      "networkRequests": 41
+    }
+  ],
+  "median": {
+    "performance": 1,
+    "accessibility": 0.99,
+    "best-practices": 0.96,
+    "seo": 1,
+    "fcp": 327.6874,
+    "lcp": 328.3426,
+    "speedIndex": 327.6874,
+    "tbt": 0,
+    "cls": 0,
+    "totalBytes": 480090,
+    "ttfb": 16,
+    "networkRequests": 41
+  }
+}

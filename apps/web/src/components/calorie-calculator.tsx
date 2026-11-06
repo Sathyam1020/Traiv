@@ -228,9 +228,11 @@ export function CalorieCalculator() {
 
           {target.review.length > 0 ? (
             <div className="flex flex-col gap-3 rounded-surface border border-line-strong bg-sunken p-6">
-              <h3 className="text-body font-semibold">
+              {/* h2, not h3 — this result and "How it got there" below are the first
+                  headings under the page's own h1, with nothing at h2 between them. */}
+              <h2 className="text-body font-semibold">
                 Somebody should look at this before anyone eats to it
-              </h3>
+              </h2>
               <ul className="flex flex-col gap-3">
                 {target.review.map((r) => (
                   <li key={r} className="text-body-sm leading-relaxed text-fg-muted">
@@ -246,7 +248,7 @@ export function CalorieCalculator() {
           ) : null}
 
           <div className="rounded-surface border border-line p-6">
-            <h3 className="text-body font-semibold">How it got there</h3>
+            <h2 className="text-body font-semibold">How it got there</h2>
             <dl className="mt-4 flex flex-col">
               <Row
                 k="Resting rate (Mifflin-St Jeor)"

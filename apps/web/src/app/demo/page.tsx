@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import { CtaBand } from "@/components/cta-band";
 import { Container, PageHero, Section, SectionHeading } from "@/components/layout";
 import { NotifyMe } from "@/components/notify-me";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Book a demo",
   description:
     "Thirty minutes with the person who built it. We set up your first client live, and tell you if Traiv is the wrong fit.",
   alternates: { canonical: "/demo" },
-};
+});
 
 export default function DemoPage() {
   return (

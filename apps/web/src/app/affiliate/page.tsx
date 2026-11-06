@@ -4,13 +4,14 @@ import { FaqList } from "@/components/faq-list";
 import { Container, PageHero, Section, SectionHeading } from "@/components/layout";
 import { NotifyMe } from "@/components/notify-me";
 import { rupees } from "@/content/site";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Refer a coach",
   description:
     "40% of what a coach pays for their first twelve months, then 15% for as long as they stay, plus cash bonuses at 5, 15 and 40 active referrals.",
   alternates: { canonical: "/affiliate" },
-};
+});
 
 const MILESTONES = [
   { at: 5, bonus: 2000 },

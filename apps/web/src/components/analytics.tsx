@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { track, trackExit, trackPageview } from "@/lib/analytics";
+import { campaign, track, trackExit, trackPageview } from "@/lib/analytics";
 
 /**
  * Mounted once in the layout. Sends a pageview per route, how far down each page people
@@ -37,12 +37,26 @@ export function Analytics() {
         event.target instanceof Element
           ? event.target.closest<HTMLAnchorElement>("a[data-trial-location]")
           : null;
-      if (link)
+      if (link) {
         track("click", {
           action: "start_trial",
           location: link.dataset.trialLocation ?? "unknown",
           plan: link.dataset.plan ?? "unspecified",
         });
+        // The trial link crosses an origin (app.traiv.fit), where our own marketing
+        // pageview/click events never reach — without this, a visit's utm_* params die
+        // at the click and the signup has no way to know which campaign sent them.
+        // Mutating `href` synchronously here still lands before the browser navigates,
+        // including on a modified click (cmd/middle-click open the updated URL too).
+        const { utmSource, utmMedium, utmCampaign } = campaign();
+        if (utmSource || utmMedium || utmCampaign) {
+          const url = new URL(link.href);
+          if (utmSource) url.searchParams.set("utm_source", utmSource);
+          if (utmMedium) url.searchParams.set("utm_medium", utmMedium);
+          if (utmCampaign) url.searchParams.set("utm_campaign", utmCampaign);
+          link.href = url.toString();
+        }
+      }
     };
     document.addEventListener("click", onClick);
     const onScroll = () => {
@@ -74,7 +88,7 @@ export function Analytics() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("pagehide", onHide);
     };
-  }, []);
+  }, [pathname]);
 
   return null;
 }

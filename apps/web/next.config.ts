@@ -3,6 +3,17 @@ import type { NextConfig } from "next";
 const config: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "raw.githubusercontent.com",
+        pathname: "/yuhonas/free-exercise-db/main/exercises/**",
+      },
+      { protocol: "https", hostname: "r2-cdn.coachway.io", pathname: "/assets/recipes/**" },
+      { protocol: "https", hostname: "r2-cdn.coachway.io", pathname: "/uploads/**" },
+    ],
+  },
   // Both ship TypeScript source rather than a build step, so Next compiles them.
   transpilePackages: ["@traiv/ui", "@traiv/nutrition"],
 

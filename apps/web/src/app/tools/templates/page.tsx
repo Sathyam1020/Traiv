@@ -3,13 +3,14 @@ import { CopyButton } from "@/components/copy-button";
 import { CtaBand } from "@/components/cta-band";
 import { Container, PageHero, Section, SectionHeading } from "@/components/layout";
 import { CHECK_IN_FORM, INTAKE_QUESTIONS, MESSAGE_TEMPLATES } from "@/content/templates";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Templates for coaches",
   description:
     "Six client messages you can send as they are, a six-question weekly check-in, and the seven things to ask before you write anybody a plan. Free, no signup.",
   alternates: { canonical: "/tools/templates" },
-};
+});
 
 export default function TemplatesPage() {
   return (

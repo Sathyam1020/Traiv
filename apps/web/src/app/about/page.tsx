@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { ClosingCta } from "@/components/marketing-sections";
 import { ProductScene } from "@/components/product-scenes";
-export const metadata: Metadata = {
+import { pageMetadata } from "@/lib/seo";
+export const metadata: Metadata = pageMetadata({
   title: "About Traiv",
   description:
     "Traiv connects workout plans, diet plans, client check-ins and payments for personal trainers and gyms.",
   alternates: { canonical: "/about" },
-};
+});
 export default function AboutPage() {
   return (
     <>
@@ -35,8 +36,7 @@ export default function AboutPage() {
               week. Traiv gives each side a place to do their part.
             </p>
             <p>
-              Made for personal trainers and gyms, with ₹ pricing and your name and logo in
-              the app.
+              Made for personal trainers and gyms, with ₹ pricing and your name and logo in the app.
             </p>
           </div>
           <ProductScene />

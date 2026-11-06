@@ -14,7 +14,7 @@ export function Nav() {
   return (
     <header className="marketing-nav">
       <div className="marketing-nav-inner">
-        <Link href="/" aria-label="Traiv home">
+        <Link href="/" aria-label="Traiv home" className="inline-flex min-h-11 items-center">
           <Wordmark size={36} />
         </Link>
         <nav aria-label="Main navigation" className="desktop-links">

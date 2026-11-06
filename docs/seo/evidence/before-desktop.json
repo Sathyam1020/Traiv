@@ -1,0 +1,132 @@
+{
+  "lighthouseVersion": "13.6.0",
+  "fetchTime": "2026-11-06T16:54:39.004Z",
+  "requestedUrl": "http://localhost:3104/",
+  "configSettings": {
+    "output": [
+      "json"
+    ],
+    "maxWaitForFcp": 30000,
+    "maxWaitForLoad": 45000,
+    "pauseAfterFcpMs": 1000,
+    "pauseAfterLoadMs": 1000,
+    "networkQuietThresholdMs": 1000,
+    "cpuQuietThresholdMs": 1000,
+    "formFactor": "desktop",
+    "throttling": {
+      "rttMs": 40,
+      "throughputKbps": 10240,
+      "requestLatencyMs": 0,
+      "downloadThroughputKbps": 0,
+      "uploadThroughputKbps": 0,
+      "cpuSlowdownMultiplier": 1
+    },
+    "throttlingMethod": "simulate",
+    "screenEmulation": {
+      "mobile": false,
+      "width": 1350,
+      "height": 940,
+      "deviceScaleFactor": 1,
+      "disabled": false
+    },
+    "emulatedUserAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/136.0.0.0 Safari/537.36",
+    "auditMode": false,
+    "gatherMode": false,
+    "clearStorageTypes": [
+      "file_systems",
+      "shader_cache",
+      "service_workers",
+      "cache_storage"
+    ],
+    "disableStorageReset": false,
+    "debugNavigation": false,
+    "channel": "cli",
+    "usePassiveGathering": false,
+    "disableFullPageScreenshot": false,
+    "skipAboutBlank": false,
+    "blankPage": "about:blank",
+    "ignoreStatusCode": false,
+    "locale": "en-US",
+    "blockedUrlPatterns": null,
+    "additionalTraceCategories": null,
+    "extraHeaders": null,
+    "precomputedLanternData": null,
+    "onlyAudits": null,
+    "onlyCategories": null,
+    "skipAudits": null
+  },
+  "categories": {
+    "performance": 1,
+    "accessibility": 0.91,
+    "best-practices": 0.96,
+    "seo": 1,
+    "agentic-browsing": 0.5
+  },
+  "metrics": {
+    "first-contentful-paint": 323.9193,
+    "largest-contentful-paint": 323.9193,
+    "speed-index": 323.9193,
+    "total-blocking-time": 0,
+    "cumulative-layout-shift": 0,
+    "total-byte-weight": 2432128,
+    "server-response-time": 7
+  },
+  "resources": {
+    "Document": {
+      "requests": 1,
+      "transferBytes": 29116,
+      "decodedBytes": 225588
+    },
+    "Script": {
+      "requests": 17,
+      "transferBytes": 253384,
+      "decodedBytes": 863957
+    },
+    "Stylesheet": {
+      "requests": 3,
+      "transferBytes": 44462,
+      "decodedBytes": 282751
+    },
+    "Image": {
+      "requests": 5,
+      "transferBytes": 2008557,
+      "decodedBytes": 2004647
+    },
+    "Font": {
+      "requests": 2,
+      "transferBytes": 55772,
+      "decodedBytes": 55172
+    }
+  },
+  "networkRequests": 40,
+  "failedAudits": [
+    {
+      "id": "errors-in-console",
+      "title": "Browser errors were logged to the console"
+    },
+    {
+      "id": "color-contrast",
+      "title": "Background and foreground colors do not have a sufficient contrast ratio."
+    },
+    {
+      "id": "heading-order",
+      "title": "Heading elements are not in a sequentially-descending order"
+    },
+    {
+      "id": "link-in-text-block",
+      "title": "Links rely on color to be distinguishable."
+    },
+    {
+      "id": "agent-accessibility-tree",
+      "title": "Accessibility tree is not well-formed"
+    },
+    {
+      "id": "network-dependency-tree-insight",
+      "title": "Network dependency tree"
+    },
+    {
+      "id": "render-blocking-insight",
+      "title": "Render-blocking requests"
+    }
+  ]
+}

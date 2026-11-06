@@ -38,6 +38,10 @@ export function PricingCards() {
 }
 export const HOME_FAQ = [
   [
+    "What is Traiv?",
+    "Traiv is fitness coaching software for personal trainers and gyms. Trainers create workout and diet plans, review client check-ins and share resources; clients follow their plans and log progress from their phone.",
+  ],
+  [
     "Do my clients need to download an app?",
     "Traiv works in the browser on Android and iPhone. Clients can add it to their home screen. There is no app store download.",
   ],

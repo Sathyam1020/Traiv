@@ -11,6 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  robots: { index: false, follow: false },
   title: "Traiv Endorsers",
   description: "Refer coaches, track what you have brought in.",
 };

@@ -92,7 +92,10 @@ export type FullPost = PostCard & {
  */
 export async function getPosts(): Promise<PostCard[]> {
   try {
-    const res = await fetch(`${API_BASE}/m/blog`, { next: { revalidate: 60 } });
+    const res = await fetch(`${API_BASE}/m/blog`, {
+      next: { revalidate: 60 },
+      signal: AbortSignal.timeout(8000),
+    });
     if (!res.ok) return [];
     const body = (await res.json()) as { posts: PostCard[] };
     return body.posts;
@@ -105,14 +108,14 @@ export async function getPosts(): Promise<PostCard[]> {
 }
 
 export async function getPost(slug: string): Promise<FullPost | null> {
-  try {
-    const res = await fetch(`${API_BASE}/m/blog/${encodeURIComponent(slug)}`, {
-      next: { revalidate: 60 },
-    });
-    if (!res.ok) return null;
-    const body = (await res.json()) as { post: FullPost };
-    return body.post;
-  } catch {
-    return null;
-  }
+  const res = await fetch(`${API_BASE}/m/blog/${encodeURIComponent(slug)}`, {
+    next: { revalidate: 60 },
+    signal: AbortSignal.timeout(8000),
+  });
+  if (res.status === 404) return null;
+  // Throw so ISR retains a previous good page; an outage is not a deleted article.
+  if (!res.ok)
+    throw new ApiError(res.status, "blog_unavailable", "Article temporarily unavailable.");
+  const body = (await res.json()) as { post: FullPost };
+  return body.post;
 }

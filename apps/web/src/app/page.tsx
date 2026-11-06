@@ -2,18 +2,31 @@ import { ArrowUpRight, Play } from "@traiv/ui/icons";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { CustomerStories } from "@/components/customer-stories";
-import { ClosingCta, MarketingFaq, PricingCards } from "@/components/marketing-sections";
+import { ClosingCta, HOME_FAQ, MarketingFaq, PricingCards } from "@/components/marketing-sections";
 import { ProductScene } from "@/components/product-scenes";
+import { JsonLd } from "@/components/seo-schema";
 import { TrialLink } from "@/components/trial-link";
-export const metadata: Metadata = {
+import { pageMetadata } from "@/lib/seo";
+export const metadata: Metadata = pageMetadata({
   title: "Coaching app for personal trainers and gyms",
   description:
     "Build workout and diet plans, review check-ins and collect client fees in Traiv. Your name and logo in the app. From ₹999/month. Start your 14-day free trial.",
   alternates: { canonical: "/" },
-};
+});
 export default function HomePage() {
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: HOME_FAQ.map(([question, answer]) => ({
+            "@type": "Question",
+            name: question,
+            acceptedAnswer: { "@type": "Answer", text: answer },
+          })),
+        }}
+      />
       <section className="marketing-hero">
         <div className="traiv-content-wrap hero-layout">
           <div className="hero-copy">

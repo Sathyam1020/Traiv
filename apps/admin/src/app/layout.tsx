@@ -10,7 +10,11 @@ const inter = Inter({
   display: "swap",
 });
 
-export const metadata: Metadata = { title: "Traiv Admin", description: "Platform overview." };
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+  title: "Traiv Admin",
+  description: "Platform overview.",
+};
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (

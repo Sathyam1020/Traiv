@@ -1,11 +1,11 @@
 import {
-  Dumbbell,
-  Utensils,
   ClipboardList,
-  Smartphone,
-  MessageSquareText,
   CreditCard,
+  Dumbbell,
   Folder,
+  MessageSquareText,
+  Smartphone,
+  Utensils,
 } from "@traiv/ui/icons";
 import type { ComponentType } from "react";
 export type Feature = {
@@ -128,9 +128,20 @@ export const FEATURES: readonly Feature[] = [
     blurb: "Keep the conversation with the coaching",
     icon: MessageSquareText,
     headline: "A conversation with context.",
-    body: "Talk to clients in Traiv, alongside the plans and progress you review.",
+    body: "Message your clients in Traiv, next to the plans and check-ins you already review. A completed workout or check-in shows up in the thread on its own, so you're not re-explaining what just happened.",
     points: [
-      { title: "One place to talk", body: "Clients and trainers can send messages in Traiv." },
+      {
+        title: "One thread per client",
+        body: "No separate app — you and your client message each other directly in Traiv.",
+      },
+      {
+        title: "Nothing gets missed",
+        body: "Read receipts and an unread count show what you still owe a reply.",
+      },
+      {
+        title: "Activity posts itself",
+        body: "A finished workout or check-in appears in the thread automatically, right where the conversation already is.",
+      },
     ],
   },
   {
@@ -141,10 +152,13 @@ export const FEATURES: readonly Feature[] = [
     headline: "Share the resources behind your coaching.",
     body: "Keep files and links in your vault, then assign them to clients.",
     points: [
-      { title: "Your resource library", body: "Upload files or save links for future use." },
+      {
+        title: "Your resource library",
+        body: "Upload images, videos, documents and files, or save a link instead of the file itself.",
+      },
       {
         title: "Share with clients",
-        body: "Clients can open the resources assigned to them in Traiv.",
+        body: "Clients see their assigned resources sorted into Documents, Images, Videos and more, and can search by name.",
       },
     ],
   },
@@ -152,4 +166,25 @@ export const FEATURES: readonly Feature[] = [
 export const NAV_FEATURES = FEATURES.slice(0, 5);
 export function featureBySlug(slug: string) {
   return FEATURES.find((f) => f.slug === slug);
+}
+
+/** Publication gate: useful distinct copy and a feature verified in the repository. */
+export function featureIsIndexable(feature: Feature): boolean {
+  const verified = [
+    "today",
+    "plan-builder",
+    "nutrition",
+    "check-ins",
+    "client-app",
+    "messaging",
+    "vault",
+  ];
+  const copy = [feature.body, ...feature.points.map((point) => point.body)].join(" ");
+  return (
+    verified.includes(feature.slug) &&
+    feature.status !== "building" &&
+    feature.points.length >= 2 &&
+    copy.length >= 200 &&
+    FEATURES.filter((other) => other.headline === feature.headline).length === 1
+  );
 }

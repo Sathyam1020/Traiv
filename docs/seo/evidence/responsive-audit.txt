@@ -1,0 +1,49 @@
+$ node scripts/responsive-audit.mjs 360 1280
+
+── 360px (touch) ──
+✓ /
+✓ /pricing
+✓ /features
+✓ /features/plan-builder
+✓ /compare
+✓ /compare/trainerize
+✓ /tools
+✓ /tools/calorie-calculator
+✓ /tools/income-calculator
+✓ /tools/pricing-calculator
+✓ /tools/templates
+✓ /blog
+✓ /coaches
+✓ /about
+✓ /partnership
+✓ /affiliate
+✓ /demo
+✓ /legal/terms
+✓ /legal/privacy
+✓ /legal/refund
+✓ /this-route-does-not-exist
+
+── 1280px (mouse) ──
+✓ /
+✓ /pricing
+✓ /features
+✓ /features/plan-builder
+✓ /compare
+✓ /compare/trainerize
+✓ /tools
+✓ /tools/calorie-calculator
+✓ /tools/income-calculator
+✓ /tools/pricing-calculator
+✓ /tools/templates
+✓ /blog
+✓ /coaches
+✓ /about
+✓ /partnership
+✓ /affiliate
+✓ /demo
+✓ /legal/terms
+✓ /legal/privacy
+✓ /legal/refund
+✓ /this-route-does-not-exist
+
+clean

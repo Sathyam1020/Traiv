@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import { CalorieCalculator } from "@/components/calorie-calculator";
 import { CtaBand } from "@/components/cta-band";
 import { Container, PageHero, Section, SectionHeading } from "@/components/layout";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Calorie and macro calculator",
   description:
     "Work out calories and macros with Mifflin-St Jeor, with the working shown. Free, no signup, and it is the same calculation Traiv uses for a real client.",
   alternates: { canonical: "/tools/calorie-calculator" },
-};
+});
 
 export default function CalorieCalculatorPage() {
   return (

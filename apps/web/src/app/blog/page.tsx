@@ -4,13 +4,14 @@ import { CtaBand } from "@/components/cta-band";
 import { Container, PageHero, Section } from "@/components/layout";
 import { getPosts } from "@/lib/api";
 import { formatDate } from "@/lib/format-date";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Blog",
   description:
     "What we are learning building coaching software — pricing, retention, nutrition, and what coaches here actually need.",
   alternates: { canonical: "/blog" },
-};
+});
 
 /**
  * Written in the admin app, not in this repo.

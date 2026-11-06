@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import { ClosingCta } from "@/components/marketing-sections";
 import { ProductScene } from "@/components/product-scenes";
 import { TrialLink } from "@/components/trial-link";
-export const metadata: Metadata = {
+import { pageMetadata } from "@/lib/seo";
+export const metadata: Metadata = pageMetadata({
   title: "For personal trainers",
   description:
     "Build workout and diet plans, review client check-ins and collect coaching fees in Traiv. ₹999/month for one trainer.",
   alternates: { canonical: "/coaches" },
-};
+});
 export default function CoachesPage() {
   return (
     <>

@@ -8,6 +8,7 @@ import { Footer } from "@/components/footer";
 import { Nav } from "@/components/nav";
 import { StructuredData } from "@/components/structured-data";
 import { SITE } from "@/content/site";
+import { isPreview } from "@/lib/seo";
 
 const font = DM_Sans({
   subsets: ["latin"],
@@ -40,16 +41,21 @@ export const metadata: Metadata = {
     ],
   },
   twitter: { card: "summary_large_image", images: ["/og.png"] },
-  robots: { index: true, follow: true },
+  robots: { index: !isPreview, follow: !isPreview },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en-IN" className={`${font.variable} traiv-marketing`}>
       <body className="bg-canvas">
+        <a href="#main-content" className="sr-only focus:not-sr-only">
+          Skip to content
+        </a>
         <Nav />
         {/* The capsule header floats over the page, so content starts below it. */}
-        <main className="pt-20 sm:pt-24">{children}</main>
+        <main id="main-content" tabIndex={-1} className="pt-20 sm:pt-24">
+          {children}
+        </main>
         <Footer />
         <Toaster theme="light" />
         <StructuredData />

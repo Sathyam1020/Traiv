@@ -38,11 +38,16 @@ export const COACHWAY: PerClientPlan = {
   includes: 5,
   perExtra: 9,
   source: "https://coachway.io/pricing",
-  checked: "2026-10-08",
+  checked: "2026-11-06",
 };
 
-/** Indicative only, and labelled as such wherever it is shown. */
-export const EUR_TO_INR = 92;
+/**
+ * Indicative only, and labelled as such wherever it is shown.
+ *
+ * Read off xe.com's mid-market rate on 2026-11-06 (€1 = ₹104.95) and rounded — a currency
+ * chart is not the place for five significant figures that will be wrong again tomorrow.
+ */
+export const EUR_TO_INR = 105;
 
 export function coachwayMonthly(clients: number): number {
   const extra = Math.max(0, clients - COACHWAY.includes);
@@ -53,48 +58,3 @@ export function coachwayMonthly(clients: number): number {
 export function traivMonthly(_clients: number): number {
   return 999;
 }
-
-export type Charge = {
-  what: string;
-  who: string;
-  amount: string;
-  source: string;
-  checked: string;
-};
-
-/**
- * The charges that are not the subscription.
- *
- * These are the ones coaches find out about in month three, which is why they are on the
- * page in month zero.
- */
-export const EXTRA_CHARGES: readonly Charge[] = [
-  {
-    what: "Nutrition, as a separate add-on",
-    who: "Trainerize",
-    amount: "$45 / month",
-    source: ".ai/product/positioning.md",
-    checked: "2026-09-11",
-  },
-  {
-    what: "A cut of what your clients pay you",
-    who: "TrueCoach",
-    amount: "5% of revenue",
-    source: ".ai/product/positioning.md",
-    checked: "2026-09-11",
-  },
-  {
-    what: "Putting your own name on the app",
-    who: "Trainerize",
-    amount: "$169 once",
-    source: ".ai/product/positioning.md",
-    checked: "2026-09-11",
-  },
-  {
-    what: "Putting your own name on the app",
-    who: "FitBudd",
-    amount: "$75 once",
-    source: ".ai/product/positioning.md",
-    checked: "2026-09-11",
-  },
-];

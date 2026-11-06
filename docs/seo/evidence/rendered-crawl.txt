@@ -1,0 +1,37 @@
+$ node scripts/seo-audit.mjs
+PASS /
+PASS /pricing
+PASS /gyms
+PASS /features
+PASS /features/today
+PASS /features/plan-builder
+PASS /features/nutrition
+PASS /features/check-ins
+PASS /features/client-app
+PASS /features/messaging
+PASS /features/vault
+PASS /compare
+PASS /compare/trainerize
+PASS /compare/fitbudd
+PASS /compare/everfit
+PASS /compare/truecoach
+PASS /compare/coachway
+PASS /tools
+PASS /tools/calorie-calculator
+PASS /tools/income-calculator
+PASS /tools/pricing-calculator
+PASS /tools/templates
+PASS /blog
+PASS /blog/pricing-your-coaching
+PASS /blog/why-clients-quit
+PASS /blog/first-ten-clients
+PASS /coaches
+PASS /about
+PASS /partnership
+PASS /affiliate
+PASS /demo
+PASS /legal/terms (noindex)
+PASS /legal/privacy (noindex)
+PASS /legal/refund (noindex)
+PASS /features/payments (noindex)
+35 rendered routes checked; 0 failures.

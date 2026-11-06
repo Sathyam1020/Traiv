@@ -7,7 +7,7 @@ export function Footer() {
       <div className="traiv-content-wrap">
         <div className="footer-main">
           <div>
-            <Link href="/" aria-label="Traiv home">
+            <Link href="/" aria-label="Traiv home" className="inline-flex min-h-11 items-center">
               <Wordmark size={38} />
             </Link>
             <p>

@@ -33,7 +33,8 @@ const MAX_BATCH = 20;
 let queue: Payload[] = [];
 let timer: ReturnType<typeof setTimeout> | undefined;
 
-function campaign() {
+/** Also used by `components/analytics.tsx` to carry the visit's campaign onto the signup link. */
+export function campaign() {
   if (typeof window === "undefined") return {};
   const q = new URLSearchParams(window.location.search);
   const pick = (k: string) => q.get(k) ?? undefined;

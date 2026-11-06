@@ -28,6 +28,7 @@ import {
   Star,
   User,
 } from "@traiv/ui/icons";
+import Image from "next/image";
 import { ClientDemo } from "./client-demo";
 import { demoExercises, demoRecipes } from "./demo-media";
 export type ProductSceneKind =
@@ -158,7 +159,10 @@ function Review() {
           </div>
           <div className="replica-response-grid">
             <section className="replica-responses">
-              <h4>Responses</h4>
+              {/* A styled label, not a real heading — this whole mock is already one
+                  `role="img"` with its own aria-label above, so a nested <h4> only adds
+                  a false skip to the page's real heading order. */}
+              <p className="replica-responses-heading">Responses</p>
               <div>
                 <strong>What was your biggest win last week?</strong>
                 <p>I completed all three workouts.</p>
@@ -245,7 +249,14 @@ function BuilderStack() {
             </div>
             {demoExercises.map((e) => (
               <div className="replica-library-exercise" key={e.name}>
-                <img src={e.image} alt="" loading="lazy" />
+                <Image
+                  width={400}
+                  height={300}
+                  sizes="(max-width: 600px) 160px, 240px"
+                  src={e.image}
+                  alt=""
+                  loading="lazy"
+                />
                 <span>
                   {e.name}
                   <small>{e.muscle} · dumbbell</small>
@@ -265,7 +276,14 @@ function BuilderStack() {
             {demoExercises.map((e) => (
               <div className="replica-exercise-row" key={e.name}>
                 <ChevronRight size={10} />
-                <img src={e.image} alt="" loading="lazy" />
+                <Image
+                  width={400}
+                  height={300}
+                  sizes="(max-width: 600px) 160px, 240px"
+                  src={e.image}
+                  alt=""
+                  loading="lazy"
+                />
                 <div>
                   <strong>{e.name}</strong>
                   <small>Add note</small>
@@ -319,7 +337,14 @@ function BuilderStack() {
         <div className="replica-recipe-options">
           {demoRecipes.map((r) => (
             <article key={r.name}>
-              <img src={r.image} alt={r.name} loading="lazy" />
+              <Image
+                width={400}
+                height={300}
+                sizes="(max-width: 600px) 160px, 240px"
+                src={r.image}
+                alt={r.name}
+                loading="lazy"
+              />
               <div>
                 <strong>{r.name}</strong>
                 <span>{r.kcal} kcal</span>
@@ -336,7 +361,11 @@ function BuilderStack() {
 }
 function Payments() {
   return (
-    <div className="demo-window payment-window">
+    <div
+      className="demo-window payment-window"
+      role="img"
+      aria-label="Traiv client payment preview showing Rohan Mehta's ₹3,000 November coaching fee, collected through Razorpay."
+    >
       <div className="demo-window-top">
         <Logo size={19} />
         <span>Client fees</span>

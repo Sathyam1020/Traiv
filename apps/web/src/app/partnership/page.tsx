@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import { CtaBand } from "@/components/cta-band";
 import { Container, PageHero, Section, SectionHeading } from "@/components/layout";
 import { NotifyMe } from "@/components/notify-me";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Partnership",
   description:
     "For certification academies, gyms and studios whose coaches need software. What we offer, what we ask, and who it suits.",
   alternates: { canonical: "/partnership" },
-};
+});
 
 const PARTNERS = [
   {

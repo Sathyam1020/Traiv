@@ -4,8 +4,11 @@ import { notFound } from "next/navigation";
 import { CtaBand } from "@/components/cta-band";
 import { Container, PageHero, Section } from "@/components/layout";
 import { PostBody } from "@/components/post-body";
+import { Breadcrumbs, JsonLd } from "@/components/seo-schema";
+import { SITE } from "@/content/site";
 import { getPost, getPosts } from "@/lib/api";
 import { formatDate } from "@/lib/format-date";
+import { pageMetadata } from "@/lib/seo";
 
 type Params = { params: Promise<{ slug: string }> };
 
@@ -26,7 +29,7 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
   const post = await getPost((await params).slug);
   if (!post) return {};
-  return {
+  return pageMetadata({
     title: post.seoTitle ?? post.title,
     description: post.seoDescription ?? post.excerpt,
     alternates: { canonical: `/blog/${post.slug}` },
@@ -37,7 +40,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
       publishedTime: post.publishedAt,
       ...(post.coverUrl ? { images: [post.coverUrl] } : {}),
     },
-  };
+  });
 }
 
 export default async function PostPage({ params }: Params) {
@@ -49,6 +52,26 @@ export default async function PostPage({ params }: Params) {
 
   return (
     <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "BlogPosting",
+          "@id": `${SITE.url}/blog/${post.slug}#article`,
+          headline: post.title,
+          description: post.excerpt,
+          datePublished: post.publishedAt,
+          author: { "@type": "Person", name: post.authorName },
+          publisher: { "@id": `${SITE.url}/#organization` },
+          mainEntityOfPage: `${SITE.url}/blog/${post.slug}`,
+          ...(post.coverUrl ? { image: post.coverUrl } : {}),
+        }}
+      />
+      <Breadcrumbs
+        items={[
+          { name: "Blog", path: "/blog" },
+          { name: post.title, path: `/blog/${post.slug}` },
+        ]}
+      />
       <PageHero title={post.title} lede={post.excerpt} width="prose">
         <p className="text-caption text-fg-subtle">
           {post.authorName} · {formatDate(post.publishedAt)} · {post.readMinutes} minute read
