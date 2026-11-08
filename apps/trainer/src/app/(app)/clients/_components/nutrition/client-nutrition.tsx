@@ -1,43 +1,42 @@
 "use client";
-import { ClientFoodTools } from "./client-food-tools";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef, useState } from "react";
 import { Button } from "@traiv/ui/components/button";
 import { Input } from "@traiv/ui/components/input";
 import {
   Select,
-  SelectTrigger,
   SelectContent,
   SelectItem,
+  SelectTrigger,
   SelectValue,
 } from "@traiv/ui/components/select";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetDescription,
 } from "@traiv/ui/components/sheet";
-import { Carbs, Copy, Fat, Plus, Protein, Salad, ArrowLeft } from "@traiv/ui/icons";
+import { ArrowLeft, Carbs, Copy, Fat, Plus, Protein, Salad } from "@traiv/ui/icons";
+import { useRef, useState } from "react";
+import type { EnergyCard } from "@/lib/api";
 import {
-  mealPlansApi,
   type MealPlan,
+  mealPlansApi,
   type PlanDocument,
   type PlanSettings,
 } from "@/lib/api/meal-plans";
-import type { EnergyCard } from "@/lib/api";
+import {
+  Field,
+  LibraryError,
+  LibraryLoading,
+  Pagination,
+  Pick,
+} from "../../../nutrition/_components/controls";
 import { PlanBuilder } from "../../../nutrition/mealplans/_components/plan-builder";
 import {
   emptyMealPlan,
   PlanSettingsSheet,
 } from "../../../nutrition/mealplans/_components/plan-settings";
-import {
-  Field,
-  Pick,
-  LibraryLoading,
-  LibraryError,
-  Pagination,
-} from "../../../nutrition/_components/controls";
 
 type Template = PlanSettings & { id: string };
 export function ClientNutrition({
@@ -85,7 +84,6 @@ export function ClientNutrition({
   };
   return (
     <div className="flex min-w-0 flex-1 flex-col">
-      <ClientFoodTools studio={studio} clientId={clientId} />
       {error ? (
         <p role="alert" className="px-6 py-3 text-body-sm text-danger">
           {error}
@@ -100,45 +98,43 @@ export function ClientNutrition({
           <LibraryError retry={() => plans.refetch()} />
         </div>
       ) : active ? (
-        <>
-          <PlanBuilder
-            key={active.id}
-            plan={active}
-            studioId={studio}
-            embedded
-            planSelector={
-              <Select value={active.id} onValueChange={setSelected}>
-                <SelectTrigger aria-label="Client meal plan">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {(plans.data ?? []).map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.document.settings.name} ·{" "}
-                      {p.published ? (p.hasChanges ? "Local changes" : "Live") : "Draft"}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+        <PlanBuilder
+          key={active.id}
+          plan={active}
+          studioId={studio}
+          embedded
+          planSelector={
+            <Select value={active.id} onValueChange={setSelected}>
+              <SelectTrigger aria-label="Client meal plan">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(plans.data ?? []).map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.document.settings.name} ·{" "}
+                    {p.published ? (p.hasChanges ? "Local changes" : "Live") : "Draft"}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          }
+          onCreate={create}
+          onCopy={() => {
+            setError("");
+            setCopying(true);
+          }}
+          onSaved={adopt}
+          onArchive={async () => {
+            setError("");
+            try {
+              await mealPlansApi.archive(studio, active.id, active.updatedAt);
+              setSelected(null);
+              await plans.refetch();
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Couldn't archive the plan.");
             }
-            onCreate={create}
-            onCopy={() => {
-              setError("");
-              setCopying(true);
-            }}
-            onSaved={adopt}
-            onArchive={async () => {
-              setError("");
-              try {
-                await mealPlansApi.archive(studio, active.id, active.updatedAt);
-                setSelected(null);
-                await plans.refetch();
-              } catch (e) {
-                setError(e instanceof Error ? e.message : "Couldn't archive the plan.");
-              }
-            }}
-          />
-        </>
+          }}
+        />
       ) : (
         <div className="flex min-h-96 flex-1 flex-col items-center justify-center gap-4 px-6 py-16 text-center">
           <Salad className="size-14 text-fg-subtle" />
