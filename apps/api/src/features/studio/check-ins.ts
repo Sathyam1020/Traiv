@@ -42,7 +42,40 @@ export type Day = string;
 
 const MS_DAY = 86_400_000;
 
-export const today = (): Day => new Date().toISOString().slice(0, 10);
+/**
+ * "Today," in a specific place — never the server's own clock. A server running in UTC
+ * and a studio running in IST disagree about the date for five and a half hours out of
+ * every twenty-four, and that gap is exactly what used to make a check-in overdue in
+ * the morning and upcoming again by evening. Every caller resolves a timezone (the
+ * studio's, by default `Asia/Kolkata`) and passes it in explicitly — see
+ * `timeZoneForStudio`/`timeZoneForClient` below — rather than this function quietly
+ * guessing one.
+ */
+export const today = (timeZone: string): Day =>
+  new Date().toLocaleDateString("en-CA", { timeZone });
+
+const DEFAULT_TIME_ZONE = "Asia/Kolkata";
+
+/** The studio's own notion of "today" — a coach's weekday means a day in their calendar. */
+async function timeZoneForStudio(studioId: string): Promise<string> {
+  const [row] = await db
+    .select({ timezone: schema.studios.timezone })
+    .from(schema.studios)
+    .where(eq(schema.studios.id, studioId))
+    .limit(1);
+  return row?.timezone ?? DEFAULT_TIME_ZONE;
+}
+
+/** Same as `timeZoneForStudio`, resolved through the client's own studio. */
+export async function timeZoneForClient(clientId: string): Promise<string> {
+  const [row] = await db
+    .select({ timezone: schema.studios.timezone })
+    .from(schema.clients)
+    .innerJoin(schema.studios, eq(schema.studios.id, schema.clients.studioId))
+    .where(eq(schema.clients.id, clientId))
+    .limit(1);
+  return row?.timezone ?? DEFAULT_TIME_ZONE;
+}
 
 export function addDays(day: Day, n: number): Day {
   const d = new Date(`${day}T00:00:00Z`);
@@ -72,7 +105,7 @@ export function nextWeekdayAfter(from: Day, weekday: number): Day {
  */
 export function checkInState(
   row: { dueOn: Day; closesOn: Day; status: "pending" | "completed" },
-  now: Day = today(),
+  now: Day,
 ): CheckInState {
   if (row.status === "completed") return "completed";
   if (now < row.dueOn) return "upcoming";
@@ -111,7 +144,7 @@ function scheduleFor(client: {
  * what makes a schedule change safe: a client whose cadence moves keeps every check-in
  * they already completed, and keeps the closing dates those were judged against.
  */
-export async function ensureCheckIns(clientId: string, now: Day = today()): Promise<number> {
+export async function ensureCheckIns(clientId: string, now?: Day): Promise<number> {
   const [row] = await db
     .select({
       id: schema.clients.id,
@@ -122,6 +155,7 @@ export async function ensureCheckIns(clientId: string, now: Day = today()): Prom
       checkInsEnabled: schema.clients.checkInsEnabled,
       studioWeekday: schema.studios.checkInWeekday,
       studioGraceDays: schema.studios.checkInGraceDays,
+      timezone: schema.studios.timezone,
     })
     .from(schema.clients)
     .innerJoin(schema.studios, eq(schema.studios.id, schema.clients.studioId))
@@ -135,6 +169,8 @@ export async function ensureCheckIns(clientId: string, now: Day = today()): Prom
   const schedule = scheduleFor(row);
   if (!schedule.enabled || row.status !== "active") return 0;
 
+  const effectiveNow = now ?? today(row.timezone);
+
   const [last] = await db
     .select({ dueOn: schema.checkIns.dueOn })
     .from(schema.checkIns)
@@ -142,12 +178,13 @@ export async function ensureCheckIns(clientId: string, now: Day = today()): Prom
     .orderBy(desc(schema.checkIns.dueOn))
     .limit(1);
 
-  // Start from the last scheduled date, or from the day they joined. Never before
-  // they joined — backfilling misses for a relationship that did not exist yet would
-  // open every new client's first screen on a wall of red.
-  const joined = (row.startedAt as Date).toISOString().slice(0, 10);
+  // Start from the last scheduled date, or from the day they joined — in the studio's
+  // own timezone, the same one the weekday itself is measured in, not the server's.
+  // Never before they joined — backfilling misses for a relationship that did not
+  // exist yet would open every new client's first screen on a wall of red.
+  const joined = (row.startedAt as Date).toLocaleDateString("en-CA", { timeZone: row.timezone });
   const from = last?.dueOn && last.dueOn > joined ? last.dueOn : addDays(joined, -1);
-  const horizon = addDays(now, HORIZON_DAYS);
+  const horizon = addDays(effectiveNow, HORIZON_DAYS);
 
   const rows: (typeof schema.checkIns.$inferInsert)[] = [];
   let due = nextWeekdayAfter(from, schedule.weekday);
@@ -167,7 +204,8 @@ export async function ensureCheckIns(clientId: string, now: Day = today()): Prom
 }
 
 /** Every active client in a studio. The hook for a cron, and for tests. */
-export async function ensureStudioCheckIns(studioId: string, now: Day = today()) {
+export async function ensureStudioCheckIns(studioId: string, now?: Day) {
+  const effectiveNow = now ?? today(await timeZoneForStudio(studioId));
   const clients = await db
     .select({ id: schema.clients.id })
     .from(schema.clients)
@@ -181,7 +219,7 @@ export async function ensureStudioCheckIns(studioId: string, now: Day = today())
     );
 
   let made = 0;
-  for (const c of clients) made += await ensureCheckIns(c.id, now);
+  for (const c of clients) made += await ensureCheckIns(c.id, effectiveNow);
   return { clients: clients.length, created: made };
 }
 
@@ -197,7 +235,8 @@ export async function ensureStudioCheckIns(studioId: string, now: Day = today())
  * reads as failure for someone who has done nothing wrong. Overdue is excluded for the
  * same reason — there is still time.
  */
-export async function checkInTrend(clientId: string, now: Day = today()) {
+export async function checkInTrend(clientId: string, providedNow?: Day) {
+  const now = providedNow ?? today(await timeZoneForClient(clientId));
   // The most recent fifteen up to the horizon — so the grid shows what just happened
   // and the next few that are coming, rather than a fixed span mostly full of blanks.
   const rows = (
@@ -284,7 +323,8 @@ async function currentStreak(clientId: string, now: Day): Promise<number> {
 }
 
 /** One check-in with its answers, for the panel a coach opens. */
-export async function getCheckIn(studioId: string, checkInId: string, now: Day = today()) {
+export async function getCheckIn(studioId: string, checkInId: string, providedNow?: Day) {
+  const now = providedNow ?? today(await timeZoneForStudio(studioId));
   const [row] = await db
     .select({
       id: schema.checkIns.id,
@@ -350,8 +390,9 @@ export async function submitCheckIn(
   studioId: string,
   checkInId: string,
   answers: AnswerInput[],
-  now: Day = today(),
+  providedNow?: Day,
 ) {
+  const now = providedNow ?? today(await timeZoneForStudio(studioId));
   const [row] = await db
     .select({
       id: schema.checkIns.id,

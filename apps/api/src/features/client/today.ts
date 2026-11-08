@@ -1,7 +1,13 @@
 import { schema } from "@traiv/db";
 import { and, asc, desc, eq, gte, isNotNull, isNull, lte } from "drizzle-orm";
 import { db } from "../../db.js";
-import { checkInState, type Day, ensureCheckIns, today } from "../studio/check-ins.js";
+import {
+  checkInState,
+  type Day,
+  ensureCheckIns,
+  timeZoneForClient,
+  today,
+} from "../studio/check-ins.js";
 
 /**
  * Everything the client's home screen needs, in one request.
@@ -24,7 +30,8 @@ export type TodayPayload = Awaited<ReturnType<typeof getToday>>;
  * id *within* a studio, so the id is the scope. Taking the studio again would invite a
  * caller to pass one that disagrees with it.
  */
-export async function getToday(clientId: string, userId: string | null, now: Day = today()) {
+export async function getToday(clientId: string, userId: string | null, providedNow?: Day) {
+  const now = providedNow ?? today(await timeZoneForClient(clientId));
   // Idempotent, and cheap when there is nothing to add. Keeping it on the read means a
   // client who signed up between cron runs still has a check-in to do, and the horizon
   // never runs dry because a scheduled job was quietly failing.

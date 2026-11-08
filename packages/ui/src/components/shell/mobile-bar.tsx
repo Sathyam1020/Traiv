@@ -14,7 +14,7 @@ const SPRING = { type: "spring", mass: 1, stiffness: 90, damping: 14 } as const;
 const GLASS_SPRING = { type: "spring", mass: 0.55, stiffness: 500, damping: 32 } as const;
 
 /**
- * Navigation below `lg` — a floating glass capsule, the iOS 26 tab bar.
+ * Navigation below `lg` — a floating glass capsule, close to the bottom edge.
  *
  * This is the one place in the product where a translucent blurred surface is allowed.
  * `ui-principles.md` bans glassmorphism as decoration; here it is functional: the bar
@@ -25,6 +25,11 @@ const GLASS_SPRING = { type: "spring", mass: 0.55, stiffness: 500, damping: 32 }
  * unambiguous, and dropping the labels is what lets the bar shrink to something that
  * floats rather than spans — the shape Apple's own tab bar takes. The label survives as
  * `aria-label`, so the bar reads the same to a screen reader as it did with text.
+ *
+ * The gap to the bottom edge is intentionally tight — just the home-indicator inset plus
+ * a few px, not a full visible margin. A bar that floats with daylight under it reads as
+ * misplaced; sitting close to the edge is what makes "floating" read as a deliberate
+ * dock rather than a mistake.
  *
  * The selected chip is ONE element shared across tabs via `layoutId`, so Motion moves it
  * between them instead of cross-fading two separate chips — that travel is the whole
@@ -43,8 +48,14 @@ export function MobileBar({ nav, glass = false }: { nav: readonly NavItem[]; gla
 
   const bar = (
     <nav
-      // Lifts clear of the iPhone home indicator; resolves to a plain 16px elsewhere.
-      className="fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 flex justify-center px-4 lg:hidden"
+      // Tight to the bottom edge — just the home-indicator inset plus a few px, resolving
+      // to a plain ~8px elsewhere. The old 1rem+ gap was the actual bug: it read as
+      // floating in the wrong place, not as a deliberate dock.
+      className={
+        glass
+          ? "fixed inset-x-0 bottom-[calc(0.5rem+env(safe-area-inset-bottom))] z-30 flex justify-center px-4 lg:hidden"
+          : "fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 flex justify-center px-4 lg:hidden"
+      }
     >
       <div
         className={

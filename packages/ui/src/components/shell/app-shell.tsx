@@ -186,7 +186,7 @@ function Shell({
               // in the shared scroll area, including screens with their own scrollers.
               mobileGlass &&
                 reserveMobileBarSpace &&
-                "pb-[calc(6.5rem+env(safe-area-inset-bottom))] scroll-pb-[calc(6.5rem+env(safe-area-inset-bottom))] lg:pb-0 lg:scroll-pb-0",
+                "pb-[calc(6rem+env(safe-area-inset-bottom))] scroll-pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-0 lg:scroll-pb-0",
             )}
           >
             {children}

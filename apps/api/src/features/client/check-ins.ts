@@ -9,6 +9,7 @@ import {
   getCheckIn,
   listMetrics,
   submitCheckIn,
+  timeZoneForClient,
   today,
 } from "../studio/check-ins.js";
 
@@ -54,7 +55,8 @@ async function assertOwned(clientId: string, checkInId: string): Promise<void> {
  * left to right through time. The tally comes off this list rather than its own query —
  * it is the same 52 rows either way, and two queries could answer differently.
  */
-export async function listClientCheckIns(clientId: string, now: Day = today()) {
+export async function listClientCheckIns(clientId: string, providedNow?: Day) {
+  const now = providedNow ?? today(await timeZoneForClient(clientId));
   const rows = await db
     .select({
       id: schema.checkIns.id,
@@ -103,8 +105,9 @@ export async function getClientCheckIn(
   studioId: string,
   clientId: string,
   checkInId: string,
-  now: Day = today(),
+  providedNow?: Day,
 ) {
+  const now = providedNow ?? today(await timeZoneForClient(clientId));
   await assertOwned(clientId, checkInId);
 
   const [checkIn, metrics] = await Promise.all([
@@ -128,9 +131,10 @@ export async function submitClientCheckIn(
   clientId: string,
   checkInId: string,
   answers: AnswerInput[],
-  now: Day = today(),
+  providedNow?: Day,
   formVersion?: "weekly-v2",
 ) {
+  const now = providedNow ?? today(await timeZoneForClient(clientId));
   await assertOwned(clientId, checkInId);
   if (formVersion === "weekly-v2") {
     const metrics = await listMetrics(studioId);

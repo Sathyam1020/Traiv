@@ -307,7 +307,7 @@ export default function FoodPage() {
           aria-label="Quick add food"
           disabled={Boolean(stalled) || !data}
           onClick={() => setView("quick")}
-          className="pointer-events-auto flex size-[calc(3.25rem+2px)] shrink-0 items-center justify-center rounded-full border border-line bg-surface text-signal-text shadow-float disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-line-focus"
+          className="pointer-events-auto flex size-[calc(3.25rem+2px)] shrink-0 items-center justify-center rounded-full bg-surface text-signal-text shadow-float disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-line-focus"
         >
           <Zap className="size-6" />
         </button>
@@ -325,7 +325,7 @@ export default function FoodPage() {
           aria-label="Scan food barcode"
           disabled={Boolean(stalled) || !data?.permissions.barcode}
           onClick={() => setView("barcode")}
-          className="pointer-events-auto flex size-[calc(3.25rem+2px)] shrink-0 items-center justify-center rounded-full border border-line bg-surface text-signal-text shadow-float disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-line-focus"
+          className="pointer-events-auto flex size-[calc(3.25rem+2px)] shrink-0 items-center justify-center rounded-full bg-surface text-signal-text shadow-float disabled:opacity-50 focus-visible:outline-2 focus-visible:outline-line-focus"
         >
           <Barcode className="size-6" />
         </button>
