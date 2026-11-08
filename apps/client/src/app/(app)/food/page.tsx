@@ -12,6 +12,7 @@ import { Input } from "@traiv/ui/components/input";
 import { Page } from "@traiv/ui/components/shell/page";
 import { Barcode, Copy, MoreHorizontal, Plus, Salad, Trash, Zap } from "@traiv/ui/icons";
 import { notifyAction } from "@traiv/ui/lib/action-feedback";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
@@ -247,9 +248,11 @@ export default function FoodPage() {
                         }}
                       >
                         {e.snapshot?.imageUrl ? (
-                          <img
+                          <Image
                             src={e.snapshot.imageUrl}
                             alt=""
+                            width={40}
+                            height={40}
                             className="size-10 shrink-0 rounded-xl object-cover"
                           />
                         ) : (

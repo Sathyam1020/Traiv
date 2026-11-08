@@ -247,7 +247,7 @@ export function PersonalFoodEditor({
             </section>
             <h2 className="font-semibold">Category</h2>
             <section className={panel}>
-              <div className="flex gap-2 overflow-x-auto pb-2">
+              <div className="flex gap-2 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                 {categories.map((c) => (
                   <button
                     key={c}

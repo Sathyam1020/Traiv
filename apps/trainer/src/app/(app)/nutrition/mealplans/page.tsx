@@ -15,6 +15,7 @@ import { SidebarToggle } from "@traiv/ui/components/shell/page-header";
 import { StickyPageHeader } from "@traiv/ui/components/shell/sticky-page-header";
 import {
   Carbs,
+  ClipboardList,
   Copy,
   Fat,
   Flame,
@@ -24,6 +25,7 @@ import {
   Search,
   Trash,
 } from "@traiv/ui/icons";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
 import { PdfDownloadMenuItem } from "@/components/common/pdf-download-menu-item";
@@ -127,9 +129,11 @@ export default function MealPlansPage() {
               >
                 <span className="flex min-w-0 items-center gap-3 md:col-span-4">
                   {plan.coverImageUrl ? (
-                    <img
+                    <Image
                       src={plan.coverImageUrl}
                       alt=""
+                      width={44}
+                      height={44}
                       className="size-11 shrink-0 rounded-control object-cover"
                     />
                   ) : (
@@ -232,17 +236,7 @@ export default function MealPlansPage() {
           </div>
         </div>
       ) : (
-        <div className="flex flex-col items-start gap-3 py-12">
-          <p className="text-body-sm text-fg-muted">
-            {search
-              ? "No mealplans match your search."
-              : "Create a meal plan template with recipe options for each meal."}
-          </p>
-          <Button variant="outline" onClick={open}>
-            <Plus className="size-4" />
-            New meal plan
-          </Button>
-        </div>
+        <Empty filtered={Boolean(search)} onCreate={open} />
       )}
       {initial ? (
         <PlanSettingsSheet
@@ -275,5 +269,30 @@ export default function MealPlansPage() {
         />
       ) : null}
     </Page>
+  );
+}
+
+/** Same shape as the Templates page's own empty state — a dashed card, not a loose
+ * paragraph, so the two "build one thing, give it to many clients" library screens
+ * read as one family. */
+function Empty({ filtered, onCreate }: { filtered: boolean; onCreate: () => void }) {
+  return (
+    <div className="flex flex-col items-center gap-3 rounded-surface border border-line border-dashed bg-surface py-16 text-center">
+      <ClipboardList className="size-8 text-fg-subtle" />
+      <h2 className="text-subheading font-medium">
+        {filtered ? "Nothing matches" : "No meal plans yet"}
+      </h2>
+      <p className="max-w-[40ch] text-body-sm text-fg-muted">
+        {filtered
+          ? "Try a different search."
+          : "Create a meal plan template with recipe options for each meal, and give it to as many clients as you like."}
+      </p>
+      {filtered ? null : (
+        <Button variant="secondary" onClick={onCreate}>
+          <Plus className="size-4" />
+          New meal plan
+        </Button>
+      )}
+    </div>
   );
 }

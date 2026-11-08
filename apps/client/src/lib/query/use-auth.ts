@@ -1,9 +1,10 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { unregisterPush } from "@/lib/push";
 import { authApi } from "@/lib/api";
+import { unregisterPush } from "@/lib/push";
 import { queryKeys } from "./keys";
+import { idbPersister } from "./persist";
 
 export function useAuthConfig() {
   return useQuery({
@@ -48,7 +49,13 @@ export function useLogout() {
       await unregisterPush().catch(() => {});
       return authApi.logout();
     },
-    onSuccess: () => qc.clear(),
+    // The persisted IndexedDB copy is wiped directly rather than left to the throttled
+    // auto-persist of the now-empty cache: a shared device signing in as a different
+    // client before that throttle fires must not see this client's data flash first.
+    onSuccess: () => {
+      qc.clear();
+      void idbPersister.removeClient();
+    },
   });
 }
 

@@ -22,6 +22,18 @@ export const authApi = {
   updateProfile: async (input: { email?: string; name?: string }) =>
     (await http.post<{ user: User }>("/auth/profile", input)).data,
 
+  /** The phone step for an account that signed in another way (Google). */
+  phoneLinkChallenge: async (input: { phone: string }) =>
+    (await http.post<{ sent: true; transport: TransportName }>("/auth/phone/challenge", input))
+      .data,
+
+  phoneLinkVerify: async (input: { phone: string; code: string }) =>
+    (await http.post<{ user: User }>("/auth/phone/verify", input)).data,
+
+  /** Only answers when the API reports `otpRequired: false`. */
+  phoneLinkDirect: async (input: { phone: string }) =>
+    (await http.post<{ user: User }>("/auth/phone/direct", input)).data,
+
   logout: async () => (await http.post<{ ok: true }>("/auth/logout")).data,
 
   devUsers: async () => (await http.get<{ users: DevUser[] }>("/auth/dev/users")).data,

@@ -31,6 +31,9 @@ export const challengePurpose = pgEnum("challenge_purpose", [
   "login",
   "client_invite",
   "password_reset",
+  // Attaching a phone to a session that already proved itself another way (Google).
+  // Unlike "phone_verify", this never creates a user — it targets one that exists.
+  "phone_link",
 ]);
 
 /**
@@ -72,7 +75,8 @@ export const authChallenges = pgTable(
     purpose: challengePurpose().notNull(),
 
     // The challenge targets a phone or an email, and may exist before any user does —
-    // signup begins before the user row is created.
+    // signup begins before the user row is created. "phone_link" is the exception:
+    // there the user already exists (signed in via Google) and userId says which one.
     phone: text(),
     email: text(),
     userId: text().references(() => users.id, { onDelete: "cascade" }),

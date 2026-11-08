@@ -7,7 +7,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@traiv/ui/components/dropdown-menu";
-import { MoreHorizontal } from "@traiv/ui/icons";
+import { CircleSlash, MoreHorizontal, Pause, Play } from "@traiv/ui/icons";
 import { useUpdateClient } from "@/lib/query";
 
 /**
@@ -41,6 +41,7 @@ export function ClientMenu({
             update.mutate({ clientId: client.id, status: paused || ended ? "active" : "paused" })
           }
         >
+          {paused || ended ? <Play className="size-4" /> : <Pause className="size-4" />}
           {paused ? "Resume coaching" : ended ? "Start again" : "Pause coaching"}
         </DropdownMenuItem>
         {ended ? null : (
@@ -48,6 +49,7 @@ export function ClientMenu({
             variant="destructive"
             onSelect={() => update.mutate({ clientId: client.id, status: "archived" })}
           >
+            <CircleSlash className="size-4" />
             End coaching
           </DropdownMenuItem>
         )}

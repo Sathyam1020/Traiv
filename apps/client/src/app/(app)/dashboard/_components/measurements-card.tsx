@@ -2,6 +2,7 @@
 import { Button } from "@traiv/ui/components/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@traiv/ui/components/sheet";
 import { ChevronRight, Plus, Ruler } from "@traiv/ui/icons";
+import Image from "next/image";
 import { useId, useState } from "react";
 import type { Metric } from "@/lib/api";
 import { relativeDay } from "@/lib/dates";
@@ -200,12 +201,22 @@ function CompositionSheet({ studioId }: { studioId: string }) {
                       <p className="mb-2 text-xs text-fg-muted">{dateLabel(e.takenAt)}</p>
                       <div className="grid grid-cols-3 gap-2">
                         {Object.entries(e.imageUrls).map(([key, url]) => (
-                          <a key={key} href={url} target="_blank" rel="noopener noreferrer">
-                            <img
-                              src={url}
-                              alt={history.data?.fields.find((f) => f.code === key)?.name ?? key}
-                              className="aspect-[3/4] w-full rounded-xl object-cover"
-                            />
+                          <a
+                            key={key}
+                            href={url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="block"
+                          >
+                            <div className="relative aspect-[3/4] w-full overflow-hidden rounded-xl">
+                              <Image
+                                src={url}
+                                alt={history.data?.fields.find((f) => f.code === key)?.name ?? key}
+                                fill
+                                sizes="33vw"
+                                className="object-cover"
+                              />
+                            </div>
                             <span className="mt-1 block text-xs text-fg-muted">
                               {history.data?.fields.find((f) => f.code === key)?.name ?? key}
                             </span>

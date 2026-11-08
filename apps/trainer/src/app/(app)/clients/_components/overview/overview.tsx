@@ -5,6 +5,7 @@ import { Badge } from "@traiv/ui/components/badge";
 import { Skeleton } from "@traiv/ui/components/skeleton";
 import {
   CalendarDays,
+  CircleAlert,
   ClipboardList,
   CreditCard,
   Dumbbell,
@@ -80,6 +81,7 @@ export function Overview({
   return (
     <div className="flex flex-col gap-4 px-4 py-4 pb-24 sm:px-6 lg:pb-6">
       {data.hasAccount ? null : <NotJoined />}
+      {data.constraints ? <ConstraintsBanner constraints={data.constraints} /> : null}
 
       <HeadlineStrip data={data} />
       <EnergyBar energy={data.energy} nutrition={data.nutrition} />
@@ -117,6 +119,24 @@ export function Overview({
 }
 
 /* -------------------------------------------------------------------------- */
+
+/**
+ * Injuries, PCOS, thyroid — whatever the coach noted as a constraint on this client.
+ * The schema comment calls this "shown at the top of every plan"; this is the one place
+ * in the trainer app that was actually showing it, so it was being fetched and never
+ * rendered at all.
+ */
+function ConstraintsBanner({ constraints }: { constraints: string }) {
+  return (
+    <div className="flex items-start gap-3 rounded-surface border border-warning/30 bg-warning-subtle px-4 py-3">
+      <CircleAlert className="mt-0.5 size-4 shrink-0 text-warning" />
+      <div>
+        <p className="text-body-sm font-medium text-warning">Constraints</p>
+        <p className="mt-0.5 text-body-sm leading-relaxed text-fg-muted">{constraints}</p>
+      </div>
+    </div>
+  );
+}
 
 function NotJoined() {
   return (

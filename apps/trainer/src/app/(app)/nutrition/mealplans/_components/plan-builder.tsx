@@ -23,12 +23,15 @@ import { SidebarToggle } from "@traiv/ui/components/shell/page-header";
 import {
   ArrowLeft,
   Carbs,
+  Copy,
   Fat,
   MoreHorizontal,
   Pencil,
   Plus,
   Protein,
+  Save,
   Trash,
+  Undo,
 } from "@traiv/ui/icons";
 import { notifyAction } from "@traiv/ui/lib/action-feedback";
 import Link from "next/link";
@@ -242,19 +245,27 @@ export function PlanBuilder({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {onCreate ? (
-                  <DropdownMenuItem onSelect={onCreate}>Create new plan</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={onCreate}>
+                    <Plus className="size-4" />
+                    Create new plan
+                  </DropdownMenuItem>
                 ) : null}
                 {onCopy ? (
-                  <DropdownMenuItem onSelect={onCopy}>Create from template</DropdownMenuItem>
+                  <DropdownMenuItem onSelect={onCopy}>
+                    <Copy className="size-4" />
+                    Create from template
+                  </DropdownMenuItem>
                 ) : null}
                 <DropdownMenuItem
                   disabled={!dirty || !valid || busy || Boolean(recovery)}
                   onSelect={() => void save()}
                 >
+                  <Save className="size-4" />
                   Save changes
                 </DropdownMenuItem>
                 {plan.published && (dirty || plan.hasChanges) ? (
                   <DropdownMenuItem onSelect={() => void discard()}>
+                    <Undo className="size-4" />
                     Discard changes
                   </DropdownMenuItem>
                 ) : null}

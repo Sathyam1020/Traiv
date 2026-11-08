@@ -153,8 +153,9 @@ describe("the roster", () => {
   it("counts every tab in one pass", async () => {
     const res = await roster();
     expect(res.status).toBe(200);
-    // Three active (fresh, stale, ending) plus one paused and one ended.
-    expect(body(res).statuses).toEqual({ active: 3, paused: 1, archived: 1 });
+    // Three active (fresh, stale, ending) plus one paused and one ended. None are
+    // mid-onboarding, so `pending` carves nothing out of the three active ones.
+    expect(body(res).statuses).toEqual({ active: 3, pending: 0, paused: 1, archived: 1 });
   });
 
   it("shows only the tab asked for", async () => {

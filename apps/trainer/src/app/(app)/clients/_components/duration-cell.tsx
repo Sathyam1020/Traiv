@@ -2,21 +2,28 @@
 
 import { Button } from "@traiv/ui/components/button";
 import { Calendar } from "@traiv/ui/components/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "@traiv/ui/components/popover";
-import { Unlimited, X } from "@traiv/ui/icons";
-import { useState } from "react";
+import {
+  PreviewCard,
+  PreviewCardContent,
+  PreviewCardTrigger,
+} from "@traiv/ui/components/preview-card";
+import { Unlimited } from "@traiv/ui/icons";
+import { useEffect, useState } from "react";
 import { useUpdateClient } from "@/lib/query";
 
 /**
- * When the coaching started, and when it finishes.
+ * When the coaching started, and when it finishes — both editable.
  *
- * The start is the day they joined and is not editable — it is a fact about what
- * happened, and a coach who could edit it could make their own retention numbers say
- * anything. The end is a decision, so it is.
+ * The end date always was. The start date now is too: a coach onboarding a gym's
+ * existing roster is recording people who started months or years ago, and a client
+ * that always shows "started today" for someone who has trained there for a year is
+ * simply wrong. `client.startedAt` is its own column, separate from `createdAt` — the
+ * untouched fact of when the row was actually added — so editing this can't retroactively
+ * rewrite that audit trail, only correct what's shown.
  *
- * Open-ended is the default and is shown as ∞ rather than as an empty cell: a blank
- * reads as "not filled in yet", and most coaching genuinely has no end date. The ∞ says
- * the question was asked and the answer is "it runs until somebody stops it".
+ * Opens on hover rather than on click, over either date — a `PreviewCard`, not a
+ * `Popover`, because unlike a tooltip it has to survive the pointer moving from the
+ * trigger text into the calendars themselves.
  */
 export function DurationCell({
   studioId,
@@ -28,72 +35,123 @@ export function DurationCell({
   const [open, setOpen] = useState(false);
   const update = useUpdateClient(studioId);
 
-  const ends = client.endsAt ? new Date(client.endsAt) : undefined;
+  const [start, setStart] = useState(() => new Date(client.startedAt));
+  const [end, setEnd] = useState<Date | undefined>(
+    client.endsAt ? new Date(client.endsAt) : undefined,
+  );
 
-  function set(date: Date | undefined) {
-    update.mutate({ clientId: client.id, endsAt: date ? date.toISOString() : null });
+  // Re-sync the draft from the server's own values every time the card opens — otherwise
+  // an edit that was cancelled, or a change made elsewhere, would not be reflected the
+  // next time a coach opens this.
+  useEffect(() => {
+    if (!open) return;
+    setStart(new Date(client.startedAt));
+    setEnd(client.endsAt ? new Date(client.endsAt) : undefined);
+  }, [open, client.startedAt, client.endsAt]);
+
+  const dirty =
+    start.getTime() !== new Date(client.startedAt).getTime() ||
+    (end?.getTime() ?? null) !== (client.endsAt ? new Date(client.endsAt).getTime() : null);
+
+  function save() {
+    update.mutate({
+      clientId: client.id,
+      startedAt: start.toISOString(),
+      endsAt: end ? end.toISOString() : null,
+    });
     setOpen(false);
   }
 
   return (
-    <span className="flex items-center gap-1.5 whitespace-nowrap tabular-nums">
-      <span className="text-fg-muted">{shortDate(new Date(client.startedAt))}</span>
-      <span aria-hidden="true" className="text-fg-subtle">
-        –
-      </span>
-
-      <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <button
-            type="button"
-            disabled={update.isPending}
-            aria-label={
-              ends
-                ? `Coaching ends ${shortDate(ends)}. Change the end date`
-                : "Coaching is open-ended. Set an end date"
-            }
-            className="-mx-1.5 flex cursor-pointer items-center gap-1 rounded-control px-1.5 py-1 transition-colors hover:bg-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-focus disabled:opacity-60"
-          >
-            {ends ? (
-              <span>{shortDate(ends)}</span>
+    <PreviewCard open={open} onOpenChange={setOpen}>
+      {/* Base UI's own default is 600ms before the card even starts opening — too slow
+          for something this close to a tooltip. */}
+      <PreviewCardTrigger asChild delay={80} closeDelay={150}>
+        {/* A `<button>`, not a `<span>` — the row it sits in navigates on any click that
+            doesn't land on a button/link/input, and this is a hover trigger, not a
+            navigation target. */}
+        <button
+          type="button"
+          aria-label={`Coaching runs ${shortDate(new Date(client.startedAt))} to ${
+            client.endsAt ? shortDate(new Date(client.endsAt)) : "open-ended"
+          }. Edit the dates`}
+          className="flex cursor-pointer items-center gap-1 whitespace-nowrap bg-transparent tabular-nums"
+        >
+          <span className="-mx-1 rounded-control px-1 py-0.5 text-fg-muted transition-colors hover:bg-hover">
+            {shortDate(new Date(client.startedAt))}
+          </span>
+          <span aria-hidden="true" className="text-fg-subtle">
+            –
+          </span>
+          <span className="-mx-1 rounded-control px-1 py-0.5 transition-colors hover:bg-hover">
+            {client.endsAt ? (
+              shortDate(new Date(client.endsAt))
             ) : (
               <Unlimited className="size-4 text-fg-subtle" />
             )}
-          </button>
-        </PopoverTrigger>
+          </span>
+        </button>
+      </PreviewCardTrigger>
 
-        {/* `w-auto` and nothing else: the calendar is 15.5rem wide and sets that width
-            itself. A header with a sentence in it was what made this popover stretch
-            across half the table — the prose had no width to wrap against, so the
-            calendar grew to fit the paragraph instead of the other way round. */}
-        <PopoverContent align="end" className="w-auto overflow-hidden p-0">
-          <Calendar
-            mode="single"
-            selected={ends}
-            defaultMonth={ends ?? new Date()}
-            onSelect={set}
-            // Coaching cannot end before it started.
-            disabled={{ before: new Date(client.startedAt) }}
-            autoFocus
-            // 32px cells are a mouse target. A finger needs 44, and the popover has
-            // room for it — seven of them is 308px inside a 390px screen.
-            className="p-3 pointer-coarse:[--cell-size:--spacing(11)]"
-          />
+      <PreviewCardContent align="start" className="w-auto overflow-hidden p-0">
+        <div className="flex items-center justify-between gap-6 border-line border-b px-4 py-3">
+          <strong className="text-sm font-semibold">Edit Duration</strong>
+          <span className="whitespace-nowrap text-caption text-fg-subtle">
+            {longDate(start)} – {end ? longDate(end) : "No end date"}
+          </span>
+        </div>
 
-          <div className="border-line border-t p-1.5">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="w-full justify-start whitespace-nowrap"
-              onClick={() => set(undefined)}
-            >
-              {ends ? <X className="size-4" /> : <Unlimited className="size-4" />}
-              {ends ? "Clear the end date" : "Keep it open-ended"}
-            </Button>
+        <div className="flex divide-x divide-line">
+          <div className="p-3">
+            <DateColumnLabel label="Start Date">{longDate(start)}</DateColumnLabel>
+            <Calendar
+              mode="single"
+              selected={start}
+              defaultMonth={start}
+              onSelect={(date) => date && setStart(date)}
+              disabled={end ? { after: end } : undefined}
+            />
           </div>
-        </PopoverContent>
-      </Popover>
-    </span>
+          <div className="p-3">
+            <DateColumnLabel label="End Date">
+              {end ? (
+                longDate(end)
+              ) : (
+                <span className="inline-flex items-center gap-1">
+                  <Unlimited className="size-3.5" />
+                  No end date
+                </span>
+              )}
+            </DateColumnLabel>
+            <Calendar
+              mode="single"
+              selected={end}
+              defaultMonth={end ?? start}
+              onSelect={setEnd}
+              disabled={{ before: start }}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-end gap-2 border-line border-t px-3 py-2">
+          <Button variant="ghost" size="sm" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button size="sm" disabled={!dirty || update.isPending} onClick={save}>
+            {update.isPending ? "Saving…" : "Update"}
+          </Button>
+        </div>
+      </PreviewCardContent>
+    </PreviewCard>
+  );
+}
+
+function DateColumnLabel({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <p className="mb-2 flex items-center justify-between gap-4 px-1 text-caption">
+      <span className="font-medium text-fg-muted">{label}</span>
+      <span className="font-semibold">{children}</span>
+    </p>
   );
 }
 
@@ -105,4 +163,10 @@ export function shortDate(date: Date): string {
     month: "short",
     ...(thisYear ? {} : { year: "numeric" }),
   });
+}
+
+/** "Nov 7, 2026" — the editor's own header always carries the year, since the two dates
+ * being compared there can span different years. */
+function longDate(date: Date): string {
+  return date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
 }

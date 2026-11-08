@@ -17,11 +17,14 @@ import {
   completeProfile,
   devIssueSession,
   getUser,
+  linkPhoneDirect,
   publicUser,
   requestChallenge,
+  requestPhoneLink,
   revokeSession,
   signInDirect,
   verifyChallenge,
+  verifyPhoneLink,
 } from "./service.js";
 
 export const auth: Router = Router();
@@ -60,18 +63,42 @@ auth.post("/direct", async (req, res) => {
 /* ---- Google ---------------------------------------------------------------- */
 
 const OAUTH_STATE = "traiv_oauth_state";
+const OAUTH_APP = "traiv_oauth_app";
 
-auth.get("/google/start", (_req, res) => {
+// Which app started the flow — the callback is one shared route for both, and has to
+// send the browser back to whichever one actually asked, not always the coach app.
+const oauthApp = z.enum(["client", "trainer"]);
+type OauthApp = z.infer<typeof oauthApp>;
+
+function originFor(app: OauthApp): string {
+  return app === "client" ? env.CLIENT_ORIGIN : env.WEB_ORIGIN;
+}
+
+// Each app's own sign-in page and its own post-login landing — not interchangeable.
+// The client app signs in at "/" and lands on "/dashboard" ("Today"); the trainer app
+// has no "/dashboard" at all, it signs in at "/signin" and lands on "/clients".
+function signinPathFor(app: OauthApp): string {
+  return app === "client" ? "/" : "/signin";
+}
+
+function landingPathFor(app: OauthApp): string {
+  return app === "client" ? "/dashboard" : "/clients";
+}
+
+auth.get("/google/start", (req, res) => {
   if (!googleEnabled) throw badRequest("google_off", "Google sign-in isn't configured.");
+  const app = oauthApp.catch("trainer").parse(req.query.app);
   const state = newSessionToken();
   // Single-use, short-lived, httpOnly. Compared on return — this is the CSRF guard.
-  res.cookie(OAUTH_STATE, state, {
+  const cookieOpts = {
     httpOnly: true,
-    sameSite: "lax",
+    sameSite: "lax" as const,
     secure: env.NODE_ENV === "production",
     maxAge: 10 * 60 * 1000,
     path: "/",
-  });
+  };
+  res.cookie(OAUTH_STATE, state, cookieOpts);
+  res.cookie(OAUTH_APP, app, cookieOpts);
   res.redirect(authorizeUrl(state));
 });
 
@@ -85,9 +112,12 @@ auth.get("/google/callback", async (req, res) => {
     .parse(req.query);
 
   const expected = readCookie(req, OAUTH_STATE);
+  const app = oauthApp.catch("trainer").parse(readCookie(req, OAUTH_APP));
   res.clearCookie(OAUTH_STATE, { path: "/" });
+  res.clearCookie(OAUTH_APP, { path: "/" });
 
-  const fail = (reason: string) => res.redirect(`${env.WEB_ORIGIN}/signin?error=${reason}`);
+  const origin = originFor(app);
+  const fail = (reason: string) => res.redirect(`${origin}${signinPathFor(app)}?error=${reason}`);
 
   if (query.error || !query.code) return fail("google_cancelled");
   if (!expected || expected !== query.state) return fail("google_state");
@@ -97,7 +127,7 @@ auth.get("/google/callback", async (req, res) => {
   if (result.outcome === "needs_phone_to_link") return fail("google_link_phone");
 
   setSessionCookie(res, result.session.token, result.session.expiresAt);
-  res.redirect(`${env.WEB_ORIGIN}/dashboard`);
+  res.redirect(`${origin}${landingPathFor(app)}`);
 });
 
 /**
@@ -158,6 +188,30 @@ auth.post("/profile", async (req, res) => {
     .object({ email: z.string().email().optional(), name: z.string().min(1).max(120).optional() })
     .parse(req.body);
   const user = await completeProfile(userId, body);
+  res.json({ user: publicUser(user) });
+});
+
+/* ---- Phone step for an account that proved itself another way (Google) -------------- */
+
+auth.post("/phone/challenge", async (req, res) => {
+  const { userId } = requireSession(req);
+  const body = z.object({ phone }).parse(req.body);
+  const { transport } = await requestPhoneLink(userId, { phone: body.phone, ip: req.ip });
+  res.json({ sent: true, transport });
+});
+
+auth.post("/phone/verify", async (req, res) => {
+  const { userId } = requireSession(req);
+  const body = z.object({ phone, code: z.string().regex(/^\d{6}$/) }).parse(req.body);
+  const user = await verifyPhoneLink(userId, body);
+  res.json({ user: publicUser(user) });
+});
+
+/** Only answers when the API reports `otpRequired: false`. */
+auth.post("/phone/direct", async (req, res) => {
+  const { userId } = requireSession(req);
+  const body = z.object({ phone }).parse(req.body);
+  const user = await linkPhoneDirect(userId, body);
   res.json({ user: publicUser(user) });
 });
 

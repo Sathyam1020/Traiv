@@ -125,7 +125,10 @@ export function Shopping({ studio, stalled = false }: { studio: string; stalled?
             {editing ? "Done" : "Edit"}
           </Button>
         </div>
-        <div className="my-5 flex gap-2 overflow-x-auto pb-1" aria-label="Shopping categories">
+        <div
+          className="my-5 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          aria-label="Shopping categories"
+        >
           {["All", ...Object.keys(groups)].map((group) => (
             <button
               type="button"

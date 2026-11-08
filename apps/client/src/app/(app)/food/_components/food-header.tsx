@@ -11,6 +11,12 @@ function sunday(date: string) {
   return offsetDay(date, -new Date(`${date}T12:00:00`).getDay());
 }
 
+/** Space between one week's strip and the next — visually, so Saturday and the
+ * following Sunday don't read as touching, and functionally, so the pager's own
+ * scroll-position math (`center`, `scrollWeek`) can account for it. Keep this in sync
+ * with the `gap-6` on the scroller below; they are the same 24px by construction. */
+const WEEK_GAP_PX = 24;
+
 /** The header is outside the diary scroller. Each snap page is one complete week. */
 export function FoodHeader({
   date,
@@ -35,7 +41,7 @@ export function FoodHeader({
     if (!element) return;
     const center = () => {
       if (settling.current) clearTimeout(settling.current);
-      element.scrollLeft = element.clientWidth;
+      element.scrollLeft = element.clientWidth + WEEK_GAP_PX;
     };
     center();
     const resize = new ResizeObserver(center);
@@ -51,7 +57,7 @@ export function FoodHeader({
     if (settling.current) clearTimeout(settling.current);
     settling.current = setTimeout(() => {
       if (!element.clientWidth) return;
-      const page = Math.round(element.scrollLeft / element.clientWidth);
+      const page = Math.round(element.scrollLeft / (element.clientWidth + WEEK_GAP_PX));
       if (page !== 1) onDateChange(offsetDay(date, (page - 1) * 7));
     }, 180);
   }
@@ -131,7 +137,7 @@ export function FoodHeader({
             onDateChange(offsetDay(date, event.key === "ArrowLeft" ? -7 : 7));
           }
         }}
-        className="flex snap-x snap-mandatory overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex snap-x snap-mandatory gap-6 overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {[-1, 0, 1].map((week) => (
           <div
@@ -155,7 +161,7 @@ export function FoodHeader({
                       day: "numeric",
                     })}
                     onClick={() => onDateChange(value)}
-                    className={`flex min-w-0 flex-col items-center gap-2 rounded-full px-1 pt-2 pb-3 transition-colors focus-visible:outline-2 focus-visible:outline-line-focus ${selected ? "bg-signal text-signal-fg shadow-float" : "bg-surface text-fg"}`}
+                    className={`flex min-w-0 flex-col items-center gap-2 rounded-full px-1 pt-2 pb-3 transition-colors focus-visible:outline-2 focus-visible:outline-line-focus ${selected ? "bg-signal text-signal-fg shadow-sm" : "bg-surface text-fg"}`}
                   >
                     <span
                       className={`flex aspect-square w-full max-w-12 items-center justify-center rounded-full border-4 bg-surface text-body-sm font-semibold text-fg ${selected ? "border-signal-fg/30" : "border-line"}`}

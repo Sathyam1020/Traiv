@@ -1,6 +1,6 @@
 import { Providers } from "@/app/providers";
 import "@traiv/ui/styles/globals.css";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { DM_Sans } from "next/font/google";
 
 /**
@@ -18,6 +18,25 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
   title: "Traiv",
   description: "Run your coaching practice in one place.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, statusBarStyle: "default", title: "Traiv Coach" },
+  // Explicit here, same reasoning as the client app's layout: an explicit `icons`
+  // replaces Next's auto-detected `icon.svg` entirely rather than merging with it, so
+  // both keys have to be set or the plain favicon link never gets emitted at all.
+  icons: {
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: "/icon-192.png",
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#2457b8",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

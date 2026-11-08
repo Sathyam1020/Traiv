@@ -7,4 +7,7 @@ export const studiosApi = {
 
   activate: async (id: string) =>
     (await http.post<{ studio: Studio }>(`/studios/${id}/activate`)).data,
+
+  rename: async (id: string, name: string) =>
+    (await http.patch<{ studio: Studio }>(`/studios/${id}`, { name })).data,
 };

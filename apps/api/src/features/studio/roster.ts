@@ -13,9 +13,21 @@ import { badRequest, notFound } from "../../errors.js";
  * or it is nowhere.
  */
 
-/** The three the coach's tabs show. `waiting` and `frozen` are not states a coach set. */
-export const ROSTER_STATUSES = ["active", "paused", "archived"] as const;
+/**
+ * The four the coach's tabs show. `waiting` and `frozen` are not states a coach set
+ * (ADR 0013, deferred) and stay off the roster entirely.
+ *
+ * `pending` is not a fifth value on `client_status` — it is `active` plus "has an
+ * account but hasn't finished the 15-step intake yet," computed at read time. A coach
+ * cannot set a client to pending, which is exactly right: it describes where the client
+ * is, not a decision the coach made, and it clears itself the moment intake completes.
+ */
+export const ROSTER_STATUSES = ["active", "pending", "paused", "archived"] as const;
 export type RosterStatus = (typeof ROSTER_STATUSES)[number];
+
+/** What a coach can actually set via PATCH. `pending` is read-only — see above. */
+export const SETTABLE_CLIENT_STATUSES = ["active", "paused", "archived"] as const;
+export type SettableClientStatus = (typeof SETTABLE_CLIENT_STATUSES)[number];
 
 /** How recently a check-in must have been submitted to count as new to read. */
 const FRESH_DAYS = 7;
@@ -46,10 +58,51 @@ export type Filter = (typeof FILTERS)[number];
  * `.ai/engineering/dependencies.md`.
  */
 const CLIENT_ID = sql.raw('"client"."id"');
+/** Same reasoning as `CLIENT_ID` — `${schema.clients.userId}` interpolated inside a
+ * nested subquery renders as a bare, unqualified `"user_id"`, which `user_intake` also
+ * has a column named. Unqualified, it resolves to the subquery's own `user_id`, not the
+ * outer client's, and the check becomes `ui.user_id = ui.user_id` — always true. */
+const CLIENT_USER_ID = sql.raw('"client"."user_id"');
+
+/** Has an account, and hasn't finished the 15-step intake. See `ROSTER_STATUSES`. */
+const pendingOnboarding = sql<boolean>`(
+  ${CLIENT_USER_ID} is not null
+  and not exists (
+    select 1 from user_intake ui
+    where ui.user_id = ${CLIENT_USER_ID} and ui.completed_at is not null
+  )
+)`;
+
+/** What a tab or a row's badge actually shows — `client.status` with `pending` carved
+ * out of `active`, not a value the column itself ever holds. */
+const displayStatus = sql<RosterStatus>`(case
+  when ${schema.clients.status} = 'active' and ${pendingOnboarding} then 'pending'
+  else ${schema.clients.status}::text
+end)`;
 
 const lastSession = sql<Date | null>`(
   select max(ts.completed_at) from training_session ts
   where ts.client_id = ${CLIENT_ID} and ts.completed_at is not null
+)`;
+
+/** The Plans column's two signals — same "active, published, not archived" and "active,
+ * not archived" definitions `getClientOverview`'s `currentPlan` and `listClientPrograms`
+ * already use, just read in bulk for the roster rather than per client. */
+const currentMealPlan = sql<{ id: string; name: string } | null>`(
+  select json_build_object('id', mp.id, 'name', mp.name)
+  from meal_plan_template mp
+  where mp.client_id = ${CLIENT_ID}
+    and mp.status = 'active' and mp.published_document is not null and mp.archived_at is null
+  order by mp.created_at desc
+  limit 1
+)`;
+
+const currentWorkoutPlan = sql<{ id: string; name: string } | null>`(
+  select json_build_object('id', wt.id, 'name', wt.name)
+  from workout_template wt
+  where wt.client_id = ${CLIENT_ID} and wt.status = 'active' and wt.archived_at is null
+  order by wt.created_at desc
+  limit 1
 )`;
 
 /**
@@ -105,27 +158,40 @@ export async function listRoster(q: RosterQuery) {
   const base = alive(q.studioId);
   const search = q.search?.trim();
 
+  // `pending` carves itself out of `active` rather than being a column value — see
+  // `ROSTER_STATUSES`. Each tab's WHERE has to mirror that split, or a client would
+  // show up under both Active and Pending (or neither).
+  const statusMatch =
+    q.status === "pending"
+      ? and(eq(schema.clients.status, "active"), pendingOnboarding)
+      : q.status === "active"
+        ? and(eq(schema.clients.status, "active"), sql`not (${pendingOnboarding})`)
+        : eq(schema.clients.status, q.status);
+
   const where = and(
     base,
-    eq(schema.clients.status, q.status),
+    statusMatch,
     signals[q.filter],
     search ? sql`${schema.clients.name} ilike ${`%${search}%`}` : undefined,
   );
 
+  // `startedAt`, not `createdAt` — "duration" and "recent" are both claims about when
+  // the coaching actually began, and a backfilled client's row can be added today for a
+  // relationship that started months ago.
   const order =
     q.sort === "name"
       ? [asc(schema.clients.name)]
       : q.sort === "recent"
-        ? [desc(schema.clients.createdAt)]
-        : [asc(schema.clients.createdAt)];
+        ? [desc(schema.clients.startedAt)]
+        : [asc(schema.clients.startedAt)];
 
   const [rows, [total], statusCounts, filterCounts, allTags] = await Promise.all([
     db
       .select({
         id: schema.clients.id,
         name: schema.clients.name,
-        status: schema.clients.status,
-        startedAt: schema.clients.createdAt,
+        status: displayStatus,
+        startedAt: schema.clients.startedAt,
         endsAt: schema.clients.endsAt,
         lastSessionAt: lastSession,
         lastMessage: sql<{
@@ -133,6 +199,9 @@ export async function listRoster(q: RosterQuery) {
           kind: string;
           createdAt: string;
         } | null>`(select json_build_object('body',m.body,'kind',m.kind,'createdAt',m.created_at) from chat_message m where m.client_id=${CLIENT_ID} order by m.created_at desc,m.id desc limit 1)`,
+        mealPlan: currentMealPlan,
+        workoutPlan: currentWorkoutPlan,
+        checkInsEnabled: schema.clients.checkInsEnabled,
       })
       .from(schema.clients)
       .where(where)
@@ -142,12 +211,14 @@ export async function listRoster(q: RosterQuery) {
 
     db.select({ n: sql<number>`count(*)::int` }).from(schema.clients).where(where),
 
-    // One pass for every tab's count, so the header does not cost three queries.
+    // One pass for every tab's count, so the header does not cost four queries.
+    // Grouped by the same carved-out status every tab filters on, not the raw column —
+    // otherwise a pending client would count toward Active's tab number too.
     db
-      .select({ status: schema.clients.status, n: sql<number>`count(*)::int` })
+      .select({ status: displayStatus, n: sql<number>`count(*)::int` })
       .from(schema.clients)
       .where(base)
-      .groupBy(schema.clients.status),
+      .groupBy(displayStatus),
 
     // And one for every chip, within the tab being looked at.
     db
@@ -159,7 +230,7 @@ export async function listRoster(q: RosterQuery) {
         all: sql<number>`count(*)::int`,
       })
       .from(schema.clients)
-      .where(and(base, eq(schema.clients.status, q.status))),
+      .where(and(base, statusMatch)),
 
     db
       .select({
@@ -192,6 +263,7 @@ export async function listRoster(q: RosterQuery) {
     perPage: q.perPage,
     statuses: {
       active: counts.active ?? 0,
+      pending: counts.pending ?? 0,
       paused: counts.paused ?? 0,
       archived: counts.archived ?? 0,
     },
@@ -224,10 +296,10 @@ export async function getClient(studioId: string, clientId: string) {
       id: schema.clients.id,
       userId: schema.clients.userId,
       name: schema.clients.name,
-      status: schema.clients.status,
+      status: displayStatus,
       goal: schema.clients.goal,
       constraints: schema.clients.constraints,
-      startedAt: schema.clients.createdAt,
+      startedAt: schema.clients.startedAt,
       endsAt: schema.clients.endsAt,
       activatedAt: schema.clients.activatedAt,
       coachId: schema.clients.coachId,
@@ -334,7 +406,7 @@ export async function getClientOverview(studioId: string, clientId: string) {
     .select({
       id: schema.clients.id,
       userId: schema.clients.userId,
-      startedAt: schema.clients.createdAt,
+      startedAt: schema.clients.startedAt,
       endsAt: schema.clients.endsAt,
       activatedAt: schema.clients.activatedAt,
       goal: schema.clients.goal,
@@ -806,7 +878,8 @@ export async function updateClient(
   studioId: string,
   clientId: string,
   patch: {
-    status?: RosterStatus;
+    status?: SettableClientStatus;
+    startedAt?: Date;
     endsAt?: Date | null;
     checkInWeekday?: number | null;
     checkInGraceDays?: number | null;
@@ -820,6 +893,7 @@ export async function updateClient(
     .returning({
       id: schema.clients.id,
       status: schema.clients.status,
+      startedAt: schema.clients.startedAt,
       endsAt: schema.clients.endsAt,
     });
 

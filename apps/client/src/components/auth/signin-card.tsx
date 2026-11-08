@@ -11,7 +11,7 @@ import { DevBypass } from "@/components/auth/dev-bypass";
 import { useSignInFlow } from "@/components/auth/use-signin-flow";
 import { OtpInput } from "@/components/common/otp-input";
 import { TrustMarkers } from "@/components/common/trust-markers";
-import { API_BASE } from "@/lib/api";
+import { API_BASE, MARKETING_URL } from "@/lib/api";
 import { useAuthConfig } from "@/lib/query";
 
 export function SignInCard({ onDone }: { onDone: () => void }) {
@@ -57,7 +57,7 @@ export function SignInCard({ onDone }: { onDone: () => void }) {
 
             <GoogleButton
               enabled={Boolean(config?.google)}
-              href={`${API_BASE}/auth/google/start`}
+              href={`${API_BASE}/auth/google/start?app=client`}
               label="Continue with Google"
             />
 
@@ -129,6 +129,28 @@ export function SignInCard({ onDone }: { onDone: () => void }) {
       </div>
 
       <DevBypass onSignedIn={onDone} />
+
+      <p className="text-center text-caption text-fg-subtle">
+        By continuing you agree to our{" "}
+        <a
+          href={`${MARKETING_URL}/legal/terms`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline"
+        >
+          Terms
+        </a>{" "}
+        and{" "}
+        <a
+          href={`${MARKETING_URL}/legal/privacy`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline"
+        >
+          Privacy Policy
+        </a>
+        .
+      </p>
 
       <TrustMarkers />
 

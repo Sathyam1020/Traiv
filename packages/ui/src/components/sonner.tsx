@@ -11,7 +11,14 @@ import {
 const manager = createToastManager();
 export function toast(
   title: ReactNode,
-  options?: { description?: ReactNode; duration?: number; id?: string; variant?: ToastVariant },
+  options?: {
+    description?: ReactNode;
+    duration?: number;
+    id?: string;
+    variant?: ToastVariant;
+    /** A single button inside the toast — e.g. "Refresh" on an update-available prompt. */
+    action?: { label: ReactNode; onClick: () => void };
+  },
 ) {
   return manager.add({
     title,
@@ -19,6 +26,9 @@ export function toast(
     timeout: options?.duration ?? (options?.variant === "error" ? 6500 : 3500),
     id: options?.id,
     data: { variant: options?.variant ?? "info" },
+    ...(options?.action
+      ? { actionProps: { children: options.action.label, onClick: options.action.onClick } }
+      : {}),
   });
 }
 export function Toaster({

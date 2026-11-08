@@ -13,10 +13,12 @@
   },
   "dependencies": {
     "@tanstack/react-query": "catalog:",
+    "@tanstack/react-query-persist-client": "catalog:",
     "@traiv/phone": "workspace:*",
     "@traiv/ui": "workspace:*",
     "@zxing/browser": "catalog:",
     "axios": "catalog:",
+    "idb": "catalog:",
     "motion": "catalog:",
     "next": "catalog:",
     "react": "catalog:",

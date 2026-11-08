@@ -1,18 +1,29 @@
 "use client";
 
 import { Skeleton } from "@traiv/ui/components/skeleton";
+import { Check } from "@traiv/ui/icons";
+import { useEffect, useRef } from "react";
+import { playCompletionSound } from "@/components/check-in/completion-sound";
 import { QueryError } from "@/components/common/query-state";
-import type { Intake } from "@/lib/api";
-import { AvailabilityStep } from "./steps/availability-step";
-import { BodyStep } from "./steps/body-step";
-import { GoalStep } from "./steps/goal-step";
-import { HealthStep } from "./steps/health-step";
-import { NutritionStep } from "./steps/nutrition-step";
-import { TrainingStep } from "./steps/training-step";
-import { type IntakeFlow as Flow, useIntakeFlow } from "./use-intake-flow";
+import { ActivityLevelStep } from "./steps/activity-level-step";
+import { AnythingElseStep } from "./steps/anything-else-step";
+import { BodyMeasurementStep } from "./steps/body-measurement-step";
+import { CircumferenceStep } from "./steps/circumference-step";
+import { EatingHabitsStep } from "./steps/eating-habits-step";
+import { FoodPreferencesStep } from "./steps/food-preferences-step";
+import { GoalWeightStep } from "./steps/goal-weight-step";
+import { GoalsStep } from "./steps/goals-step";
+import { IngredientExclusionStep } from "./steps/ingredient-exclusion-step";
+import { PersonalInfoStep } from "./steps/personal-info-step";
+import { ProfilePictureStep } from "./steps/profile-picture-step";
+import { ProgressionPhotosStep } from "./steps/progression-photos-step";
+import { SleepHoursStep } from "./steps/sleep-hours-step";
+import { TypicalDayStep } from "./steps/typical-day-step";
+import { WorkedWithCoachStep } from "./steps/worked-with-coach-step";
+import { useIntakeFlow } from "./use-intake-flow";
 
 /**
- * The six questions, in order, resumed where the client left off.
+ * The fifteen questions, in order, resumed where the client left off.
  *
  * Steps are remounted rather than kept alive, so each one reads its starting values from
  * what the server has. That is what makes going back show the answer you gave rather than
@@ -20,7 +31,6 @@ import { type IntakeFlow as Flow, useIntakeFlow } from "./use-intake-flow";
  */
 export function IntakeFlow({
   studioId,
-  coachName,
   onDone,
 }: {
   studioId: string;
@@ -40,109 +50,76 @@ export function IntakeFlow({
       </div>
     );
   if (flow.loading) return <Loading />;
-  if (flow.step === "done") return <Finished flow={flow} coachName={coachName} onDone={onDone} />;
+  if (flow.step === "done") return <Finished onDone={onDone} />;
 
   switch (flow.step) {
     case 1:
-      return <GoalStep flow={flow} />;
+      return <PersonalInfoStep flow={flow} studioId={studioId} />;
     case 2:
-      return <BodyStep flow={flow} />;
+      return <ProfilePictureStep flow={flow} studioId={studioId} />;
     case 3:
-      return <TrainingStep flow={flow} />;
+      return <GoalsStep flow={flow} />;
     case 4:
-      return <NutritionStep flow={flow} />;
+      return <BodyMeasurementStep flow={flow} />;
     case 5:
-      return <HealthStep flow={flow} />;
+      return <GoalWeightStep flow={flow} />;
+    case 6:
+      return <CircumferenceStep flow={flow} studioId={studioId} />;
+    case 7:
+      return <WorkedWithCoachStep flow={flow} />;
+    case 8:
+      return <TypicalDayStep flow={flow} />;
+    case 9:
+      return <SleepHoursStep flow={flow} studioId={studioId} />;
+    case 10:
+      return <ActivityLevelStep flow={flow} />;
+    case 11:
+      return <IngredientExclusionStep flow={flow} studioId={studioId} />;
+    case 12:
+      return <EatingHabitsStep flow={flow} />;
+    case 13:
+      return <FoodPreferencesStep flow={flow} />;
+    case 14:
+      return <ProgressionPhotosStep flow={flow} studioId={studioId} />;
     default:
-      return <AvailabilityStep flow={flow} />;
+      return <AnythingElseStep flow={flow} />;
   }
 }
 
-const GOAL_WORDS: Record<string, string> = {
-  lose_fat: "losing fat",
-  build_muscle: "building muscle",
-  get_stronger: "getting stronger",
-  maintain: "holding your weight",
-  improve_fitness: "getting fitter",
-  general_health: "general health",
-};
-
-const DIET_WORDS: Record<string, string> = {
-  vegetarian: "vegetarian",
-  eggetarian: "vegetarian with eggs",
-  non_vegetarian: "non-vegetarian",
-  vegan: "vegan",
-  jain: "Jain",
-};
-
 /**
- * The end of onboarding, and deliberately not an empty home screen.
- *
- * Their own answers are read back for one reason: the complaint every coached client has
- * is that the plan could have been sent to anyone. Showing that we heard the specific
- * things they said is the cheapest possible answer to it.
- *
- * No calorie number here. A number with no food around it invites somebody to act on it
- * before their coach has seen it; it arrives with the diet plan.
+ * The end of onboarding. The completion chime was unlocked on the "Done" tap
+ * (`AnythingElseStep`); this is only where it actually plays, guarded by a ref so a
+ * re-render from a later query update can never fire it twice.
  */
-function Finished({
-  flow,
-  coachName,
-  onDone,
-}: {
-  flow: Flow;
-  coachName: string;
-  onDone: () => void;
-}) {
-  const i = flow.intake;
-  return (
-    <div className="flex flex-col gap-6">
-      <header className="flex flex-col gap-2">
-        <h1 className="text-heading font-medium">You're all set</h1>
-        <p className="text-body-sm leading-relaxed text-fg-muted">
-          {coachName} is putting your plan together from what you've told us. Your workouts and diet
-          turn up here when they're ready.
-        </p>
-      </header>
+function Finished({ onDone }: { onDone: () => void }) {
+  const played = useRef(false);
+  useEffect(() => {
+    if (!played.current) {
+      played.current = true;
+      playCompletionSound();
+    }
+  }, []);
 
-      {i ? <Summary intake={i} weightKg={flow.weightKg} /> : null}
+  return (
+    <div className="flex min-h-[70dvh] flex-col items-center justify-center gap-4 text-center">
+      <span className="flex size-16 items-center justify-center rounded-full bg-brand text-brand-fg">
+        <Check className="size-8" />
+      </span>
+      <div className="flex flex-col gap-1.5">
+        <h1 className="text-heading font-medium">You're all set</h1>
+        <p className="text-body-sm text-fg-muted">
+          Your onboarding has been submitted successfully.
+        </p>
+      </div>
 
       <button
         type="button"
         onClick={onDone}
-        className="h-11 w-full cursor-pointer rounded-control bg-primary text-body-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+        className="mt-6 h-11 w-full max-w-xs cursor-pointer rounded-control bg-primary text-body-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
       >
-        Go to Today
+        Continue
       </button>
     </div>
-  );
-}
-
-function Summary({ intake, weightKg }: { intake: Intake; weightKg: number | null }) {
-  const lines = [
-    intake.goal ? `You're here for ${GOAL_WORDS[intake.goal]}.` : null,
-    intake.daysPerWeek
-      ? `${intake.daysPerWeek} days a week${intake.sessionMinutes ? `, ${intake.sessionMinutes} minutes a session` : ""}.`
-      : null,
-    intake.diet ? `Food is ${DIET_WORDS[intake.diet]}.` : null,
-    weightKg ? `Starting at ${weightKg} kg.` : null,
-  ].filter(Boolean) as string[];
-
-  if (!lines.length) return null;
-
-  return (
-    <section className="flex flex-col gap-2 rounded-surface border border-line bg-surface p-5">
-      <span className="text-caption font-semibold uppercase tracking-[0.07em] text-fg-subtle">
-        What we've got
-      </span>
-      <ul className="flex flex-col gap-1.5">
-        {lines.map((l) => (
-          <li key={l} className="text-body-sm text-fg-muted">
-            {l}
-          </li>
-        ))}
-      </ul>
-    </section>
   );
 }
 

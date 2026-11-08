@@ -4,12 +4,18 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { http } from "@/lib/api/client";
 import { syncHealth } from "@/lib/health";
+import { startInstallPromptCapture } from "@/lib/pwa/install-prompt";
+import { registerServiceWorker } from "@/lib/pwa/sw-update";
 export function PlatformServices({ studioId }: { studioId: string }) {
   const qc = useQueryClient();
   useEffect(() => {
-    // /sw.js serves a push-only worker in development; navigation fallback is production-only.
-    if (!Capacitor.isNativePlatform() && "serviceWorker" in navigator)
-      void navigator.serviceWorker.register("/sw.js", { updateViaCache: "none" }).catch(() => {});
+    // Neither applies inside the native wrapper — it's already installed, and has no
+    // browser tab to swap a worker under.
+    if (Capacitor.isNativePlatform()) return;
+    registerServiceWorker();
+    startInstallPromptCapture();
+  }, []);
+  useEffect(() => {
     let inFlight = false;
     const sync = async () => {
       if (!Capacitor.isNativePlatform() || inFlight || document.visibilityState !== "visible")

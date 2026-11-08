@@ -39,7 +39,9 @@ export type DevUser = { id: string; name: string; phone: string | null; email: s
 /* -------------------------------------------------------------------------- */
 
 /** The three a coach's tabs show. `waiting` and `frozen` are not states a coach set. */
-export type RosterStatus = "active" | "paused" | "archived";
+export type RosterStatus = "active" | "pending" | "paused" | "archived";
+/** What a coach can actually set via PATCH — `pending` is computed, never written. */
+export type SettableClientStatus = Exclude<RosterStatus, "pending">;
 
 export type RosterFilter = "all" | "unread" | "new-checkin" | "missing-checkin" | "ending-soon";
 
@@ -60,6 +62,9 @@ export type RosterClient = {
   endsAt: string | null;
   lastSessionAt: string | null;
   tags: Tag[];
+  mealPlan: { id: string; name: string } | null;
+  workoutPlan: { id: string; name: string } | null;
+  checkInsEnabled: boolean;
 };
 
 export type Roster = {

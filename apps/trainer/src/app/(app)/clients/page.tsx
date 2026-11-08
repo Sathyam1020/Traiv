@@ -5,6 +5,11 @@ import { Button } from "@traiv/ui/components/button";
 import { ClientAvatar } from "@traiv/ui/components/client-avatar";
 import { Input } from "@traiv/ui/components/input";
 import {
+  PreviewCard,
+  PreviewCardContent,
+  PreviewCardTrigger,
+} from "@traiv/ui/components/preview-card";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -42,6 +47,7 @@ import { TagPicker } from "./_components/tag-picker";
 
 const STATUSES: { value: RosterStatus; label: string }[] = [
   { value: "active", label: "Active" },
+  { value: "pending", label: "Pending" },
   { value: "paused", label: "Paused" },
   { value: "archived", label: "Ended" },
 ];
@@ -180,7 +186,16 @@ function ClientsPageContent() {
           {/* Below `sm` the table becomes a list of cards. A seven-column table on a
               360px screen is a horizontal scroll nobody discovers. */}
           <div className="hidden sm:block">
-            <Table data-surface={undefined} className="rounded-none">
+            {/* Nested inside `TableCard`, which already draws the card's own border,
+                background and shadow — `data-surface={undefined}` drops which
+                `[data-surface]` role applies, but the table's base styles still paint a
+                background/border/shadow from whatever `--surface-face` etc. it inherits
+                from an ancestor, showing as a seam right at the card's rounded top edge.
+                Forcing real utilities here beats that regardless of what's inherited. */}
+            <Table
+              data-surface={undefined}
+              className="rounded-none border-0 bg-transparent shadow-none"
+            >
               <TableHeader>
                 <TableRow className="bg-sunken/60 hover:bg-sunken/60">
                   <TableHead className="pl-4 sm:pl-6">Name</TableHead>
@@ -312,7 +327,7 @@ function Row({
         <LastMessage client={client} />
       </TableCell>
       <TableCell>
-        <Plans />
+        <Plans client={client} />
       </TableCell>
       <TableCell>
         <DurationCell studioId={studioId} client={client} />
@@ -365,8 +380,11 @@ function StatusBadge({ status }: { status: RosterStatus }) {
   const label = STATUSES.find((s) => s.value === status)?.label ?? status;
   return (
     <Badge
-      variant={status === "active" ? "secondary" : "outline"}
-      className={cn(status === "active" && "bg-success-subtle text-success")}
+      variant={status === "active" || status === "pending" ? "secondary" : "outline"}
+      className={cn(
+        status === "active" && "bg-success-subtle text-success",
+        status === "pending" && "bg-warning-subtle text-warning",
+      )}
     >
       {label}
     </Badge>
@@ -401,17 +419,77 @@ function LastMessage({ client }: { client: RosterClient }) {
   );
 }
 
-/** Sample content — there is no plan generator yet, so both icons are dimmed. */
-function Plans() {
+/**
+ * What's actually assigned, on hover — same "active, published, not archived" meal plan
+ * and "active, not archived" workout definitions the client's own Overview tab uses
+ * (`currentPlan` / `listClientPrograms`), just read in bulk for the row.
+ */
+function Plans({ client }: { client: RosterClient }) {
+  const hasMealPlan = Boolean(client.mealPlan);
+  const hasWorkout = Boolean(client.workoutPlan);
+  const activeCount = [hasMealPlan, hasWorkout].filter(Boolean).length;
+
+  const missing = [
+    !hasWorkout && "workout",
+    !hasMealPlan && "meal plan",
+    !client.checkInsEnabled && "check-in",
+  ].filter((v): v is string => Boolean(v));
+
+  const summary =
+    missing.length === 0
+      ? "Meal plan, workout and check-ins all set"
+      : missing.length === 3
+        ? "No meal plan, workout, or check-in yet"
+        : `No ${missing.join(" or ")} yet`;
+
   return (
-    <span className="flex items-center gap-1.5" title="Plans are not built yet">
-      <span className="flex size-7 items-center justify-center rounded-control text-fg-subtle/40">
-        <Activity className="size-3.5" />
-      </span>
-      <span className="flex size-7 items-center justify-center rounded-control text-fg-subtle/40">
-        <Apple className="size-3.5" />
-      </span>
-    </span>
+    <PreviewCard>
+      {/* Base UI's own default is 600ms before the card even starts opening — reads as
+          sluggish for something this close to a tooltip. A coach hovering a row wants
+          this to feel instant, not deliberate. */}
+      <PreviewCardTrigger asChild delay={80} closeDelay={150}>
+        {/* A `<button>`, not a `<span>` — the row navigates on any click that doesn't
+            land on a button/link/input, and this is a hover trigger, not a nav target. */}
+        <button
+          type="button"
+          aria-label={`${client.name}'s plans: ${summary}`}
+          className="flex w-fit cursor-pointer items-center gap-1.5 bg-transparent"
+        >
+          <span
+            title={client.workoutPlan?.name ?? "No workout assigned"}
+            className={cn(
+              "flex size-7 items-center justify-center rounded-control",
+              hasWorkout ? "bg-selected text-signal-text" : "text-fg-subtle/40",
+            )}
+          >
+            <Activity className="size-3.5" />
+          </span>
+          <span
+            title={client.mealPlan?.name ?? "No meal plan assigned"}
+            className={cn(
+              "flex size-7 items-center justify-center rounded-control",
+              hasMealPlan ? "bg-selected text-signal-text" : "text-fg-subtle/40",
+            )}
+          >
+            <Apple className="size-3.5" />
+          </span>
+        </button>
+      </PreviewCardTrigger>
+      <PreviewCardContent side="bottom" align="start" width="sm">
+        <div className="flex items-center gap-2.5 border-line border-b p-3">
+          <ClientAvatar id={client.id} name={client.name} size={32} />
+          <div className="min-w-0">
+            <p className="truncate text-body-sm font-semibold">{client.name}</p>
+            <p className="text-caption text-fg-muted">
+              {activeCount === 0
+                ? "No active plans"
+                : `${activeCount} active plan${activeCount > 1 ? "s" : ""}`}
+            </p>
+          </div>
+        </div>
+        <p className="px-3 py-2.5 text-caption text-fg-muted">{summary}</p>
+      </PreviewCardContent>
+    </PreviewCard>
   );
 }
 
@@ -443,7 +521,9 @@ function Empty({
       ? "Nobody in this view right now — which is usually good news."
       : status === "active"
         ? "No active clients yet. They appear here as soon as somebody joins with your code."
-        : `Nobody is ${status === "paused" ? "paused" : "ended"}.`;
+        : status === "pending"
+          ? "Nobody is mid-onboarding right now."
+          : `Nobody is ${status === "paused" ? "paused" : "ended"}.`;
 
   return <p className="px-6 py-16 text-center text-body-sm text-fg-muted">{message}</p>;
 }

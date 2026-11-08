@@ -4,8 +4,17 @@ import { energyTarget } from "@traiv/nutrition";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../db.js";
 
+export type WorkActivityLevel = "sedentary" | "light" | "moderate" | "heavy" | "very_heavy";
+
 /** Everything a step can write. All optional — skipping is a supported answer. */
 export type IntakePatch = Partial<{
+  // Name and the avatar live on `user`, not this table — carried here so onboarding's
+  // step-by-step save is the only write path a client needs, the same reasoning that
+  // already routes `weightKg` through this type to `body_metric`. See `saveStep`.
+  firstName: string;
+  lastName: string;
+  avatarUrl: string;
+
   goal: Goal;
   targetWeightKg: number;
   sex: Sex;
@@ -25,10 +34,24 @@ export type IntakePatch = Partial<{
   healthNote: string;
   trainingDays: string[];
   preferredTime: string;
+
+  workedWithCoach: boolean;
+  typicalDay: string;
+  workActivity: WorkActivityLevel;
+  trainingLocations: string[];
+  excludedIngredients: string[];
+  edInduceVomiting: boolean;
+  edFoodDominates: boolean;
+  edRecentWeightLoss: boolean;
+  edBodyImageMismatch: boolean;
+  edLossOfControl: boolean;
+  dietaryTags: string[];
+  additionalNutritionNotes: string;
+  otherNotes: string;
 }>;
 
 export const FIRST_STEP = 1;
-export const LAST_STEP = 6;
+export const LAST_STEP = 15;
 
 /** What this person answered, plus whatever we worked out from it. */
 export async function getIntake(userId: string) {
@@ -72,7 +95,7 @@ export async function getIntake(userId: string) {
  * a typo corrects the measurement instead of inventing a second data point.
  */
 export async function saveStep(userId: string, step: number, patch: IntakePatch) {
-  const { weightKg, ...fields } = patch;
+  const { weightKg, firstName, lastName, avatarUrl, ...fields } = patch;
 
   return db.transaction(async (tx) => {
     const [row] = await tx
@@ -93,6 +116,16 @@ export async function saveStep(userId: string, step: number, patch: IntakePatch)
           targetWhere: eq(schema.bodyMetrics.source, "intake"),
           set: { weightKg, takenAt: new Date() },
         });
+    }
+
+    // The step that asks for a name sends both halves together, so joining is safe —
+    // there is no path where only one arrives and the other would need preserving.
+    if (firstName !== undefined || lastName !== undefined) {
+      const name = `${firstName ?? ""} ${lastName ?? ""}`.trim();
+      if (name) await tx.update(schema.users).set({ name }).where(eq(schema.users.id, userId));
+    }
+    if (avatarUrl !== undefined) {
+      await tx.update(schema.users).set({ avatarUrl }).where(eq(schema.users.id, userId));
     }
 
     return row;

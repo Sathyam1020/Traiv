@@ -1,7 +1,7 @@
 "use client";
 
-import { SolidSidebarIcon } from "@traiv/ui/components/shell/solid-sidebar-icon";
 import { Avatar } from "@traiv/ui/components/avatar";
+import { SolidSidebarIcon } from "@traiv/ui/components/shell/solid-sidebar-icon";
 import {
   Tooltip,
   TooltipContent,
@@ -125,7 +125,7 @@ export function RailLink({ href, label, icon: Icon }: { href: string; label: str
     <Link
       href={href}
       className={cn(
-        "flex items-center whitespace-nowrap rounded-control text-label font-medium text-contrast-fg/60 transition-colors hover:bg-contrast-fg/8 hover:text-contrast-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-contrast-fg/40",
+        "flex items-center whitespace-nowrap rounded-control text-label font-medium text-contrast-fg/85 transition-colors hover:bg-contrast-fg/8 hover:text-contrast-fg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-contrast-fg/40",
         collapsed ? RAIL_TILE : "gap-2.5 px-2.5 py-2",
       )}
     >

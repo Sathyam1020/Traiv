@@ -62,6 +62,16 @@ export const clients = pgTable(
     joinedVia: text(), // "join_code" | "manual" — how the relationship started
 
     /**
+     * When the coaching relationship officially began — editable, unlike `createdAt`.
+     * Defaults to `createdAt` for a client who joins today, but a coach onboarding a
+     * gym's existing roster is recording people who started months or years ago; without
+     * this, every backfilled client would show a "started today" that is simply false.
+     * `createdAt` still holds the untouched fact of when the row was actually added, so
+     * nothing here can retroactively inflate a duration metric derived from that.
+     */
+    startedAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+
+    /**
      * When the coaching is agreed to finish. Null is open-ended, which is the default —
      * most coaching has no end date until somebody sets one, and a required date would
      * mean inventing one for every client.

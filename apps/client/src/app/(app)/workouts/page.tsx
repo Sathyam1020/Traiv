@@ -3,6 +3,7 @@
 import { Page } from "@traiv/ui/components/shell/page";
 import { Skeleton } from "@traiv/ui/components/skeleton";
 import { Dumbbell } from "@traiv/ui/icons";
+import Image from "next/image";
 import Link from "next/link";
 import { QueryError } from "@/components/common/query-state";
 import type { WorkoutListItem } from "@/lib/api";
@@ -18,7 +19,7 @@ export default function WorkoutsPage() {
 
   if (list.isError && !list.data)
     return (
-      <Page className="max-w-xl">
+      <Page className="max-w-xl pt-[max(1.25rem,env(safe-area-inset-top))]">
         <QueryError
           title="Couldn't load your workouts."
           busy={list.isFetching}
@@ -30,16 +31,26 @@ export default function WorkoutsPage() {
   const programs = list.data ?? [];
 
   return (
-    <Page className="w-full max-w-xl gap-6">
-      <header className="flex flex-col gap-1">
+    <Page className="w-full max-w-xl gap-6 pt-[max(1.25rem,env(safe-area-inset-top))]">
+      <header className="flex flex-col gap-3">
         <h1 className="text-display font-medium">Workouts</h1>
-        <h2 className="text-body-sm text-fg-muted">Your plans</h2>
+        <h2 className="text-caption font-semibold tracking-[0.07em] text-fg-subtle uppercase">
+          Your plans
+        </h2>
       </header>
 
       {programs.length === 0 ? (
-        <p className="rounded-surface border border-line border-dashed bg-surface p-4 text-body-sm">
-          Your coach hasn't assigned a workout yet. Your plan will appear here when it's ready.
-        </p>
+        <div className="flex flex-col items-center gap-3 rounded-surface border border-line bg-surface px-6 py-10 text-center">
+          <span className="flex size-14 items-center justify-center rounded-full bg-brand-subtle text-brand">
+            <Dumbbell className="size-6" />
+          </span>
+          <div className="flex flex-col gap-1">
+            <p className="text-body font-semibold">No plans yet</p>
+            <p className="text-body-sm text-fg-muted">
+              No plan assigned yet. Plans assigned to you will show up here.
+            </p>
+          </div>
+        </div>
       ) : (
         <ul className="flex flex-col gap-3">
           {programs.map((program) => (
@@ -68,10 +79,11 @@ function ProgramCard({
       <div className="flex flex-col px-4 pt-4 pb-3">
         <div className="flex min-w-0 items-center gap-3">
           {program.imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
+            <Image
               src={program.imageUrl}
               alt=""
+              width={44}
+              height={44}
               className="size-11 shrink-0 rounded-control object-cover"
             />
           ) : (
@@ -144,7 +156,7 @@ function ProgramCard({
 
 function Loading() {
   return (
-    <Page className="w-full max-w-xl gap-6">
+    <Page className="w-full max-w-xl gap-6 pt-[max(1.25rem,env(safe-area-inset-top))]">
       <div className="flex flex-col gap-2">
         <Skeleton className="h-9 w-32" />
         <Skeleton className="h-4 w-24" />

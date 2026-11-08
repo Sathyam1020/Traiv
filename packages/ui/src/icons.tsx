@@ -5,6 +5,7 @@ import {
   IconAlertOctagon,
   IconAlertTriangle,
   IconApple,
+  IconArrowBackUp,
   IconArrowLeft,
   IconArrowRight,
   IconBarbell,
@@ -31,6 +32,7 @@ import {
   IconCopy,
   IconCreditCard,
   IconCurrencyRupee,
+  IconDeviceFloppy,
   IconDeviceMobile,
   IconDots,
   IconDotsVertical,
@@ -148,6 +150,8 @@ export const MoreHorizontal = icon(IconDots, "MoreHorizontal");
 export const X = icon(IconX, "X");
 export const Check = icon(IconCheck, "Check");
 export const CircleCheck = icon(IconCircleCheck, "CircleCheck");
+export const Save = icon(IconDeviceFloppy, "Save");
+export const Undo = icon(IconArrowBackUp, "Undo");
 export const CircleAlert = icon(IconAlertCircle, "CircleAlert");
 export const TriangleAlert = icon(IconAlertTriangle, "TriangleAlert");
 export const CircleSlash = icon(IconCircleOff, "CircleSlash");

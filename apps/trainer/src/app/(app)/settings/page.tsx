@@ -1,6 +1,7 @@
 import { Page } from "@traiv/ui/components/shell/page";
-import { StickyPageHeader } from "@traiv/ui/components/shell/sticky-page-header";
 import { SidebarToggle } from "@traiv/ui/components/shell/page-header";
+import { StickyPageHeader } from "@traiv/ui/components/shell/sticky-page-header";
+import { InstallAppCard } from "./_components/install-app-card";
 import { JoinCard } from "./_components/join-card";
 
 export const metadata = { title: "Settings · Traiv" };
@@ -17,6 +18,7 @@ export default function SettingsPage() {
         </div>
       </StickyPageHeader>
       <JoinCard />
+      <InstallAppCard />
     </Page>
   );
 }

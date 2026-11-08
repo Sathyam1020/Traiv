@@ -30,7 +30,7 @@ export async function development(studioId: string, clientId: string) {
     .orderBy(desc(schema.checkIns.completedAt))
     .limit(104);
   const ids = rows.map((r) => r.id);
-  const [answers, reviews, profile] = await Promise.all([
+  const [answers, reviews, profile, intake] = await Promise.all([
     ids.length
       ? db
           .select({
@@ -60,6 +60,18 @@ export async function development(studioId: string, clientId: string) {
           )
       : Promise.resolve([]),
     getToday(clientId, client.userId ?? null),
+    // `clients.goal` is the coach's own note (ADR 0004) and is never written from
+    // onboarding — but a card showing "No goal set" for every client who just finished
+    // the 15-step intake, when they plainly stated one, is not useful to anyone. This is
+    // a read-only fallback for display, not a merge: the coach's own goal, once set,
+    // still wins, and nothing here ever writes back to `clients.goal`.
+    client.userId
+      ? db
+          .select({ goal: schema.userIntakes.goal })
+          .from(schema.userIntakes)
+          .where(eq(schema.userIntakes.userId, client.userId))
+          .limit(1)
+      : Promise.resolve([]),
   ]);
   const end = new Date(),
     start = new Date();
@@ -111,7 +123,7 @@ export async function development(studioId: string, clientId: string) {
       reviewed: reviews.some((r) => r.checkInId === c.id),
     })),
     weight: profile.weight,
-    goal: profile.goal,
+    goal: profile.goal ?? intake[0]?.goal ?? null,
     clientName: client.name,
   };
 }

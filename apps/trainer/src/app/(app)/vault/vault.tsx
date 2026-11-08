@@ -36,6 +36,7 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  ExternalLink,
   File,
   FileText,
   Image as ImageIcon,
@@ -43,8 +44,10 @@ import {
   Lock,
   MoreHorizontal,
   Music,
+  Pencil,
   Plus,
   Search,
+  Trash,
   Upload,
   Video,
 } from "@traiv/ui/icons";
@@ -210,7 +213,10 @@ function VaultContent({ studioId, clientId }: { studioId: string; clientId?: str
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => setEditing(row)}>Edit resource</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setEditing(row)}>
+                    <Pencil className="size-4" />
+                    Edit resource
+                  </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={async () => {
                       try {
@@ -221,10 +227,12 @@ function VaultContent({ studioId, clientId }: { studioId: string; clientId?: str
                       }
                     }}
                   >
+                    <ExternalLink className="size-4" />
                     Open resource
                   </DropdownMenuItem>
                   {(!clientId || row.direct) && (
                     <DropdownMenuItem variant="destructive" onClick={() => setDeleting(row)}>
+                      <Trash className="size-4" />
                       {clientId ? "Remove" : "Delete"}
                     </DropdownMenuItem>
                   )}

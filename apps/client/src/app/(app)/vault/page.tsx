@@ -263,7 +263,7 @@ function VaultPageContent() {
         aria-label="Resource categories"
         className="sticky bottom-4 mt-auto flex items-center gap-1 rounded-full border border-line bg-sunken/95 p-1.5 shadow-sm"
       >
-        <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto">
+        <div className="flex min-w-0 flex-1 gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {categories.map((c) => (
             <button
               type="button"

@@ -1,7 +1,7 @@
 "use client";
 
 import { Logo } from "@traiv/ui/components/logo";
-import { AnimatePresence, motion } from "motion/react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import Link from "next/link";
 import { DevBypass } from "@/components/auth/dev-bypass";
 import { CodeStep } from "@/components/auth/steps/code-step";
@@ -22,6 +22,7 @@ const transition = {
 export function AuthForm({ mode }: { mode: AuthMode }) {
   const flow = useAuthFlow(mode);
   const other = mode === "signin" ? "/signup" : "/signin";
+  const reduceMotion = useReducedMotion();
 
   return (
     <div className="flex w-full max-w-[25rem] flex-col gap-5">
@@ -32,7 +33,13 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 
       <div className="rounded-surface bg-surface p-6 shadow-sm sm:p-7">
         <AnimatePresence mode="wait" initial={false}>
-          <motion.div key={`${flow.step}-${mode}`} {...transition}>
+          <motion.div
+            key={`${flow.step}-${mode}`}
+            initial={reduceMotion ? false : transition.initial}
+            animate={transition.animate}
+            exit={reduceMotion ? undefined : transition.exit}
+            transition={reduceMotion ? { duration: 0 } : transition.transition}
+          >
             {flow.step === "identity" && <IdentityStep mode={mode} flow={flow} />}
             {flow.step === "code" && <CodeStep flow={flow} />}
             {flow.step === "profile" && <ProfileStep flow={flow} />}

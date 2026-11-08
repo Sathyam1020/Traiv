@@ -1,10 +1,3 @@
-import { clientActivity } from "./activity.js";
-import { clientFeedbackRouter } from "./feedback.js";
-import { clientPush } from "../notifications/routes.js";
-import { clientHealth } from "./health.js";
-import { clientSettingsRouter } from "./settings.js";
-import { clientMeasurementsRouter } from "./measurements.js";
-import { clientVault } from "../vault/routes.js";
 import { newId, schema } from "@traiv/db";
 import { and, asc, eq, inArray, isNull } from "drizzle-orm";
 import { Router } from "express";
@@ -19,18 +12,26 @@ import {
 } from "../../middleware/client-authorize.js";
 import { requireSession } from "../../middleware/session.js";
 import { clientMessaging } from "../messaging/routes.js";
+import { clientPush } from "../notifications/routes.js";
 import { readSteps, saveSteps } from "../studio/development.js";
+import { listIngredients } from "../studio/nutrition.js";
+import { clientVault } from "../vault/routes.js";
+import { clientActivity } from "./activity.js";
 import {
   clientProfileHistory,
   getClientCheckIn,
   listClientCheckIns,
   submitClientCheckIn,
 } from "./check-ins.js";
+import { clientFeedbackRouter } from "./feedback.js";
 import { allow as allowFoodTool } from "./food.js";
 import { foodRouter } from "./food-routes.js";
+import { clientHealth } from "./health.js";
 import { completeIntake, FIRST_STEP, getIntake, LAST_STEP, saveStep } from "./intake.js";
 import { joinByCode, previewJoin, rotateJoinCode, setJoinEnabled } from "./join.js";
 import { publishedMealPlans } from "./meal-plans.js";
+import { clientMeasurementsRouter } from "./measurements.js";
+import { clientSettingsRouter } from "./settings.js";
 import { isFutureStepDate, stepsPeriod, stepsWrite } from "./steps-validation.js";
 import { getToday } from "./today.js";
 import { signUpload, uploadsConfigured } from "./uploads.js";
@@ -361,6 +362,19 @@ const HEALTH_FLAGS = [
   "pregnancy",
 ] as const;
 const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+const WORK_ACTIVITY = ["sedentary", "light", "moderate", "heavy", "very_heavy"] as const;
+const TRAINING_LOCATIONS = ["home", "gym", "outdoors"] as const;
+const DIETARY_TAGS = [
+  "vegan",
+  "vegetarian",
+  "pescetarian",
+  "peanut_allergy",
+  "nut_allergy",
+  "gluten_intolerance",
+  "lactose_intolerance",
+  "dairy_allergy",
+  "sugar_sensitivity",
+] as const;
 
 /**
  * Every field optional, because every step is skippable. The ranges match the check
@@ -369,6 +383,14 @@ const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
  */
 const intakePatch = z
   .object({
+    firstName: z.string().trim().min(1).max(60),
+    lastName: z.string().trim().max(60),
+    avatarUrl: z
+      .string()
+      .url()
+      .max(2000)
+      .refine((v) => v.startsWith("https://")),
+
     goal: z.enum([
       "lose_fat",
       "build_muscle",
@@ -395,6 +417,20 @@ const intakePatch = z
     healthNote: z.string().max(1000),
     trainingDays: z.array(z.enum(DAYS)).max(7),
     preferredTime: z.enum(["morning", "afternoon", "evening", "varies"]),
+
+    workedWithCoach: z.boolean(),
+    typicalDay: z.string().max(2000),
+    workActivity: z.enum(WORK_ACTIVITY),
+    trainingLocations: z.array(z.enum(TRAINING_LOCATIONS)).max(TRAINING_LOCATIONS.length),
+    excludedIngredients: z.array(z.string().trim().min(1).max(60)).max(50),
+    edInduceVomiting: z.boolean(),
+    edFoodDominates: z.boolean(),
+    edRecentWeightLoss: z.boolean(),
+    edBodyImageMismatch: z.boolean(),
+    edLossOfControl: z.boolean(),
+    dietaryTags: z.array(z.enum(DIETARY_TAGS)).max(DIETARY_TAGS.length),
+    additionalNutritionNotes: z.string().max(1000),
+    otherNotes: z.string().max(2000),
   })
   .partial();
 
@@ -418,6 +454,26 @@ clientApp.post("/:studioId/intake/complete", requireClient({ write: true }), asy
   const { userId } = requireSession(req);
   const { target, awaitingReview } = await completeIntake(userId);
   res.json({ target, awaitingReview });
+});
+
+/**
+ * Read-only, name-only slice of the same ingredient catalog the coach's recipe builder
+ * searches — for the onboarding exclusion-list step, which needs real suggestions
+ * rather than a free-text box with no idea what exists. Reuses `listIngredients`'s own
+ * relevance ranking rather than a second copy of it.
+ */
+clientApp.get("/:studioId/ingredients/search", requireClient(), async (req, res) => {
+  const { studioId } = requireClientAuth(req);
+  const { q } = z.object({ q: z.string().trim().max(120).default("") }).parse(req.query);
+  if (!q) return res.json({ items: [] });
+
+  const { items } = await listIngredients(studioId, {
+    search: q,
+    sort: "name",
+    page: 1,
+    perPage: 10,
+  });
+  res.json({ items: items.map((i) => ({ id: i.id, name: i.name })) });
 });
 
 /* ---- workouts — ADR 0024 ---- */

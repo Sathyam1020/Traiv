@@ -66,7 +66,12 @@ export type ActivityLevel = "sedentary" | "light" | "moderate" | "very" | "extra
 export type Experience = "new" | "some" | "experienced";
 export type DietType = "vegetarian" | "non_vegetarian" | "eggetarian" | "vegan" | "jain";
 
+export type WorkActivityLevel = "sedentary" | "light" | "moderate" | "heavy" | "very_heavy";
+
 export type Intake = {
+  // Not columns on this row — `firstName`/`lastName`/`avatarUrl` live on `User`, carried
+  // through `IntakePatch` only so the flow has one save path. Never read back from here;
+  // read the session's `user` instead.
   goal: Goal | null;
   targetWeightKg: number | null;
   sex: Sex | null;
@@ -85,6 +90,21 @@ export type Intake = {
   healthNote: string | null;
   trainingDays: string[] | null;
   preferredTime: string | null;
+
+  workedWithCoach: boolean | null;
+  typicalDay: string | null;
+  workActivity: WorkActivityLevel | null;
+  trainingLocations: string[] | null;
+  excludedIngredients: string[] | null;
+  edInduceVomiting: boolean | null;
+  edFoodDominates: boolean | null;
+  edRecentWeightLoss: boolean | null;
+  edBodyImageMismatch: boolean | null;
+  edLossOfControl: boolean | null;
+  dietaryTags: string[] | null;
+  additionalNutritionNotes: string | null;
+  otherNotes: string | null;
+
   lastStep: number | null;
   completedAt: string | null;
 };
@@ -107,6 +127,9 @@ export type IntakeState = {
 /** Every field optional — skipping a step is a supported answer, not a failure. */
 export type IntakePatch = Partial<Omit<Intake, "lastStep" | "completedAt">> & {
   weightKg?: number;
+  firstName?: string;
+  lastName?: string;
+  avatarUrl?: string;
 };
 
 /* -------------------------------------------------------------------------- */

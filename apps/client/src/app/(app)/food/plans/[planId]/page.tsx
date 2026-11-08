@@ -118,7 +118,7 @@ export default function ClientMealPlanPage() {
             aria-hidden="true"
             className="mx-auto mt-3 h-1 w-9 shrink-0 rounded-full bg-line-strong"
           />
-          <div className="shrink-0 overflow-x-auto border-b border-line px-4 pt-3 sm:px-6">
+          <div className="shrink-0 overflow-x-auto border-b border-line px-4 pt-3 sm:px-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             <TabsList
               variant="line"
               className="justify-start p-0 group-data-[orientation=horizontal]/tabs:h-12"

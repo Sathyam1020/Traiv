@@ -1,13 +1,14 @@
 "use client";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
 import { Button } from "@traiv/ui/components/button";
 import { Input } from "@traiv/ui/components/input";
 import { Plus, Trash } from "@traiv/ui/icons";
-import { foodApi, type Nutrients, type FoodItem } from "@/lib/api/food";
-import { Panel, Field, ErrorText, card } from "./common";
-import { useAction, Choice } from "./actions";
+import { useState } from "react";
+import { type FoodItem, foodApi, type Nutrients } from "@/lib/api/food";
+import { Choice, useAction } from "./actions";
+import { card, ErrorText, Field, Panel } from "./common";
 import { FoodSearch } from "./search";
+
 type PersonalPlan = {
   id: string;
   name: string;
@@ -83,7 +84,7 @@ export function PersonalPlans({
               {p.meals.map((meal, index) => (
                 <section key={index}>
                   <p className="text-body-sm font-semibold">{meal.name}</p>
-                  <div className="mt-2 flex gap-3 overflow-x-auto">
+                  <div className="mt-2 flex gap-3 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {(meal.options ?? []).map((option) => (
                       <button
                         key={option.id}

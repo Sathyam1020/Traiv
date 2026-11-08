@@ -1,7 +1,7 @@
 "use client";
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ClientProfile, Roster, RosterParams, RosterStatus, Tag } from "@/lib/api";
+import type { ClientProfile, Roster, RosterParams, SettableClientStatus, Tag } from "@/lib/api";
 import { rosterApi } from "@/lib/api";
 import { queryKeys } from "./keys";
 
@@ -111,19 +111,26 @@ export function useUpdateClient(studioId: string | null) {
     meta: {
       feedback: { error: "Couldn't update the client. Try again.", success: "Client updated" },
     },
-    mutationFn: (args: { clientId: string; status?: RosterStatus; endsAt?: string | null }) =>
+    mutationFn: (args: {
+      clientId: string;
+      status?: SettableClientStatus;
+      startedAt?: string;
+      endsAt?: string | null;
+    }) =>
       rosterApi.update(studioId as string, args.clientId, {
         ...(args.status ? { status: args.status } : {}),
+        ...(args.startedAt ? { startedAt: args.startedAt } : {}),
         ...("endsAt" in args ? { endsAt: args.endsAt } : {}),
       }),
 
-    // The badge and the end date flip immediately; the refetch below is what moves the
+    // The badge and the dates flip immediately; the refetch below is what moves the
     // row between tabs and corrects the counts, and it happens underneath.
-    onMutate: ({ clientId, status, endsAt }) => {
+    onMutate: ({ clientId, status, startedAt, endsAt }) => {
       const before = qc.getQueriesData<Roster>(rosterLists(studioId));
       for (const [key, roster] of patchClient([...before], clientId, (c) => ({
         ...c,
         ...(status ? { status } : {}),
+        ...(startedAt ? { startedAt } : {}),
         ...(endsAt !== undefined ? { endsAt } : {}),
       }))) {
         qc.setQueryData(key, roster);

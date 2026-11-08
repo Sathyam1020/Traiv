@@ -15,10 +15,25 @@ export function notifyAction(message: string, variant: "success" | "error") {
   toast(message, { variant });
 }
 
+/**
+ * The server's own field-level reason, duck-typed rather than imported — this package
+ * has no business knowing either app's concrete `ApiError` class, only the shape a 400
+ * with field details takes on the wire. "Height must be between 90 and 250 cm" beats
+ * "Couldn't save that" every time one is actually available.
+ */
+function specificReason(error: unknown): string | null {
+  if (!error || typeof error !== "object") return null;
+  const { status, details } = error as { status?: unknown; details?: unknown };
+  if (status !== 400 || !Array.isArray(details) || !details.length) return null;
+  const message = (details[0] as { message?: unknown } | undefined)?.message;
+  return typeof message === "string" && message ? message : null;
+}
+
 /** Only explicitly tagged mutations emit notifications. Reads/auth/autosaves stay quiet. */
 export function mutationFeedback(
   meta: Record<string, unknown> | undefined,
   outcome: "success" | "error",
+  error?: unknown,
 ) {
   const feedback = meta?.feedback;
   if (!feedback || typeof feedback !== "object") return;
@@ -26,7 +41,7 @@ export function mutationFeedback(
     outcome === "success" && "success" in feedback
       ? feedback.success
       : outcome === "error" && "error" in feedback
-        ? feedback.error
+        ? (specificReason(error) ?? feedback.error)
         : undefined;
   if (typeof message === "string" && message) notifyAction(message, outcome);
 }

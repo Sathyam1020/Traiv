@@ -207,16 +207,21 @@ export function TableCard({ children, pending }: { children: ReactNode; pending?
     <div className="flex min-h-0 flex-1 flex-col px-4 pb-4 sm:px-6">
       <div
         aria-busy={pending || undefined}
-        className="flex min-h-[22rem] flex-1 flex-col overflow-hidden rounded-surface border border-line bg-surface shadow-inset"
+        className="relative flex min-h-[22rem] flex-1 flex-col overflow-hidden rounded-surface border border-line bg-surface shadow-inset"
       >
-        {/* Always rendered, so the rows never shift down by two pixels when it appears. */}
-        <div
-          aria-hidden="true"
-          className={cn(
-            "h-0.5 shrink-0 transition-colors",
-            pending ? "animate-pulse bg-fg-subtle" : "bg-transparent",
-          )}
-        />
+        {/* Absolutely positioned, not `shrink-0` in the flow — it used to reserve 2px of
+            layout space even while inactive (`bg-transparent`) so the content below
+            never shifted when it appeared. That reserved strip sat between the card's
+            rounded top edge and the header row's own background, showing as a persistent
+            pale line above the header regardless of `pending`. Overlaying it instead
+            keeps the same "no layout shift" guarantee — it paints on top rather than
+            pushing anything down — without ever occupying space of its own. */}
+        {pending ? (
+          <div
+            aria-hidden="true"
+            className="absolute inset-x-0 top-0 z-10 h-0.5 animate-pulse bg-fg-subtle"
+          />
+        ) : null}
         {children}
       </div>
     </div>

@@ -1,0 +1,1 @@
+ALTER TYPE "public"."challenge_purpose" ADD VALUE 'phone_link';

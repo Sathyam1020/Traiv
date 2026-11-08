@@ -10,7 +10,7 @@ import { ArrowLeft, ArrowRight, Check } from "@traiv/ui/icons";
 import { useState } from "react";
 import { OtpInput } from "@/components/common/otp-input";
 import { useJoinFlow } from "@/components/join/use-join-flow";
-import type { JoinOutcome } from "@/lib/api";
+import { type JoinOutcome, MARKETING_URL } from "@/lib/api";
 
 /**
  * Signing up to a specific coach.
@@ -169,7 +169,25 @@ export function JoinCard({
       </div>
 
       <p className="text-center text-caption text-fg-subtle">
-        By continuing you agree to our Terms and Privacy Policy.
+        By continuing you agree to our{" "}
+        <a
+          href={`${MARKETING_URL}/legal/terms`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline"
+        >
+          Terms
+        </a>{" "}
+        and{" "}
+        <a
+          href={`${MARKETING_URL}/legal/privacy`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline"
+        >
+          Privacy Policy
+        </a>
+        .
       </p>
     </div>
   );

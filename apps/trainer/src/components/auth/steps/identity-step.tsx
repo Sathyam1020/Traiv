@@ -9,7 +9,7 @@ import { ArrowRight } from "@traiv/ui/icons";
 import { EndorserField, useEndorserCode } from "@/components/auth/endorser-field";
 import { TrustMarkers } from "@/components/auth/trust-markers";
 import type { AuthFlow, AuthMode } from "@/components/auth/use-auth-flow";
-import { API_BASE } from "@/lib/api";
+import { API_BASE, MARKETING_URL } from "@/lib/api";
 import { useAuthConfig } from "@/lib/query";
 
 export function IdentityStep({ mode, flow }: { mode: AuthMode; flow: AuthFlow }) {
@@ -41,7 +41,7 @@ export function IdentityStep({ mode, flow }: { mode: AuthMode; flow: AuthFlow })
           after the click. */}
       <GoogleButton
         enabled={Boolean(config?.google)}
-        href={`${API_BASE}/auth/google/start`}
+        href={`${API_BASE}/auth/google/start?app=trainer`}
         label={isSignup ? "Sign up with Google" : "Sign in with Google"}
       />
       <div className="flex items-center gap-3">
@@ -100,8 +100,24 @@ export function IdentityStep({ mode, flow }: { mode: AuthMode; flow: AuthFlow })
 
       <p className="text-center text-caption leading-relaxed text-fg-subtle">
         By continuing, you agree to our{" "}
-        <span className="font-medium text-fg-muted">Terms of Service</span> and{" "}
-        <span className="font-medium text-fg-muted">Privacy Policy</span>.
+        <a
+          href={`${MARKETING_URL}/legal/terms`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-fg-muted underline"
+        >
+          Terms of Service
+        </a>{" "}
+        and{" "}
+        <a
+          href={`${MARKETING_URL}/legal/privacy`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="font-medium text-fg-muted underline"
+        >
+          Privacy Policy
+        </a>
+        .
       </p>
 
       <TrustMarkers />

@@ -1,6 +1,7 @@
 "use client";
 
 import { Toaster } from "@traiv/ui/components/sonner";
+import { PlatformServices } from "@/components/layout/platform-services";
 import { QueryProvider } from "@/lib/query";
 import { UiStoreProvider, useUiStore } from "@/lib/stores";
 
@@ -8,6 +9,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryProvider>
       <UiStoreProvider>
+        <PlatformServices />
         {children}
         <ThemedToaster />
       </UiStoreProvider>

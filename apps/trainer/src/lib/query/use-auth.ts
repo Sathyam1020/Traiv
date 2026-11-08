@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { authApi } from "@/lib/api";
 import { queryKeys } from "./keys";
+import { idbPersister } from "./persist";
 
 export function useAuthConfig() {
   return useQuery({
@@ -59,6 +60,26 @@ export function useVerifyCode() {
   });
 }
 
+export function usePhoneLinkChallenge() {
+  return useMutation({ mutationFn: authApi.phoneLinkChallenge });
+}
+
+export function usePhoneLinkVerify() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: authApi.phoneLinkVerify,
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.auth.session }),
+  });
+}
+
+export function usePhoneLinkDirect() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: authApi.phoneLinkDirect,
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.auth.session }),
+  });
+}
+
 export function useUpdateProfile() {
   const qc = useQueryClient();
   return useMutation({
@@ -76,8 +97,12 @@ export function useLogout() {
   return useMutation({
     mutationFn: authApi.logout,
     onSettled: () => {
-      // Clear everything — none of it belongs to the next person to sign in.
+      // Clear everything — none of it belongs to the next person to sign in. The
+      // persisted IndexedDB copy is wiped directly rather than left to the throttled
+      // auto-persist of the now-empty cache: a shared device signing in as someone else
+      // before that throttle fires must not see this person's data flash first.
       qc.clear();
+      void idbPersister.removeClient();
       router.push("/signin");
     },
   });

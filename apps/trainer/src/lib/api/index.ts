@@ -1,5 +1,5 @@
 export { authApi } from "./auth";
-export { API_BASE, ApiError, http, isApiError } from "./client";
+export { API_BASE, ApiError, apiErrorMessage, http, isApiError, MARKETING_URL } from "./client";
 export { type JoinCode, joinApi } from "./join";
 export { rosterApi } from "./roster";
 export { studiosApi } from "./studios";

@@ -137,6 +137,27 @@ export async function activateStudio(sessionId: string, studioId: string) {
 }
 
 /**
+ * Renaming the business. Membership and role were verified by `requireStudio` before
+ * this runs — this must not be called without that gate having already confirmed the
+ * caller owns the studio they're asking to rename.
+ */
+export async function renameStudio(studioId: string, name: string) {
+  const [studio] = await db
+    .update(schema.studios)
+    .set({ name, updatedAt: new Date() })
+    .where(eq(schema.studios.id, studioId))
+    .returning({
+      id: schema.studios.id,
+      slug: schema.studios.slug,
+      name: schema.studios.name,
+      brandLogoUrl: schema.studios.brandLogoUrl,
+      tier: schema.studios.tier,
+    });
+  if (!studio) throw notFound("Studio not found.");
+  return studio;
+}
+
+/**
  * Which studio a session opens in.
  *
  * Priority: what the session already had → the studio they were invited into, if they

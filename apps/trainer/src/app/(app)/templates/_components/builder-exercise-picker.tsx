@@ -7,6 +7,7 @@ import { Button } from "@traiv/ui/components/button";
 import { Input } from "@traiv/ui/components/input";
 import { Skeleton } from "@traiv/ui/components/skeleton";
 import { Plus, Search } from "@traiv/ui/icons";
+import Image from "next/image";
 import { useState } from "react";
 import type { Exercise } from "@/lib/api";
 import { useExercises } from "@/lib/query";
@@ -151,10 +152,11 @@ export function BuilderExercisePicker({
               className="flex cursor-pointer items-center gap-3 rounded-control px-2 py-2 text-left transition-colors hover:bg-hover"
             >
               {e.imageUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={e.imageUrl}
                   alt=""
+                  width={40}
+                  height={40}
                   className="size-10 shrink-0 rounded-control object-cover"
                 />
               ) : (

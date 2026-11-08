@@ -9,6 +9,7 @@ import {
   SelectValue,
 } from "@traiv/ui/components/select";
 import { ArrowLeft, Barcode, Camera, Clock, Plus, Salad, Star, Zap } from "@traiv/ui/icons";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -111,7 +112,7 @@ export default function LogFoodPage() {
           </SelectContent>
         </Select>
       </header>
-      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-[calc(7rem+env(safe-area-inset-bottom))]">
+      <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto px-4 pb-[calc(7rem+env(safe-area-inset-bottom))]">
         <div className="grid grid-cols-3 gap-2">
           {[
             {
@@ -152,7 +153,7 @@ export default function LogFoodPage() {
             </button>
           ))}
         </div>
-        <fieldset className="my-5 flex gap-2 overflow-x-auto pb-1">
+        <fieldset className="my-5 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           <legend className="sr-only">Food sources</legend>
           {[
             { id: "recent", name: "Recent", Icon: Clock },
@@ -208,9 +209,11 @@ export default function LogFoodPage() {
               className="client-tappable flex w-full items-center gap-3 rounded-2xl border border-line bg-surface p-3 text-left disabled:opacity-50"
             >
               {food.imageUrl ? (
-                <img
+                <Image
                   src={food.imageUrl}
                   alt=""
+                  width={40}
+                  height={40}
                   className="size-10 shrink-0 rounded-xl object-cover"
                 />
               ) : (

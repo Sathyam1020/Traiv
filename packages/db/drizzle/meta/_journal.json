@@ -330,6 +330,27 @@
       "when": 1793778134298,
       "tag": "0046_curly_frog_thor",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1794063346765,
+      "tag": "0047_fast_falcon",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1794071785856,
+      "tag": "0048_far_strong_guy",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1794108233211,
+      "tag": "0049_public_zombie",
+      "breakpoints": true
     }
   ]
 }

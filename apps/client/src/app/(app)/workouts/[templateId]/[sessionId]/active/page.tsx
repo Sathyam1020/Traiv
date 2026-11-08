@@ -16,11 +16,14 @@ import {
   Repeat,
 } from "@traiv/ui/icons";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import Image from "next/image";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { QueryError } from "@/components/common/query-state";
 import type { SessionDetail, SessionExerciseDetail } from "@/lib/api";
+import { isApiError } from "@/lib/api/client";
+import { markWorkoutActive, markWorkoutInactive } from "@/lib/pwa/active-workout-guard";
 import {
   useActiveStudio,
   useCancelSession,
@@ -29,6 +32,13 @@ import {
   useWorkoutSession,
 } from "@/lib/query";
 import { queryKeys } from "@/lib/query/keys";
+import {
+  clearSession,
+  listPending,
+  markAttempt,
+  queueSet,
+  removeSet as removeFromOutbox,
+} from "@/lib/workouts/outbox";
 import { createSaveQueue } from "@/lib/workouts/save-queue";
 import { ActiveSetRow, type ActiveSetValue } from "../../../_components/active-set-row";
 import { IncompleteWorkoutDialog } from "../../../_components/incomplete-workout-dialog";
@@ -46,6 +56,14 @@ type LocalSets = Record<string, LocalSet[]>;
 
 type ActiveRestTimer = RestTimerState & {
   sessionExerciseId: string;
+  /**
+   * The wall-clock deadline this rest period ends at, not just a countdown to decrement.
+   * A screen lock or backgrounded tab pauses the JS timer that would otherwise tick
+   * `remainingSeconds` down, but it does not pause real time — recomputing from `endsAt`
+   * on every tick (and immediately on `visibilitychange`) is what makes the timer show
+   * "done" after a 90-second lock instead of still reading 85 seconds left.
+   */
+  endsAt: number;
 };
 
 const DEFAULT_REST_SECONDS = 60;
@@ -113,11 +131,29 @@ export default function ActiveSessionPage() {
   const pendingCount = useRef(0);
   const [saving, setSaving] = useState(0);
   const [saveErrors, setSaveErrors] = useState<Record<string, string>>({});
+  // Distinct from saveErrors: a set that's durably queued and will sync on its own once
+  // reachable, not one that needs the user to do anything. Red "couldn't save, retry" and
+  // calm "saved here, will sync" are different situations and shouldn't look the same.
+  const [queuedOffline, setQueuedOffline] = useState<Record<string, boolean>>({});
   const [actionError, setActionError] = useState<string | null>(null);
   const { studioId } = useActiveStudio();
   const session = useWorkoutSession(studioId, templateId, sessionId);
 
   const [sets, setSets] = useState<LocalSets | null>(null);
+  // Mirrors `sets` for code that needs the latest rows without re-running on every
+  // keystroke — recovering pending outbox entries and flushing them on reconnect.
+  const setsRef = useRef<LocalSets | null>(null);
+  useEffect(() => {
+    setsRef.current = sets;
+  }, [sets]);
+
+  // Tells the service-worker update logic a workout is in progress here, so a waiting
+  // update never prompts (let alone applies) while there's something to interrupt.
+  useEffect(() => {
+    markWorkoutActive();
+    return () => markWorkoutInactive();
+  }, []);
+
   const [openRow, setOpenRow] = useState<string | null>(null);
 
   const [restTimer, setRestTimer] = useState<ActiveRestTimer | null>(null);
@@ -142,6 +178,57 @@ export default function ActiveSessionPage() {
     }
   }, [session.data, sets]);
 
+  // Recovery: once per session, pull in anything still queued from before this mount —
+  // a kill mid-write, a reload while offline — so the screen shows what was actually
+  // typed, not just what the server last confirmed, then tries to flush it.
+  const recoveredRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!trainingSessionId || sets === null) return;
+    if (recoveredRef.current === trainingSessionId) return;
+    recoveredRef.current = trainingSessionId;
+
+    void listPending(trainingSessionId).then((pending) => {
+      if (pending.length === 0) return;
+
+      setSets((current) => {
+        if (!current) return current;
+        const next = { ...current };
+        for (const p of pending) {
+          const rows = next[p.sessionExerciseId];
+          if (!rows) continue;
+          const i = rows.findIndex((r) => r.setNumber === p.setNumber);
+          const row = i === -1 ? undefined : rows[i];
+          if (!row) continue;
+          const updated = [...rows];
+          updated[i] = {
+            ...row,
+            reps: p.reps,
+            loadKg: p.loadKg,
+            completed: p.completed,
+            persisted: false,
+          };
+          next[p.sessionExerciseId] = updated;
+        }
+        return next;
+      });
+
+      setQueuedOffline((current) => {
+        const next = { ...current };
+        for (const p of pending) next[`${p.sessionExerciseId}:${p.setNumber}`] = true;
+        return next;
+      });
+
+      void flushPending();
+    });
+  }, [trainingSessionId, sets]);
+
+  // Reconnecting is the other moment a flush matters, beyond the one at mount.
+  useEffect(() => {
+    const onOnline = () => void flushPending();
+    window.addEventListener("online", onOnline);
+    return () => window.removeEventListener("online", onOnline);
+  }, [trainingSessionId]);
+
   // Workout elapsed timer.
   useEffect(() => {
     if (!headerRunning) return;
@@ -151,25 +238,55 @@ export default function ActiveSessionPage() {
     return () => clearInterval(id);
   }, [headerRunning]);
 
-  // Rest countdown. No countdown updates are scheduled while paused.
+  // Rest countdown, computed from `endsAt` rather than decremented — so a tab that was
+  // suspended (screen lock, app switch, backgrounded PWA) shows the correct remaining
+  // time the instant it's checked again, rather than resuming from wherever a paused
+  // interval happened to leave off. `visibilitychange` forces that recheck immediately
+  // on return instead of waiting up to a second for the next tick.
   useEffect(() => {
     if (!restTimer || restTimerPaused || restTimerEditing) return;
-
     if (restTimer.remainingSeconds <= 0) return;
 
-    const id = setTimeout(() => {
+    const { endsAt, sessionExerciseId } = restTimer;
+    const computeRemaining = () => Math.max(0, Math.round((endsAt - Date.now()) / 1000));
+    const apply = (remaining: number) => {
       setRestTimer((current) =>
-        current
-          ? {
-              ...current,
-              remainingSeconds: Math.max(0, current.remainingSeconds - 1),
-            }
-          : null,
+        current && current.sessionExerciseId === sessionExerciseId && current.endsAt === endsAt
+          ? { ...current, remainingSeconds: remaining }
+          : current,
       );
+    };
+
+    // Correct immediately, including the case where the deadline already passed while
+    // this effect was inactive (a long screen lock) — nothing to schedule in that case.
+    const initial = computeRemaining();
+    apply(initial);
+    if (initial === 0) {
+      if ("vibrate" in navigator) navigator.vibrate(200);
+      return;
+    }
+
+    // One vibration on the transition into "done," not a buzz every second after —
+    // the interval clears itself the moment it finds the deadline has passed.
+    const id = setInterval(() => {
+      const remaining = computeRemaining();
+      apply(remaining);
+      if (remaining === 0) {
+        clearInterval(id);
+        if ("vibrate" in navigator) navigator.vibrate(200);
+      }
     }, 1000);
 
-    return () => clearTimeout(id);
-  }, [restTimer, restTimerPaused, restTimerEditing]);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") apply(computeRemaining());
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [restTimer?.endsAt, restTimer?.sessionExerciseId, restTimerPaused, restTimerEditing]);
 
   const live = session.data?.live ?? null;
 
@@ -248,9 +365,20 @@ export default function ActiveSessionPage() {
     rollbackCompleted?: boolean,
   ) {
     if (!trainingSessionId) return;
+    const sessionId_ = trainingSessionId;
     const key = `${sessionExerciseId}:${row.setNumber}`;
     pendingCount.current += 1;
     setSaving(pendingCount.current);
+    // Write-ahead: durable before the network attempt, not after it fails — the value
+    // survives a kill mid-request, not just a kill after a failed response.
+    await queueSet({
+      trainingSessionId: sessionId_,
+      sessionExerciseId,
+      setNumber: row.setNumber,
+      reps: row.reps,
+      loadKg: row.loadKg,
+      completed: row.completed,
+    });
     let succeeded = false;
     const task = saveQueue.run(key, async (isLatest) => {
       try {
@@ -267,6 +395,7 @@ export default function ActiveSessionPage() {
             previous?.live ? { ...previous, live: { ...previous.live, sets: saved } } : previous,
         );
         succeeded = true;
+        void removeFromOutbox(sessionId_, sessionExerciseId, row.setNumber);
         if (isLatest()) {
           patchSet(sessionExerciseId, index, { persisted: true });
           setSaveErrors((previous) => {
@@ -274,9 +403,26 @@ export default function ActiveSessionPage() {
             delete next[key];
             return next;
           });
+          setQueuedOffline((previous) => {
+            if (!previous[key]) return previous;
+            const next = { ...previous };
+            delete next[key];
+            return next;
+          });
         }
-      } catch {
-        if (isLatest()) {
+      } catch (error) {
+        // Unreachable, not rejected — the value is already durable in the outbox, so
+        // the honest thing is "saved here, will sync," not a red error asking the user
+        // to do something about a connectivity problem they already know about.
+        const offline = isApiError(error) && error.code === "network";
+        if (offline) {
+          void markAttempt(sessionId_, sessionExerciseId, row.setNumber, error.message);
+          if (isLatest()) setQueuedOffline((previous) => ({ ...previous, [key]: true }));
+        } else {
+          // A real rejection (not connectivity) — don't keep retrying it forever.
+          void removeFromOutbox(sessionId_, sessionExerciseId, row.setNumber);
+        }
+        if (isLatest() && !offline) {
           if (rollbackCompleted !== undefined) {
             patchSet(sessionExerciseId, index, { completed: rollbackCompleted });
             if (!rollbackCompleted)
@@ -296,6 +442,24 @@ export default function ActiveSessionPage() {
     });
     await task;
     return succeeded;
+  }
+
+  /** Retry everything still in the outbox, using whatever's currently on screen for each
+   * row — not the outbox's own copy of the values — since the in-memory state is what
+   * the user has actually been looking at and may since have changed again. */
+  async function flushPending() {
+    if (!trainingSessionId) return;
+    const pending = await listPending(trainingSessionId);
+    const current = setsRef.current;
+    if (!current) return;
+    for (const p of pending) {
+      const rows = current[p.sessionExerciseId];
+      if (!rows) continue;
+      const index = rows.findIndex((r) => r.setNumber === p.setNumber);
+      const row = index === -1 ? undefined : rows[index];
+      if (!row) continue;
+      void persistRow(p.sessionExerciseId, index, row);
+    }
   }
 
   function toggleComplete(exercise: SessionExerciseDetail, index: number) {
@@ -325,6 +489,7 @@ export default function ActiveSessionPage() {
         exerciseName: exercise.name,
         totalSeconds,
         remainingSeconds: totalSeconds,
+        endsAt: Date.now() + totalSeconds * 1000,
       });
     } else if (restTimer?.sessionExerciseId === exercise.id) {
       setRestTimer(null);
@@ -400,7 +565,15 @@ export default function ActiveSessionPage() {
   }
 
   function handleHeaderFinish() {
-    if (pendingCount.current > 0 || Object.keys(saveErrors).length > 0) return;
+    // Finishing computes totals from what the server has recorded — not from this
+    // screen's own state — so it has to wait for anything still offline-queued, or the
+    // summary would silently undercount sets that hadn't reached the server yet.
+    if (
+      pendingCount.current > 0 ||
+      Object.keys(saveErrors).length > 0 ||
+      Object.keys(queuedOffline).length > 0
+    )
+      return;
     if (allComplete) {
       router.push(`/workouts/${templateId}/${sessionId}/finish`);
     } else {
@@ -411,6 +584,7 @@ export default function ActiveSessionPage() {
   async function cancelWorkout() {
     try {
       await cancelSession.mutateAsync(trainingSessionId as string);
+      if (trainingSessionId) void clearSession(trainingSessionId);
       router.push("/workouts");
     } catch {
       setActionError("Couldn't cancel your workout. Try again.");
@@ -423,6 +597,31 @@ export default function ActiveSessionPage() {
     setRestTimerPaused(false);
   }
 
+  /**
+   * Resuming (not pausing) has to re-derive `endsAt` from whatever `remainingSeconds`
+   * was frozen at — the old deadline is now meaningless, since real time kept moving
+   * the whole time the countdown effect was paused.
+   */
+  function handleRestTimerPausedChange(paused: boolean) {
+    setRestTimerPaused(paused);
+    if (!paused) {
+      setRestTimer((current) =>
+        current ? { ...current, endsAt: Date.now() + current.remainingSeconds * 1000 } : null,
+      );
+    }
+  }
+
+  /** Same reasoning as `handleRestTimerPausedChange` — closing the duration editor is
+   * also a return to "active" that needs a fresh deadline, not the stale one. */
+  function handleRestTimerEditingChange(editing: boolean) {
+    setRestTimerEditing(editing);
+    if (!editing) {
+      setRestTimer((current) =>
+        current ? { ...current, endsAt: Date.now() + current.remainingSeconds * 1000 } : null,
+      );
+    }
+  }
+
   function handleChangeRestDuration(totalSeconds: number) {
     setRestTimer((current) =>
       current
@@ -430,6 +629,7 @@ export default function ActiveSessionPage() {
             ...current,
             totalSeconds,
             remainingSeconds: totalSeconds,
+            endsAt: Date.now() + totalSeconds * 1000,
           }
         : null,
     );
@@ -480,7 +680,12 @@ export default function ActiveSessionPage() {
           <button
             type="button"
             onClick={handleHeaderFinish}
-            disabled={saving > 0 || deleteSet.isPending || Object.keys(saveErrors).length > 0}
+            disabled={
+              saving > 0 ||
+              deleteSet.isPending ||
+              Object.keys(saveErrors).length > 0 ||
+              Object.keys(queuedOffline).length > 0
+            }
             className="flex cursor-pointer items-center gap-1.5 rounded-full bg-brand-fg/15 px-3.5 py-2 text-body-sm font-medium transition-colors hover:bg-brand-fg/25"
           >
             Finish
@@ -535,10 +740,11 @@ export default function ActiveSessionPage() {
                 className="flex items-center gap-3 px-3 py-2.5 transition-colors hover:bg-hover"
               >
                 {exercise.imageUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={exercise.imageUrl}
                     alt=""
+                    width={44}
+                    height={44}
                     className="size-11 shrink-0 rounded-control object-cover"
                   />
                 ) : (
@@ -616,6 +822,16 @@ export default function ActiveSessionPage() {
                               Retry save
                             </button>
                           </div>
+                        ) : queuedOffline[key] ? (
+                          // Not an error — the value is safely saved on this device and
+                          // will sync on its own the moment there's a connection again.
+                          <div
+                            role="status"
+                            className="flex items-center gap-1.5 px-3 py-2 text-caption text-fg-muted"
+                          >
+                            <Clock aria-hidden="true" className="size-3.5" />
+                            <span>Saved on this device — will sync when you're back online</span>
+                          </div>
                         ) : null}
                       </div>
                     </SwipeToDelete>
@@ -640,10 +856,19 @@ export default function ActiveSessionPage() {
           <Button
             size="lg"
             className="w-full"
-            disabled={saving > 0 || deleteSet.isPending || Object.keys(saveErrors).length > 0}
+            disabled={
+              saving > 0 ||
+              deleteSet.isPending ||
+              Object.keys(saveErrors).length > 0 ||
+              Object.keys(queuedOffline).length > 0
+            }
             onClick={handleHeaderFinish}
           >
-            {saving > 0 ? "Saving sets…" : "Finish workout"}
+            {saving > 0
+              ? "Saving sets…"
+              : Object.keys(queuedOffline).length > 0
+                ? "Waiting to sync…"
+                : "Finish workout"}
           </Button>
         ) : null}
       </div>
@@ -662,9 +887,9 @@ export default function ActiveSessionPage() {
             <RestTimerCard
               timer={restTimer}
               paused={restTimerPaused}
-              onPausedChange={setRestTimerPaused}
+              onPausedChange={handleRestTimerPausedChange}
               onSkip={handleSkipRestTimer}
-              onEditingChange={setRestTimerEditing}
+              onEditingChange={handleRestTimerEditingChange}
               onChangeDuration={handleChangeRestDuration}
             />
           </motion.div>

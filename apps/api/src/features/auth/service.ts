@@ -444,6 +444,232 @@ export async function completeProfile(userId: string, input: { email?: string; n
   return user;
 }
 
+/**
+ * The phone step for an account that proved itself another way (Google).
+ *
+ * Deliberately not `requestChallenge` with a `userId` bolted on: that function's job is
+ * "look up or create a user by this phone," which is exactly wrong here — the user
+ * already exists and is already signed in. This only ever attaches a phone to the
+ * session that asked, and unlike `requestChallenge` it does reveal whether the number is
+ * taken, because the caller is already authenticated — there is no anonymous enumeration
+ * to protect against, only a real person deciding whether to use a different number.
+ */
+export async function requestPhoneLink(userId: string, input: { phone: string; ip?: string }) {
+  const phone = toE164(input.phone);
+
+  const [taken] = await db
+    .select({ id: schema.users.id })
+    .from(schema.users)
+    .where(and(eq(schema.users.phone, phone), isNull(schema.users.deletedAt)))
+    .limit(1);
+  if (taken && taken.id !== userId) {
+    throw badRequest("phone_taken", "That number is already on another account.");
+  }
+
+  const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+  const [{ count } = { count: 0 }] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(schema.authChallenges)
+    .where(
+      and(
+        eq(schema.authChallenges.phone, phone),
+        eq(schema.authChallenges.purpose, "phone_link"),
+        gte(schema.authChallenges.createdAt, hourAgo),
+        isNotNull(schema.authChallenges.sentAt),
+      ),
+    );
+  if (count >= MAX_SENDS_PER_HOUR) {
+    throw tooManyRequests("Too many codes requested. Try again in an hour.");
+  }
+
+  if (input.ip) {
+    const [{ count: fromIp } = { count: 0 }] = await db
+      .select({ count: sql<number>`count(*)::int` })
+      .from(schema.authChallenges)
+      .where(
+        and(
+          eq(schema.authChallenges.requestIp, input.ip),
+          gte(schema.authChallenges.createdAt, hourAgo),
+        ),
+      );
+    if (fromIp >= MAX_SENDS_PER_IP_PER_HOUR) {
+      throw tooManyRequests("Too many codes requested. Try again in an hour.");
+    }
+  }
+
+  const code = newOtp();
+  const challengeId = newId();
+
+  await db.transaction(async (tx) => {
+    await tx
+      .update(schema.authChallenges)
+      .set({ consumedAt: new Date() })
+      .where(
+        and(
+          eq(schema.authChallenges.phone, phone),
+          eq(schema.authChallenges.purpose, "phone_link"),
+          isNull(schema.authChallenges.consumedAt),
+        ),
+      );
+
+    await tx.insert(schema.authChallenges).values({
+      id: challengeId,
+      purpose: "phone_link",
+      phone,
+      userId,
+      codeHash: hashOtp(challengeId, code),
+      expiresAt: new Date(Date.now() + OTP_TTL_MS),
+      requestIp: input.ip ?? null,
+    });
+  });
+
+  try {
+    const { transport, fellBack } = await sendOtp(phone, code);
+    await db
+      .update(schema.authChallenges)
+      .set({ transport, sentAt: new Date() })
+      .where(eq(schema.authChallenges.id, challengeId));
+    return {
+      sent: true as const,
+      transport,
+      fellBack,
+      ...(transport === "console" ? { code } : {}),
+    };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    await db
+      .update(schema.authChallenges)
+      .set({ sendError: message.slice(0, 500) })
+      .where(eq(schema.authChallenges.id, challengeId));
+    console.error("[otp] every transport failed:", message);
+    throw badRequest("otp_send_failed", "Couldn't send the code right now. Try again.");
+  }
+}
+
+/**
+ * Spend the code and attach the phone to the session that requested it.
+ *
+ * Mirrors `verifyChallenge`'s guard clauses exactly — same rate limits, same one-shot
+ * consumption — but the payoff is different: no new user, no new session, no studio.
+ * Just the one column this account was missing. The uniqueness check runs again here,
+ * not only in `requestPhoneLink`, because the window between request and verify is
+ * exactly when someone else could have claimed the number — the database's own unique
+ * index is the real guard; this is what turns that race into a clean error instead of a
+ * 500.
+ */
+export async function verifyPhoneLink(userId: string, input: { phone: string; code: string }) {
+  const phone = toE164(input.phone);
+
+  const [challenge] = await db
+    .select()
+    .from(schema.authChallenges)
+    .where(
+      and(eq(schema.authChallenges.phone, phone), eq(schema.authChallenges.purpose, "phone_link")),
+    )
+    .orderBy(desc(schema.authChallenges.createdAt))
+    .limit(1);
+
+  if (!challenge || challenge.userId !== userId) {
+    throw badRequest("no_challenge", "Request a code first.");
+  }
+
+  const [{ failed } = { failed: 0 }] = await db
+    .select({ failed: sql<number>`coalesce(sum(${schema.authChallenges.attempts}), 0)::int` })
+    .from(schema.authChallenges)
+    .where(
+      and(
+        eq(schema.authChallenges.phone, phone),
+        eq(schema.authChallenges.purpose, "phone_link"),
+        gte(schema.authChallenges.createdAt, new Date(Date.now() - 60 * 60 * 1000)),
+      ),
+    );
+  if (failed >= MAX_FAILED_PER_HOUR) {
+    throw tooManyRequests("Too many incorrect codes. Request a new code.");
+  }
+
+  const [spent] = await db
+    .update(schema.authChallenges)
+    .set({ attempts: sql`${schema.authChallenges.attempts} + 1` })
+    .where(
+      and(
+        eq(schema.authChallenges.id, challenge.id),
+        isNull(schema.authChallenges.consumedAt),
+        gt(schema.authChallenges.expiresAt, new Date()),
+        lt(schema.authChallenges.attempts, MAX_ATTEMPTS),
+      ),
+    )
+    .returning();
+
+  if (!spent) {
+    if (challenge.consumedAt) throw badRequest("code_used", "That code has already been used.");
+    if (challenge.expiresAt < new Date()) {
+      throw badRequest("code_expired", "That code has expired.");
+    }
+    throw tooManyRequests("Too many attempts. Request a new code.");
+  }
+
+  if (!otpMatches(spent.id, input.code, spent.codeHash)) {
+    throw badRequest("code_invalid", "That code isn't right. Check the latest message.");
+  }
+
+  const [won] = await db
+    .update(schema.authChallenges)
+    .set({ consumedAt: new Date() })
+    .where(and(eq(schema.authChallenges.id, spent.id), isNull(schema.authChallenges.consumedAt)))
+    .returning({ id: schema.authChallenges.id });
+
+  if (!won) throw badRequest("code_used", "That code has already been used.");
+
+  const [taken] = await db
+    .select({ id: schema.users.id })
+    .from(schema.users)
+    .where(and(eq(schema.users.phone, phone), isNull(schema.users.deletedAt)))
+    .limit(1);
+  if (taken && taken.id !== userId) {
+    throw badRequest("phone_taken", "That number is already on another account.");
+  }
+
+  const [user] = await db
+    .update(schema.users)
+    .set({ phone, phoneVerifiedAt: new Date(), updatedAt: new Date() })
+    .where(eq(schema.users.id, userId))
+    .returning();
+
+  if (!user) throw notFound("Account not found.");
+  return user;
+}
+
+/**
+ * Dev-only twin of `verifyPhoneLink`, for `OTP=NO` — attaches the phone with no code,
+ * the same shortcut `signInDirect` takes for a brand-new account. Gated the same way.
+ */
+export async function linkPhoneDirect(userId: string, input: { phone: string }) {
+  if (env.OTP) {
+    throw badRequest("otp_required", "A verification code is required.");
+  }
+
+  const phone = toE164(input.phone);
+
+  const [taken] = await db
+    .select({ id: schema.users.id })
+    .from(schema.users)
+    .where(and(eq(schema.users.phone, phone), isNull(schema.users.deletedAt)))
+    .limit(1);
+  if (taken && taken.id !== userId) {
+    throw badRequest("phone_taken", "That number is already on another account.");
+  }
+
+  const [user] = await db
+    .update(schema.users)
+    .set({ phone, phoneVerifiedAt: new Date(), updatedAt: new Date() })
+    .where(eq(schema.users.id, userId))
+    .returning();
+
+  if (!user) throw notFound("Account not found.");
+  return user;
+}
+
 export async function getUser(userId: string) {
   const [user] = await db
     .select()

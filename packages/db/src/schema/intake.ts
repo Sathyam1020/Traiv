@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
+  boolean,
   check,
   index,
   integer,
@@ -46,6 +47,17 @@ export const dietType = pgEnum("diet_type", [
 ]);
 
 export const targetStatus = pgEnum("target_status", ["proposed", "active", "superseded"]);
+
+/** Same five bands as `activityLevel`, asked a second time for the work day specifically —
+ * someone standing all shift and someone at a desk can share a `dailyActivity` answer
+ * (their leisure exercise) while differing completely here. */
+export const workActivityLevel = pgEnum("work_activity_level", [
+  "sedentary",
+  "light",
+  "moderate",
+  "heavy",
+  "very_heavy",
+]);
 
 /**
  * What a person told us about themselves, once.
@@ -106,7 +118,44 @@ export const userIntakes = pgTable(
     /** morning | afternoon | evening | varies */
     preferredTime: text(),
 
-    /** 1-6. Null once finished; set while they are partway through. */
+    /** Whether they've trained with a coach before — context, not a branch in the flow. */
+    workedWithCoach: boolean(),
+    /** Their own words. Work, kids, shift pattern — whatever shapes when they can train. */
+    typicalDay: text(),
+    workActivity: workActivityLevel(),
+    /** home | gym | outdoors — where they train, which `equipment` (what they train with)
+     * does not capture on its own. */
+    trainingLocations: text().array(),
+
+    /** Free-form names, not a foreign key into the ingredient catalog — the client app has
+     * no ingredient-only search today, only a food/recipe search. A name a coach can read
+     * ("eggs", "shellfish") is worth more here than a half-built catalog lookup. */
+    excludedIngredients: text().array(),
+
+    /**
+     * Five questions matching a validated screening instrument's wording, asked verbatim
+     * by founder decision (2026-11-08) — Traiv's own `health-step.tsx` documents the
+     * opposite default (light-touch, nothing clinical) for every *other* health question
+     * in this table, which is why these five are their own columns and not folded into
+     * `healthFlags`. Coach-visible only; nothing here is software-interpreted.
+     */
+    edInduceVomiting: boolean(),
+    edFoodDominates: boolean(),
+    edRecentWeightLoss: boolean(),
+    edBodyImageMismatch: boolean(),
+    edLossOfControl: boolean(),
+
+    /** vegan | vegetarian | pescetarian | peanut_allergy | nut_allergy | gluten_intolerance |
+     * lactose_intolerance | dairy_allergy | sugar_sensitivity — pregnancy and PCOS are asked
+     * here too but land in the existing `healthFlags`, not duplicated into this column. */
+    dietaryTags: text().array(),
+    additionalNutritionNotes: text(),
+
+    /** The catch-all last question. Deliberately separate from `healthNote`, which is
+     * specifically about what a coach needs to know to keep them safe. */
+    otherNotes: text(),
+
+    /** 1-15. Null once finished; set while they are partway through. */
     lastStep: integer(),
     completedAt: timestamp({ withTimezone: true }),
 
@@ -136,7 +185,7 @@ export const userIntakes = pgTable(
       sql`${t.sessionMinutes} is null or ${t.sessionMinutes} between 10 and 240`,
     ),
     check("intake_meals_sane", sql`${t.mealsPerDay} is null or ${t.mealsPerDay} between 1 and 8`),
-    check("intake_last_step_sane", sql`${t.lastStep} is null or ${t.lastStep} between 1 and 6`),
+    check("intake_last_step_sane", sql`${t.lastStep} is null or ${t.lastStep} between 1 and 15`),
   ],
 );
 

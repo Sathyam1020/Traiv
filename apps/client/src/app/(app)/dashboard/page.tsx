@@ -39,7 +39,7 @@ export default function TodayPage() {
   const data = today.data;
 
   return (
-    <Page className="w-full max-w-3xl gap-8 pb-20">
+    <Page className="w-full max-w-3xl gap-8 pt-[max(1.25rem,env(safe-area-inset-top))] pb-20">
       {/* Coachway's greeting carries the exclamation; it is the one place in the app
           that is pleased to see you, and the rest of the screen is deliberately flat. */}
       <header className="flex flex-col gap-1">
@@ -170,7 +170,7 @@ function CoachCard({ coach }: { coach: Coach }) {
 
 function NoCoach() {
   return (
-    <Page className="gap-3">
+    <Page className="gap-3 pt-[max(1.25rem,env(safe-area-inset-top))]">
       <h1 className="text-heading font-medium">No coach yet</h1>
       <p className="max-w-[46ch] text-body-sm leading-relaxed text-fg-muted">
         Traiv is something your coach sets up for you. Ask them for their link, open it on this
@@ -182,7 +182,7 @@ function NoCoach() {
 
 function Loading() {
   return (
-    <Page className="w-full max-w-3xl gap-8">
+    <Page className="w-full max-w-3xl gap-8 pt-[max(1.25rem,env(safe-area-inset-top))]">
       <div className="flex flex-col gap-2">
         <Skeleton className="h-9 w-56" />
         <Skeleton className="h-4 w-72" />

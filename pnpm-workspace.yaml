@@ -31,6 +31,7 @@ catalog:
   "@base-ui/react": ^1.9.0
   "@tabler/icons-react": ^3.50.0
   "@zxing/browser": ^0.2.1
+  idb: ^8.0.4
   # tooling
   typescript: ^7.0.2
   "@biomejs/biome": ^2.5.13
@@ -67,6 +68,10 @@ catalog:
   sonner: ^2.0.8
   libphonenumber-js: ^1.13.14
   "@tanstack/react-query": ^5.102.8
+  # Exact, not a caret range — this has to stay in lockstep with the installed
+  # @tanstack/react-query version above, and a caret here let it drift to 5.106.1
+  # against react-query's locked 5.102.8 on the first install. See dependencies.md.
+  "@tanstack/react-query-persist-client": 5.102.8
   axios: ^1.20.0
   zustand: ^5.0.15
   qrcode.react: ^4.2.0

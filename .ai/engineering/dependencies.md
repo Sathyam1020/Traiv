@@ -234,3 +234,61 @@ and API docs read before implementation. MIT licensed; browser distribution is a
 separate few-hundred-KB compressed chunk plus export-only font assets.
 
 Reference: https://github.com/parallax/jsPDF/tree/v4.2.1
+
+## Client offline workout outbox — 2026-11-07
+
+`idb` **8.0.4** (npm stable verified; last modified 2026-10-06; zero runtime dependencies)
+is added to the catalog and used only in the client app's active-workout mutation outbox
+(`apps/client/src/lib/workouts/outbox.ts`). The durable local store this needs — an
+ordered queue of pending set-log writes that survives app termination and recovers
+correctly if the same session is open in two tabs — was evaluated against the project's
+existing `localStorage`-backed draft pattern (`check-in/draft.ts`) and rejected for this
+specific job: `localStorage`'s read-modify-write is not atomic across tabs, so two tabs on
+the same workout session can silently clobber each other's queued writes, which the
+check-in draft's single-object "last write wins" shape never has to contend with.
+IndexedDB's transaction model doesn't have that failure mode and has a far higher quota.
+Raw IndexedDB's callback API is genuinely painful to use correctly by hand (version
+upgrades, transaction lifecycle, cursor iteration); `idb` is a ~1.2KB Promise wrapper over
+the exact same native API — no new runtime concept, same author/organisation as the
+`favicon-in-search` guidance Next's own docs point to (Jake Archibald, Chrome DevRel),
+actively maintained. Current README read before implementation (`openDB`/upgrade
+callback, `put`/`get`/`delete`, index queries, `tx.done`). Cost: one small, dependency-free
+package, client app only — not added to trainer, which has no workflow that needs it.
+
+Reference: https://github.com/jakearchibald/idb
+
+## TanStack Query persistence (both apps) — 2026-11-08
+
+`@tanstack/react-query-persist-client` **5.102.8** (npm stable verified; the TanStack
+Query monorepo's own packages release in lockstep, so this is pinned to the exact
+version already installed for `@tanstack/react-query` — not latest, `5.107.1` — to
+avoid a cross-package version skew within the same library family) is added to the
+catalog and used in both apps' `lib/query/provider.tsx` to wrap `QueryClientProvider`
+with `PersistQueryClientProvider`, so read-heavy query data survives a reload instead of
+every screen starting from a blank loading state.
+
+Current docs read before implementation: the `persistQueryClient` plugin page and the
+`createAsyncStoragePersister` reference, both fetched live rather than assumed from
+memory. `PersistQueryClientProvider` (not the bare `persistQueryClient()` function) is
+the documented choice for React — it subscribes/unsubscribes correctly with the
+component lifecycle and prevents queries from refetching mid-restore.
+
+No separate storage-persister package (`@tanstack/query-async-storage-persister`,
+`@tanstack/query-sync-storage-persister`) was added. Both apps implement the 3-method
+`Persister` interface (`persistClient` / `restoreClient` / `removeClient`) directly
+against the `idb` package already in the catalog (see the entry above) — the official
+docs' own IndexedDB example does the identical thing against `idb-keyval`, a different,
+overlapping key-value wrapper; reusing `idb` keeps one IndexedDB library in the project
+instead of two doing the same job. `idb` is consequently now also a dependency of
+`apps/trainer` (previously client-only) — the outbox stays client-only; only the
+query-cache persister is shared.
+
+What gets persisted is an explicit allowlist inside each app's
+`lib/query/persist.ts` (`shouldDehydrateQuery`), not "everything" — session/auth data is
+never persisted (must always be freshly verified against the server), and per-client
+detail data is excluded (narrower surface, and a shared device signing out one
+account must not flash the next account's cached data — logout now also calls the
+persister's `removeClient()` directly rather than relying only on the throttled
+auto-persist of an emptied cache).
+
+Reference: https://tanstack.com/query/latest/docs/framework/react/plugins/persistQueryClient

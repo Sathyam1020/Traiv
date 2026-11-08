@@ -1,5 +1,6 @@
 "use client";
 
+import type { Icon } from "@traiv/ui/icons";
 import { Check } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
 import type * as React from "react";
@@ -17,6 +18,7 @@ import type * as React from "react";
 export function ChoiceCard({
   label,
   hint,
+  icon: Glyph,
   selected,
   multi = false,
   className,
@@ -24,6 +26,9 @@ export function ChoiceCard({
 }: Omit<React.ComponentProps<"button">, "children"> & {
   label: string;
   hint?: string;
+  /** A small leading badge — optional, for a question where the options read as
+   * distinct categories rather than variations on one theme (e.g. a goal picker). */
+  icon?: Icon;
   selected: boolean;
   multi?: boolean;
 }) {
@@ -41,6 +46,15 @@ export function ChoiceCard({
       )}
       {...props}
     >
+      {Glyph ? (
+        <span
+          aria-hidden="true"
+          className="flex size-9 shrink-0 items-center justify-center rounded-control bg-brand-subtle text-brand"
+        >
+          <Glyph className="size-4.5" />
+        </span>
+      ) : null}
+
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="text-body-sm font-medium">{label}</span>
         {hint ? <span className="text-caption text-fg-muted">{hint}</span> : null}

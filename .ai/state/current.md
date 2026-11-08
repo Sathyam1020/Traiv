@@ -1,5 +1,11 @@
 # Current state
 
+## PWA rollout (client + trainer) — in progress, not committed
+
+Phases 0–5 done, phase 6 in progress. Full plan, the six founder-approved requirements,
+and phase-by-phase status: `.ai/state/pwa-rollout.md`. Nothing from this initiative has
+been committed or pushed yet.
+
 ## Public website SEO work — 2026-11-06, done and pushed
 
 All 13 phases closed and committed (`a134656`, `748c330` on `main`, pushed to `origin`). Metadata/schema/sitemap, pSEO gates with all 5 `/compare/*` pages and 7 of 8 `/features/*` pages indexable (real sourced competitor data, re-verified live against traiv.fit once it went live), performance (-80% page weight), accessibility (100 on every checked route), UTM attribution, favicon-in-Google-Search fix (SVG → ImageResponse PNG, Google's favicon crawler doesn't support SVG). Full detail in `docs/seo/final-audit.md` and `docs/seo/HANDOFF.md`.

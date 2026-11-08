@@ -12,6 +12,7 @@ import { navFor } from "@/components/layout/nav-items";
 import { PlatformServices } from "@/components/layout/platform-services";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import type { Today } from "@/lib/api";
+import { isApiError } from "@/lib/api";
 import { API_BASE, http } from "@/lib/api/client";
 import { useActiveStudio, useIntake, useSession, useToday } from "@/lib/query";
 
@@ -32,6 +33,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const session = useSession();
   const signedIn = Boolean(session.data?.user);
+  // Only a real 401 means "not signed in." `useSession` doesn't retry, so a single
+  // dropped request — the API restarting, a network blip — used to read exactly like a
+  // signed-out visitor and bounce straight to the landing page, even with a cookie still
+  // good for weeks. Anything that isn't a 401 just leaves the previous state on screen.
+  const unauthorized = session.isError && isApiError(session.error) && session.error.status === 401;
 
   // A workout in progress, and the screen right after it, are the one place Coachway
   // drops every bit of app chrome — no tab bar, no header, nothing to tap by accident
@@ -120,8 +126,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const reveal = today.data?.reveal ?? cachedReveal;
 
   useEffect(() => {
-    if (!session.isPending && !signedIn) router.replace("/");
-  }, [session.isPending, signedIn, router]);
+    if (unauthorized) router.replace("/");
+  }, [unauthorized, router]);
 
   // Onboarding is not optional, so neither is passing through it. A client whose
   // coaching is paused or over is not sent through it at all — asking somebody to fill

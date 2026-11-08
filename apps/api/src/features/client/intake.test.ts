@@ -364,3 +364,96 @@ describe("hiring a second coach", () => {
     expect(rows.filter((r) => r.status === "active")).toHaveLength(1);
   });
 });
+
+/**
+ * The fifteen-step reference flow's own fields — personal info writing to `user`
+ * instead of this table, the new onboarding questions round-tripping, and the wider
+ * step range the longer flow needs.
+ */
+describe("the fifteen-step flow's own fields", () => {
+  it("writes the name and avatar to the user row, not the intake row", async () => {
+    const { person, studio, userId } = await scenario();
+    const res = await person.agent.patch(intake(studio.id), {
+      step: 1,
+      firstName: "Ananya",
+      lastName: "Rao",
+      avatarUrl: "https://res.cloudinary.com/demo/image/upload/v1/avatar.jpg",
+    });
+    expect(res.status).toBe(200);
+
+    const [user] = await db.select().from(schema.users).where(eq(schema.users.id, userId));
+    expect(user?.name).toBe("Ananya Rao");
+    expect(user?.avatarUrl).toBe("https://res.cloudinary.com/demo/image/upload/v1/avatar.jpg");
+
+    // Neither field is a column on userIntakes — only lastStep moved.
+    const [row] = await db
+      .select()
+      .from(schema.userIntakes)
+      .where(eq(schema.userIntakes.userId, userId));
+    expect(row?.lastStep).toBe(1);
+  });
+
+  it("round-trips the new onboarding questions", async () => {
+    const { person, studio } = await scenario();
+    await person.agent.patch(intake(studio.id), {
+      step: 7,
+      workedWithCoach: true,
+      typicalDay: "9-5 job, gym after work",
+      workActivity: "sedentary",
+      trainingLocations: ["gym", "home"],
+      excludedIngredients: ["shellfish", "cilantro"],
+    });
+    await person.agent.patch(intake(studio.id), {
+      step: 12,
+      edInduceVomiting: false,
+      edFoodDominates: false,
+      edRecentWeightLoss: false,
+      edBodyImageMismatch: false,
+      edLossOfControl: false,
+    });
+    await person.agent.patch(intake(studio.id), {
+      step: 13,
+      dietaryTags: ["vegan", "nut_allergy"],
+      additionalNutritionNotes: "Meal prep only, family of 4",
+    });
+    await person.agent.patch(intake(studio.id), { step: 15, otherNotes: "Nothing else" });
+
+    const res = await person.agent.get(intake(studio.id));
+    const got = body(res).intake as unknown as Record<string, unknown>;
+    expect(got.workedWithCoach).toBe(true);
+    expect(got.typicalDay).toBe("9-5 job, gym after work");
+    expect(got.workActivity).toBe("sedentary");
+    expect(got.trainingLocations).toEqual(["gym", "home"]);
+    expect(got.excludedIngredients).toEqual(["shellfish", "cilantro"]);
+    expect(got.edInduceVomiting).toBe(false);
+    expect(got.dietaryTags).toEqual(["vegan", "nut_allergy"]);
+    expect(got.additionalNutritionNotes).toBe("Meal prep only, family of 4");
+    expect(got.otherNotes).toBe("Nothing else");
+    expect(got.lastStep).toBe(15);
+  });
+
+  it("accepts step 15 and refuses step 16", async () => {
+    const { person, studio } = await scenario();
+    expect((await person.agent.patch(intake(studio.id), { step: 15 })).status).toBe(200);
+    expect((await person.agent.patch(intake(studio.id), { step: 16 })).status).toBe(400);
+  });
+
+  it("still holds the target back for pregnancy when it arrives via the food-preferences step", async () => {
+    // The reference flow's step 13 is where Pregnancy/PCOS are actually ticked, mixed
+    // in with dietary tags — this is the shape the client sends, not healthFlags alone.
+    const { person, studio, userId } = await scenario();
+    const res = await fillAll(person.agent, studio.id);
+    expect(body(res).awaitingReview).toBe(false);
+
+    await person.agent.patch(intake(studio.id), {
+      step: 13,
+      dietaryTags: ["vegan"],
+      healthFlags: ["pregnancy"],
+    });
+    const refinished = await person.agent.post(complete(studio.id));
+
+    expect(body(refinished).awaitingReview).toBe(true);
+    const [active] = (await targetsFor(userId)).filter((r) => r.status === "proposed");
+    expect(active?.reviewReasons).toContain("pregnancy");
+  });
+});

@@ -69,10 +69,11 @@ import {
   listRoster,
   listTags,
   ROSTER_STATUSES,
+  SETTABLE_CLIENT_STATUSES,
   setClientTags,
   updateClient,
 } from "./roster.js";
-import { activateStudio, listStudios, preferredStudio } from "./service.js";
+import { activateStudio, listStudios, preferredStudio, renameStudio } from "./service.js";
 import { trainingRouter } from "./training.js";
 import { signStudioUpload, studioUploadsConfigured } from "./uploads.js";
 import {
@@ -117,6 +118,13 @@ studios.post("/:id/activate", requireStudio({ param: "id" }), async (req, res) =
   const { sessionId } = requireSession(req);
   const { studioId } = requireStudioAuth(req);
   res.json({ studio: await activateStudio(sessionId, studioId) });
+});
+
+/** The business's own name, not the owner's — owner-only, same reasoning as billing. */
+studios.patch("/:id", requireStudio({ param: "id", role: "owner" }), async (req, res) => {
+  const { studioId } = requireStudioAuth(req);
+  const body = z.object({ name: z.string().trim().min(1).max(120) }).parse(req.body);
+  res.json({ studio: await renameStudio(studioId, body.name) });
 });
 
 /* -------------------------------------------------------------------------- */
@@ -234,14 +242,16 @@ studios.post("/:id/metrics", requireStudio({ param: "id" }), async (req, res) =>
 });
 
 /**
- * Pause, resume, end, or set when the coaching finishes.
+ * Pause, resume, end, set when the coaching finishes, or correct when it started.
  *
  * `endsAt` is nullable on purpose and `null` is a value here, not an omission — clearing
  * a date is a thing a coach does, so the schema distinguishes "not sent" from "sent as
- * null" rather than treating both as no change.
+ * null" rather than treating both as no change. `startedAt` is not nullable — every
+ * client has a start date, open-ended or not, so there is nothing to clear.
  */
 const clientPatch = z.object({
-  status: z.enum(ROSTER_STATUSES).optional(),
+  status: z.enum(SETTABLE_CLIENT_STATUSES).optional(),
+  startedAt: z.iso.datetime().optional(),
   endsAt: z.iso.datetime().nullable().optional(),
   /** Null means "inherit the studio's", which is a value here, not an omission. */
   checkInWeekday: z.number().int().min(0).max(6).nullable().optional(),
@@ -257,6 +267,7 @@ studios.patch("/:id/clients/:clientId", requireStudio({ param: "id" }), async (r
   res.json({
     client: await updateClient(studioId, clientId, {
       ...(body.status ? { status: body.status } : {}),
+      ...(body.startedAt ? { startedAt: new Date(body.startedAt) } : {}),
       ...("endsAt" in body ? { endsAt: body.endsAt ? new Date(body.endsAt) : null } : {}),
       ...("checkInWeekday" in body ? { checkInWeekday: body.checkInWeekday } : {}),
       ...("checkInGraceDays" in body ? { checkInGraceDays: body.checkInGraceDays } : {}),

@@ -40,6 +40,7 @@ import {
   Trash,
 } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -154,8 +155,13 @@ function Row({ studioId, template: t }: { studioId: string; template: TemplateSu
       <TableCell className="p-0">
         <Link href={`/templates/${t.id}`} className="flex items-center gap-3 px-4 py-3">
           {t.imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={t.imageUrl} alt="" className="size-9 shrink-0 rounded-control object-cover" />
+            <Image
+              src={t.imageUrl}
+              alt=""
+              width={36}
+              height={36}
+              className="size-9 shrink-0 rounded-control object-cover"
+            />
           ) : (
             <span className="flex size-9 shrink-0 items-center justify-center rounded-control bg-sunken text-caption font-semibold text-fg-muted">
               {t.name.slice(0, 2)}

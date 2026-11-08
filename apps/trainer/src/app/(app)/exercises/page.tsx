@@ -18,6 +18,7 @@ import {
 } from "@traiv/ui/components/table";
 import { Dumbbell, Image, Plus, Search, Video } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
+import NextImage from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useActiveStudioId } from "@/lib/active-studio";
 import type { Exercise } from "@/lib/api";
@@ -294,8 +295,13 @@ function Row({ exercise: e, onOpen }: { exercise: Exercise; onOpen: () => void }
       <TableCell>
         <span className="flex items-center gap-3">
           {e.imageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={e.imageUrl} alt="" className="size-9 shrink-0 rounded-control object-cover" />
+            <NextImage
+              src={e.imageUrl}
+              alt=""
+              width={36}
+              height={36}
+              className="size-9 shrink-0 rounded-control object-cover"
+            />
           ) : (
             <span className="flex size-9 shrink-0 items-center justify-center rounded-control bg-sunken">
               <Dumbbell className="size-4 text-fg-subtle" />

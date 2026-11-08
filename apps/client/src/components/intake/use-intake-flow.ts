@@ -2,14 +2,15 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { IntakePatch } from "@/lib/api";
+import { apiErrorMessage } from "@/lib/api/client";
 import { useCompleteIntake, useIntake, useSaveStep } from "@/lib/query";
 
-export const LAST_STEP = 6;
+export const LAST_STEP = 15;
 
-export type IntakeStep = 1 | 2 | 3 | 4 | 5 | 6 | "done";
+export type IntakeStep = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | "done";
 
 /**
- * The six questions, as a state machine.
+ * The fifteen questions, as a state machine.
  *
  * Each step saves when it is left, which is the whole reason this is worth doing over a
  * single long form: a client who closes the tab at step four has lost step four, not
@@ -47,8 +48,8 @@ export function useIntakeFlow(studioId: string) {
       setError(null);
       try {
         await save.mutateAsync({ step: from, patch });
-      } catch {
-        setError("Couldn't save that. Check your connection and try again.");
+      } catch (err) {
+        setError(apiErrorMessage(err, "Couldn't save that. Check your connection and try again."));
         return;
       }
 
@@ -60,8 +61,8 @@ export function useIntakeFlow(studioId: string) {
       try {
         await complete.mutateAsync();
         setStep("done");
-      } catch {
-        setError("Couldn't finish. Check your connection and try again.");
+      } catch (err) {
+        setError(apiErrorMessage(err, "Couldn't finish. Check your connection and try again."));
       }
     },
     [save, complete],

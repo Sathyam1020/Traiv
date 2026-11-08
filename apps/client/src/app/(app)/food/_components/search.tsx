@@ -1,11 +1,11 @@
 "use client";
-import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@traiv/ui/components/button";
 import { Input } from "@traiv/ui/components/input";
-import { Plus, Search, Camera, Barcode, Salad } from "@traiv/ui/icons";
-import { foodApi, type FoodItem } from "@/lib/api/food";
-import { Panel, Macros, ErrorText } from "./common";
+import { Barcode, Camera, Plus, Salad, Search } from "@traiv/ui/icons";
+import { useDeferredValue, useEffect, useRef, useState } from "react";
+import { type FoodItem, foodApi } from "@/lib/api/food";
+import { ErrorText, Macros, Panel } from "./common";
 export function FoodSearch({
   studio,
   onSelect,
@@ -100,7 +100,7 @@ export function FoodSearch({
         </div>
       ) : null}
       {!ingredientsOnly ? (
-        <div className="my-4 flex gap-2 overflow-x-auto pb-1">
+        <div className="my-4 flex gap-2 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {[
             ["all", "Search"],
             ["recent", "Recent"],

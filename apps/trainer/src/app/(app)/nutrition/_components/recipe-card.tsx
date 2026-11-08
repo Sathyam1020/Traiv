@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@traiv/ui/components/dropdown-menu";
 import { ArrowRight, Copy, MoreVertical, Salad, Trash } from "@traiv/ui/icons";
+import Image from "next/image";
 import Link from "next/link";
 import type { Recipe } from "@/lib/api/nutrition";
 import { MacroBars } from "./macro-bars";
@@ -46,16 +47,25 @@ export function RecipeCard({
         }
       >
         {recipe.imageUrl ? (
-          <img
-            src={recipe.imageUrl}
-            alt=""
-            loading="lazy"
-            className={
-              grid
-                ? "aspect-video w-full rounded-control object-cover"
-                : "size-16 shrink-0 rounded-control object-cover"
-            }
-          />
+          grid ? (
+            <div className="relative aspect-video w-full overflow-hidden rounded-control">
+              <Image
+                src={recipe.imageUrl}
+                alt=""
+                fill
+                sizes="(min-width: 1280px) 25vw, (min-width: 768px) 33vw, (min-width: 640px) 50vw, 100vw"
+                className="object-cover"
+              />
+            </div>
+          ) : (
+            <Image
+              src={recipe.imageUrl}
+              alt=""
+              width={64}
+              height={64}
+              className="size-16 shrink-0 rounded-control object-cover"
+            />
+          )
         ) : (
           <div
             className={

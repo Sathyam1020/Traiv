@@ -101,7 +101,7 @@ function Group({ group, collapsed }: { group: NavGroup; collapsed: boolean }) {
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex cursor-pointer items-center justify-between gap-2 whitespace-nowrap rounded-control px-2.5 py-1 text-caption font-medium text-contrast-fg/45 transition-colors hover:text-contrast-fg/70"
+        className="flex cursor-pointer items-center justify-between gap-2 whitespace-nowrap rounded-control px-2.5 py-1 text-caption font-medium text-contrast-fg/65 transition-colors hover:text-contrast-fg/90"
       >
         {group.label}
         <ChevronDown
@@ -154,7 +154,7 @@ function Item({
         collapsed ? RAIL_TILE : "gap-2.5 px-2.5 py-2",
         active
           ? "bg-contrast-fg/8 text-contrast-fg"
-          : "text-contrast-fg/60 hover:bg-contrast-fg/8 hover:text-contrast-fg",
+          : "text-contrast-fg/85 hover:bg-contrast-fg/8 hover:text-contrast-fg",
       )}
     >
       {/* The selected icon is the signal colour — the one place violet appears in the

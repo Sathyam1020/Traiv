@@ -45,6 +45,9 @@ catalogs:
     '@tanstack/react-query':
       specifier: ^5.102.8
       version: 5.102.8
+    '@tanstack/react-query-persist-client':
+      specifier: 5.102.8
+      version: 5.102.8
     '@types/express':
       specifier: ^5.0.0
       version: 5.0.6
@@ -87,6 +90,9 @@ catalogs:
     express:
       specifier: ^5.2.1
       version: 5.2.1
+    idb:
+      specifier: ^8.0.4
+      version: 8.0.4
     jspdf:
       specifier: ^4.2.1
       version: 4.2.1
@@ -292,6 +298,9 @@ importers:
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.102.8(react@19.3.0)
+      '@tanstack/react-query-persist-client':
+        specifier: 'catalog:'
+        version: 5.102.8(@tanstack/react-query@5.102.8(react@19.3.0))(react@19.3.0)
       '@traiv/phone':
         specifier: workspace:*
         version: link:../../packages/phone
@@ -304,6 +313,9 @@ importers:
       axios:
         specifier: 'catalog:'
         version: 1.20.0
+      idb:
+        specifier: 'catalog:'
+        version: 8.0.4
       motion:
         specifier: 'catalog:'
         version: 13.2.0(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -402,6 +414,9 @@ importers:
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.102.8(react@19.3.0)
+      '@tanstack/react-query-persist-client':
+        specifier: 'catalog:'
+        version: 5.102.8(@tanstack/react-query@5.102.8(react@19.3.0))(react@19.3.0)
       '@traiv/exercises':
         specifier: workspace:*
         version: link:../../packages/exercises
@@ -417,6 +432,9 @@ importers:
       axios:
         specifier: 'catalog:'
         version: 1.20.0
+      idb:
+        specifier: 'catalog:'
+        version: 8.0.4
       jspdf:
         specifier: 'catalog:'
         version: 4.2.1
@@ -2399,6 +2417,15 @@ packages:
   '@tanstack/query-core@5.102.8':
     resolution: {integrity: sha512-ZNjkJ33CqvPNec/6lZBnHqLc3EVGPZ9ySLhYahU9TcuRFdmwXewuj0c4hwSWcGHqEUwcSrKeZ+oGcvPBqXcQcg==}
 
+  '@tanstack/query-persist-client-core@5.102.8':
+    resolution: {integrity: sha512-t3v4/D6ejo/BrPzM5gm/AT3c4CWPCxFa+0cIjAeHAeanGPG6rCjFS1hZnPZH/rf55qe3qYYgx5U6iBZMY1PQjA==}
+
+  '@tanstack/react-query-persist-client@5.102.8':
+    resolution: {integrity: sha512-WOZReC+m9klekPtG7eeZ3txJeMA9lg2R0RytSG3yXcZgJItQAVIyoobJdbdIQtlpgcU2tSzsOEBtJacs2vlCOA==}
+    peerDependencies:
+      '@tanstack/react-query': ^5.102.8
+      react: ^18 || ^19
+
   '@tanstack/react-query@5.102.8':
     resolution: {integrity: sha512-TYBea4OuXWD7MhaSHq069TWbFe7rcwWN6kzT7JF0OKi1K6c1gTv2IzD6A6ExJsCMozdkqBWeuIUZmu4KQg0O5A==}
     peerDependencies:
@@ -3261,6 +3288,9 @@ packages:
   iconv-lite@0.7.3:
     resolution: {integrity: sha512-IKXpvIzjnC9XTAUbVBcMfGS0EPaIXtW6v+zr+RRp+hqULEpo0owZax6wyRwPOJbWbzjYspQwusTsfVr0ifh4uQ==}
     engines: {node: '>=0.10.0'}
+
+  idb@8.0.4:
+    resolution: {integrity: sha512-jd0ITCrN+Zah4J7R/Z2jnR3W7A4BXDAjmo62MwWuSjxCiueUAf7X5rbodEdidWzeknwXHmLpdZkoiiCppNi30Q==}
 
   inherits@2.0.4:
     resolution: {integrity: sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==}
@@ -5957,6 +5987,16 @@ snapshots:
 
   '@tanstack/query-core@5.102.8': {}
 
+  '@tanstack/query-persist-client-core@5.102.8':
+    dependencies:
+      '@tanstack/query-core': 5.102.8
+
+  '@tanstack/react-query-persist-client@5.102.8(@tanstack/react-query@5.102.8(react@19.3.0))(react@19.3.0)':
+    dependencies:
+      '@tanstack/query-persist-client-core': 5.102.8
+      '@tanstack/react-query': 5.102.8(react@19.3.0)
+      react: 19.3.0
+
   '@tanstack/react-query@5.102.8(react@19.3.0)':
     dependencies:
       '@tanstack/query-core': 5.102.8
@@ -6758,6 +6798,8 @@ snapshots:
   iconv-lite@0.7.3:
     dependencies:
       safer-buffer: 2.1.2
+
+  idb@8.0.4: {}
 
   inherits@2.0.4: {}
 

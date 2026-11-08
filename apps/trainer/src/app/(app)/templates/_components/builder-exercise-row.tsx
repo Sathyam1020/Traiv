@@ -9,6 +9,7 @@ import {
 import { Input } from "@traiv/ui/components/input";
 import { ChevronRight, Copy, Dumbbell, MoreHorizontal, Plus, Trash } from "@traiv/ui/icons";
 import { cn } from "@traiv/ui/lib/cn";
+import Image from "next/image";
 import { useState } from "react";
 import type { FieldName, PrescribedSet, SessionExercise } from "@/lib/api";
 
@@ -52,10 +53,11 @@ export function BuilderExerciseRow({
         </button>
 
         {exercise.imageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
+          <Image
             src={exercise.imageUrl}
             alt=""
+            width={36}
+            height={36}
             className="size-9 shrink-0 rounded-control object-cover"
           />
         ) : (
@@ -119,9 +121,13 @@ export function BuilderExerciseRow({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {onSaveForReuse ? (
-              <DropdownMenuItem onSelect={onSaveForReuse}>Save section for reuse</DropdownMenuItem>
+              <DropdownMenuItem onSelect={onSaveForReuse}>
+                <Copy className="size-4" />
+                Save section for reuse
+              </DropdownMenuItem>
             ) : null}
             <DropdownMenuItem variant="destructive" onSelect={onRemove}>
+              <Trash className="size-4" />
               Remove
             </DropdownMenuItem>
           </DropdownMenuContent>

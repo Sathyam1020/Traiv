@@ -6,7 +6,7 @@ import type {
   Roster,
   RosterClient,
   RosterParams,
-  RosterStatus,
+  SettableClientStatus,
   Tag,
 } from "./types";
 
@@ -39,13 +39,12 @@ export const rosterApi = {
   update: async (
     studioId: string,
     clientId: string,
-    patch: { status?: RosterStatus; endsAt?: string | null },
+    patch: { status?: SettableClientStatus; startedAt?: string; endsAt?: string | null },
   ) =>
     (
-      await http.patch<{ client: Pick<RosterClient, "id" | "status" | "endsAt"> }>(
-        `/studios/${studioId}/clients/${clientId}`,
-        patch,
-      )
+      await http.patch<{
+        client: Pick<RosterClient, "id" | "status" | "startedAt" | "endsAt">;
+      }>(`/studios/${studioId}/clients/${clientId}`, patch)
     ).data.client,
 
   setTags: async (studioId: string, clientId: string, tagIds: string[]) =>

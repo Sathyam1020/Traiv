@@ -16,23 +16,25 @@ import { TooltipRich } from "@traiv/ui/components/tooltip";
 import {
   Apple,
   Camera,
-  Ruler,
-  Dumbbell,
   ChevronLeft,
   ChevronRight,
   ClipboardList,
+  Dumbbell,
   ArrowsMaximize as IconArrowsMaximize,
   TrendingUp as IconTrendingUp,
+  MessageSquareText,
+  Ruler,
   Smile,
   Star,
 } from "@traiv/ui/icons";
 import { notifyAction } from "@traiv/ui/lib/action-feedback";
+import Image from "next/image";
+import Link from "next/link";
 import { useCallback, useEffect, useId, useState } from "react";
 import { http } from "@/lib/api/client";
-
+import { BodyProgress } from "./measurements";
 import { DevelopmentNutrition } from "./nutrition";
 import { DevelopmentTraining } from "./training";
-import { BodyProgress } from "./measurements";
 
 type Answer = {
   code: string;
@@ -389,6 +391,12 @@ export function Development({ studioId, clientId }: { studioId: string; clientId
               We couldn't find any development data for this client. The client has not submitted
               any check-ins yet.
             </p>
+            <Button asChild variant="outline" size="sm" className="mt-4">
+              <Link href={`/inbox?client=${clientId}`}>
+                <MessageSquareText className="size-4" />
+                Message them to check in
+              </Link>
+            </Button>
           </div>
         )}
         <div className="grid gap-5 xl:grid-cols-[1.65fr_1fr]">
@@ -704,8 +712,18 @@ function ProgressPhotos({
               <div key={String(label)} className="min-w-0">
                 <div className="relative aspect-[9/16] overflow-hidden rounded-xl bg-panel">
                   {url ? (
-                    <button type="button" className="size-full" onClick={() => onImage(url)}>
-                      <img src={url} alt={String(label)} className="size-full object-cover" />
+                    <button
+                      type="button"
+                      className="relative size-full"
+                      onClick={() => onImage(url)}
+                    >
+                      <Image
+                        src={url}
+                        alt={String(label)}
+                        fill
+                        sizes="50vw"
+                        className="object-cover"
+                      />
                       <span className="absolute right-2 bottom-2 rounded-full bg-black/50 p-1.5 text-white">
                         <IconArrowsMaximize className="size-3" />
                       </span>
@@ -751,7 +769,13 @@ function ProgressPhotos({
                       className="relative aspect-[3/4] overflow-hidden rounded-lg bg-panel"
                     >
                       {url ? (
-                        <img src={url} alt={label} className="size-full object-cover" />
+                        <Image
+                          src={url}
+                          alt={label ?? ""}
+                          fill
+                          sizes="33vw"
+                          className="object-cover"
+                        />
                       ) : (
                         <span className="text-xs text-fg-muted">No photo</span>
                       )}

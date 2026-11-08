@@ -4,6 +4,7 @@ import { Button } from "@traiv/ui/components/button";
 import { Skeleton } from "@traiv/ui/components/skeleton";
 import { Activity, ArrowLeft, ChevronRight, Clock, Dumbbell, Play } from "@traiv/ui/icons";
 import Link from "next/link";
+import Image from "next/image";
 import { useParams, useRouter } from "next/navigation";
 import { QueryError } from "@/components/common/query-state";
 import { useActiveStudio, useStartSession, useWorkoutSession } from "@/lib/query";
@@ -99,10 +100,11 @@ export default function SessionPreviewPage() {
                 >
                   {/* Thumbnail */}
                   {e.imageUrl ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
+                    <Image
                       src={e.imageUrl}
                       alt=""
+                      width={56}
+                      height={56}
                       className="size-[56px] shrink-0 rounded-control object-cover"
                     />
                   ) : (

@@ -1,14 +1,16 @@
 "use client";
 import { Button } from "@traiv/ui/components/button";
 import { Skeleton } from "@traiv/ui/components/skeleton";
+import { Bell, Check, ChevronRight, Settings, User } from "@traiv/ui/icons";
+import Image from "next/image";
 import Link from "next/link";
-import { Check, User, ChevronRight, Settings, Bell } from "@traiv/ui/icons";
 import { HistoryCard } from "@/components/check-in/history-card";
 import { useActiveStudio, useSession } from "@/lib/query";
-import { useSettings } from "@/lib/query/use-settings";
 import { useProfileHistory } from "@/lib/query/use-profile-history";
-import { ProfileFooter } from "./_components/profile-footer";
+import { useSettings } from "@/lib/query/use-settings";
+import { InstallAppRow } from "./_components/install-app-row";
 import { ProfileActions } from "./_components/profile-actions";
+import { ProfileFooter } from "./_components/profile-footer";
 export default function ProfilePage() {
   const session = useSession();
   const { studioId, coaches, isPending } = useActiveStudio();
@@ -21,9 +23,11 @@ export default function ProfilePage() {
       <header className="flex flex-col items-center bg-signal px-5 pt-[max(2rem,env(safe-area-inset-top))] pb-6 text-signal-fg">
         <div className="flex size-20 items-center justify-center rounded-full border-4 border-current/20 bg-white/15 ring-4 ring-white/10">
           {personal.data?.user.avatarUrl ? (
-            <img
+            <Image
               src={personal.data.user.avatarUrl}
               alt="Your profile"
+              width={80}
+              height={80}
               className="size-full rounded-full object-cover"
             />
           ) : (
@@ -100,6 +104,7 @@ export default function ProfilePage() {
               <ChevronRight className="ml-auto size-4 text-fg-subtle" />
             </Link>
           ))}
+          <InstallAppRow />
         </div>
       </section>
       <ProfileFooter />

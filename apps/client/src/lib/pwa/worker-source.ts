@@ -13,10 +13,15 @@ self.addEventListener("activate", event => {
 `;
 
 const productionWorker = `
-/* No API or health-data caching. Only an offline navigation fallback and push delivery. */
-self.addEventListener("install", event => { event.waitUntil(caches.open("traiv-offline-v2").then(cache => cache.add("/offline.html"))); self.skipWaiting(); });
+/* No API or health-data caching. Only an offline navigation fallback and push delivery.
+   No unconditional skipWaiting here: a new version installs and waits — it never takes
+   over a page that's mid-workout with unsynced writes on its own. The page decides when
+   it's safe and asks for it explicitly via postMessage({ type: "SKIP_WAITING" }); see
+   sw-update.ts. */
+self.addEventListener("install", event => { event.waitUntil(caches.open("traiv-offline-v2").then(cache => cache.add("/offline.html"))); });
 self.addEventListener("activate", event => { event.waitUntil(self.clients.claim()); });
 self.addEventListener("fetch", event => { if (event.request.mode === "navigate") event.respondWith(fetch(event.request).catch(() => caches.match("/offline.html"))); });
+self.addEventListener("message", event => { if (event.data && event.data.type === "SKIP_WAITING") self.skipWaiting(); });
 
 `;
 

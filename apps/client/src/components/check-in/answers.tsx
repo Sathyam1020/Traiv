@@ -32,7 +32,7 @@ export function CheckInAnswers({ answers }: { answers: CheckInAnswer[] }) {
         <section className="flex flex-col gap-2">
           <Heading>Photos</Heading>
           {/* Scrolls in its own container so three photos never push the page sideways. */}
-          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {photos.map((a) => (
               <figure key={a.metricId} className="flex w-36 shrink-0 flex-col gap-1.5">
                 {/* eslint-disable-next-line @next/next/no-img-element */}

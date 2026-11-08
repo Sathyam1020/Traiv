@@ -16,6 +16,7 @@ import { Agent, startApi, type TestServer } from "../../test-support/http.js";
  */
 const CALLBACK = "/auth/google/callback";
 const STATE_COOKIE = "traiv_oauth_state";
+const OAUTH_APP_COOKIE = "traiv_oauth_app";
 
 let api: TestServer;
 
@@ -110,5 +111,40 @@ describe("google sign-in, without google", () => {
     expect(reasonOf(res.location)).toBe("google_state");
     expect(agent.sessionCookie).toBeNull();
     expect((await agent.get("/auth/me")).status).toBe(401);
+  });
+
+  /**
+   * The callback is one shared route for both apps, so it has to send the browser back
+   * to whichever one actually started the flow, and to *that* app's own sign-in page —
+   * the client app signs in at "/", the trainer app at "/signin". They are not
+   * interchangeable: redirecting the client app to "/signin" would be a 404.
+   */
+  describe("sends the browser back to the app that started the flow", () => {
+    it("fails back to the client app's own sign-in page when the start step recorded client", async () => {
+      // /start itself is gated behind credentials this test environment does not have
+      // (see the file header) — what matters here is the callback honouring the cookie
+      // /start would have planted, so it is planted directly.
+      const agent = new Agent(api.url);
+      agent.setCookie(STATE_COOKIE, "whatever");
+      agent.setCookie(OAUTH_APP_COOKIE, "client");
+
+      const res = await agent.get(`${CALLBACK}?error=access_denied&state=whatever`);
+      expect(res.location).toBe(`${env.CLIENT_ORIGIN}/?error=google_cancelled`);
+    });
+
+    it("falls back to the coach app and its own /signin when no app was recorded", async () => {
+      const agent = new Agent(api.url);
+      agent.setCookie(STATE_COOKIE, "whatever");
+      const res = await agent.get(`${CALLBACK}?error=access_denied&state=whatever`);
+      expect(res.location).toBe(`${env.WEB_ORIGIN}/signin?error=google_cancelled`);
+    });
+
+    it("ignores an app value it does not recognise rather than redirecting to it", async () => {
+      const agent = new Agent(api.url);
+      agent.setCookie(STATE_COOKIE, "whatever");
+      agent.setCookie(OAUTH_APP_COOKIE, "https://evil.example.com");
+      const res = await agent.get(`${CALLBACK}?error=access_denied&state=whatever`);
+      expect(res.location).toBe(`${env.WEB_ORIGIN}/signin?error=google_cancelled`);
+    });
   });
 });

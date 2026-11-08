@@ -1,10 +1,12 @@
-import { schema } from "@traiv/db";
+import { newId, schema } from "@traiv/db";
 import { eq, inArray } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const ADMIN = "7990000001";
 const COACH = "7990000002";
 const OUTSIDER = "7990000003";
+const LINK_NUMBER = "7980000001";
+const GOOGLE_EMAIL = "no-otp-google-user@example.com";
 
 /**
  * `OTP=NO` and the admin gate, which are both env-driven and so are tested with the env
@@ -19,7 +21,7 @@ vi.mock("./env.js", async (importActual) => {
 });
 
 const { db } = await import("./db.js");
-const { toE164 } = await import("./features/auth/service.js");
+const { devIssueSession, toE164 } = await import("./features/auth/service.js");
 const { listStudios } = await import("./features/studio/service.js");
 const { becomeEndorser } = await import("./features/endorse/service.js");
 const { Agent, startApi } = await import("./test-support/http.js");
@@ -27,9 +29,19 @@ const { resetPhones } = await import("./test-support/reset.js");
 
 type TestServer = Awaited<ReturnType<typeof startApi>>;
 let api: TestServer;
-const ALL = [ADMIN, COACH, OUTSIDER];
+const ALL = [ADMIN, COACH, OUTSIDER, LINK_NUMBER];
 
 async function wipe() {
+  const [googleUser] = await db
+    .select({ id: schema.users.id })
+    .from(schema.users)
+    .where(eq(schema.users.email, GOOGLE_EMAIL))
+    .limit(1);
+  if (googleUser) {
+    await db.delete(schema.sessions).where(eq(schema.sessions.userId, googleUser.id));
+    await db.delete(schema.users).where(eq(schema.users.id, googleUser.id));
+  }
+
   const phones = ALL.map(toE164);
   const mine = await db
     .select({ id: schema.users.id })
@@ -71,6 +83,24 @@ async function direct(phone: string, name?: string) {
   const res = await agent.request("POST", "/auth/direct", { phone, ...(name ? { name } : {}) });
   if (res.status !== 200) throw new Error(`direct sign-in failed: ${res.status}`);
   return { agent, user: res.body.user as { id: string; name: string } };
+}
+
+/** Leaves an agent signed in the way the Google callback does — an account, no phone. */
+async function signedInAsGoogleUser() {
+  const [user] = await db
+    .insert(schema.users)
+    .values({
+      id: newId(),
+      email: GOOGLE_EMAIL,
+      name: "Priya Kulkarni",
+      emailVerifiedAt: new Date(),
+    })
+    .returning();
+  if (!user) throw new Error("setup failed");
+  const { token } = await devIssueSession(user.id);
+  const agent = new Agent(api.url);
+  agent.setCookie("traiv_session", token);
+  return { agent, user };
 }
 
 describe("OTP=NO", () => {
@@ -150,6 +180,36 @@ describe("OTP=NO", () => {
   it("reports itself in /auth/config so the apps know to skip the code step", async () => {
     const res = await new Agent(api.url).get("/auth/config");
     expect(res.body.otpRequired).toBe(false);
+  });
+});
+
+describe("OTP=NO, attaching a phone to a Google account", () => {
+  it("attaches the phone with no code, the same shortcut signup takes", async () => {
+    const { agent, user } = await signedInAsGoogleUser();
+    const res = await agent.request("POST", "/auth/phone/direct", { phone: LINK_NUMBER });
+
+    expect(res.status).toBe(200);
+    expect(res.body.user).toMatchObject({
+      id: user.id,
+      phone: toE164(LINK_NUMBER),
+      needsPhone: false,
+    });
+  });
+
+  it("refuses a number that already belongs to someone else", async () => {
+    await direct(LINK_NUMBER, "Already Signed Up");
+    const { agent } = await signedInAsGoogleUser();
+
+    const res = await agent.request("POST", "/auth/phone/direct", { phone: LINK_NUMBER });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe("phone_taken");
+  });
+
+  it("requires a session, same as the OTP path", async () => {
+    const res = await new Agent(api.url).request("POST", "/auth/phone/direct", {
+      phone: LINK_NUMBER,
+    });
+    expect(res.status).toBe(401);
   });
 });
 

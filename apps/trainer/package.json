@@ -10,8 +10,10 @@
   },
   "dependencies": {
     "@tanstack/react-query": "catalog:",
+    "@tanstack/react-query-persist-client": "catalog:",
     "@traiv/ui": "workspace:*",
     "axios": "catalog:",
+    "idb": "catalog:",
     "motion": "catalog:",
     "next": "catalog:",
     "qrcode.react": "catalog:",

@@ -40,12 +40,13 @@ import {
 import { cn } from "@traiv/ui/lib/cn";
 import Link from "next/link";
 import { useLayoutEffect, useRef, useState } from "react";
-import type { ClientProfile, RosterStatus, Tag } from "@/lib/api";
+import type { ClientProfile, SettableClientStatus, Tag } from "@/lib/api";
 import { useUpdateClient } from "@/lib/query";
 import { TagPicker } from "./tag-picker";
 
 const STATUS_LABEL: Record<ClientProfile["status"], string> = {
   active: "Active",
+  pending: "Pending",
   paused: "Paused",
   archived: "Ended",
 };
@@ -163,7 +164,7 @@ function StatusPill({ studioId, client }: { studioId: string | null; client: Cli
   const paused = client.status === "paused";
   const ended = client.status === "archived";
 
-  const set = (status: RosterStatus) => update.mutate({ clientId: client.id, status });
+  const set = (status: SettableClientStatus) => update.mutate({ clientId: client.id, status });
 
   return (
     <DropdownMenu>
@@ -176,7 +177,9 @@ function StatusPill({ studioId, client }: { studioId: string | null; client: Cli
             "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-line-focus",
             client.status === "active"
               ? "border-success/30 bg-success-subtle text-success hover:bg-success-subtle/70"
-              : "border-line bg-sunken text-fg-muted hover:bg-hover",
+              : client.status === "pending"
+                ? "border-warning/30 bg-warning-subtle text-warning hover:bg-warning-subtle/70"
+                : "border-line bg-sunken text-fg-muted hover:bg-hover",
           )}
         >
           {STATUS_LABEL[client.status]}
