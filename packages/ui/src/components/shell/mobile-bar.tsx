@@ -9,9 +9,16 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
-/** Default shell spring; the client glass selection uses a quicker response. */
+/**
+ * Default shell spring; the client glass selection is its own tune.
+ *
+ * The glass chip used to settle in ~130ms (stiffness 500 on a 0.55 mass) — fast enough
+ * that the glide between adjacent tabs read as an instant snap rather than the travel
+ * Coachway's indicator visibly makes. Loosened to ~250ms, slightly underdamped for a
+ * touch of liveliness, so the motion itself is the thing that's seen.
+ */
 const SPRING = { type: "spring", mass: 1, stiffness: 90, damping: 14 } as const;
-const GLASS_SPRING = { type: "spring", mass: 0.55, stiffness: 500, damping: 32 } as const;
+const GLASS_SPRING = { type: "spring", mass: 0.8, stiffness: 300, damping: 26 } as const;
 
 /**
  * Navigation below `lg` — a floating glass capsule, close to the bottom edge.
@@ -26,10 +33,10 @@ const GLASS_SPRING = { type: "spring", mass: 0.55, stiffness: 500, damping: 32 }
  * floats rather than spans — the shape Apple's own tab bar takes. The label survives as
  * `aria-label`, so the bar reads the same to a screen reader as it did with text.
  *
- * The gap to the bottom edge is intentionally tight — just the home-indicator inset plus
- * a few px, not a full visible margin. A bar that floats with daylight under it reads as
- * misplaced; sitting close to the edge is what makes "floating" read as a deliberate
- * dock rather than a mistake.
+ * The gap to the bottom edge is exactly the home-indicator inset — zero on top of it. Any
+ * added buffer reads as daylight under the bar, which is what made it look misplaced
+ * rather than docked; sitting flush against the inset is what makes "floating" read as
+ * deliberate.
  *
  * The selected chip is ONE element shared across tabs via `layoutId`, so Motion moves it
  * between them instead of cross-fading two separate chips — that travel is the whole
@@ -48,19 +55,19 @@ export function MobileBar({ nav, glass = false }: { nav: readonly NavItem[]; gla
 
   const bar = (
     <nav
-      // Tight to the bottom edge — just the home-indicator inset plus a few px, resolving
-      // to a plain ~8px elsewhere. The old 1rem+ gap was the actual bug: it read as
-      // floating in the wrong place, not as a deliberate dock.
+      // Flush to the home-indicator inset, zero added buffer — resolves to the screen
+      // edge itself (0) elsewhere. Any extra gap here is exactly what read as "floating
+      // in the wrong place" instead of a deliberate dock.
       className={
         glass
-          ? "fixed inset-x-0 bottom-[calc(0.5rem+env(safe-area-inset-bottom))] z-30 flex justify-center px-4 lg:hidden"
+          ? "fixed inset-x-0 bottom-[env(safe-area-inset-bottom)] z-30 flex justify-center px-4 lg:hidden"
           : "fixed inset-x-0 bottom-[calc(1rem+env(safe-area-inset-bottom))] z-30 flex justify-center px-4 lg:hidden"
       }
     >
       <div
         className={
           glass
-            ? "relative isolate flex w-full max-w-md items-center gap-0.5 rounded-full border border-white/25 p-1.5 backdrop-blur-2xl backdrop-saturate-150 before:pointer-events-none before:absolute before:inset-0 before:rounded-full before:bg-gradient-to-b before:from-white/15 before:via-white/0 before:to-white/5 dark:border-white/15"
+            ? "relative isolate flex w-full max-w-md items-center gap-0.5 rounded-full border border-white/25 p-1 backdrop-blur-2xl backdrop-saturate-150 before:pointer-events-none before:absolute before:inset-0 before:rounded-full before:bg-gradient-to-b before:from-white/15 before:via-white/0 before:to-white/5 dark:border-white/15"
             : "flex max-w-full items-center gap-1 rounded-full border border-line bg-raised/70 p-1 shadow-float backdrop-blur-2xl backdrop-saturate-150"
         }
         style={
