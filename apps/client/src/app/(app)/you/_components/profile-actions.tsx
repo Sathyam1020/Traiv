@@ -20,6 +20,7 @@ import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
 import { type Metric, uploadApi } from "@/lib/api";
 import { http } from "@/lib/api/client";
+import { useCmInches } from "@/lib/length-units";
 import { useCheckIns } from "@/lib/query";
 
 import { useVault } from "@/lib/query/use-vault";
@@ -113,9 +114,6 @@ export function ProfileActions({ studioId }: { studioId: string }) {
     </section>
   );
 }
-function Handle() {
-  return <div aria-hidden="true" className="mx-auto mt-2 h-1 w-8 shrink-0 rounded-full bg-line" />;
-}
 function DatePager({ date, onChange }: { date: string; onChange: (date: string) => void }) {
   return (
     <div className="flex items-center justify-between rounded-2xl bg-surface p-2">
@@ -172,8 +170,7 @@ function Actions({
 function StepsEditor({ studioId, onClose }: { studioId: string; onClose: () => void }) {
   const [date, setDate] = useState(localDay());
   return (
-    <SheetContent side="bottom" showCloseButton={false} className="gap-0 bg-panel p-0">
-      <Handle />
+    <SheetContent side="bottom" className="gap-0 bg-panel p-0">
       <SheetHeader className="text-center">
         <SheetTitle className="pr-0 text-lg">Edit steps</SheetTitle>
       </SheetHeader>
@@ -319,8 +316,7 @@ export function MeasurementPicker({
       (order.indexOf(b.code) < 0 ? 999 : order.indexOf(b.code)),
   );
   return (
-    <SheetContent side="bottom" showCloseButton={false} className="h-[75dvh] gap-0 bg-panel p-0">
-      <Handle />
+    <SheetContent side="bottom" className="h-[75dvh] gap-0 bg-panel p-0">
       <SheetHeader className="shrink-0 text-center">
         <SheetTitle className="pr-0 text-lg">Select a measurement</SheetTitle>
       </SheetHeader>
@@ -381,11 +377,17 @@ export function MeasurementEditor({
   const [url, setUrl] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const numeric = Number(raw);
+  // A circumference field is the only kind measured in cm — weight (kg), sleep
+  // (hours), and ratings all keep the plain `raw` field below untouched. Called
+  // unconditionally because hooks must be; only read when it actually applies.
+  const length = useCmInches(null);
+  const isLength = metric.type === "number" && metric.unit === "cm";
+  const hasValue = isLength ? length.hasValue : raw !== "";
+  const numeric = isLength ? (length.cm ?? Number.NaN) : Number(raw);
   const valid =
     metric.type === "image"
       ? Boolean(file)
-      : raw !== "" &&
+      : hasValue &&
         Number.isFinite(numeric) &&
         numeric > 0 &&
         numeric <= (metric.type === "rating" ? 5 : metric.code === "weight" ? 500 : 1000);
@@ -419,11 +421,10 @@ export function MeasurementEditor({
   return (
     <SheetContent
       side="bottom"
-      showCloseButton={false}
       className="max-h-[85dvh] gap-0 bg-panel p-0"
+      dragToDismiss={!busy}
       onInteractOutside={(e) => busy && e.preventDefault()}
     >
-      <Handle />
       <SheetHeader className="relative shrink-0 text-center">
         <button
           type="button"
@@ -481,6 +482,35 @@ export function MeasurementEditor({
                   />
                 </button>
               ))}
+            </div>
+          ) : isLength ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <label htmlFor={fieldId} className="text-sm">
+                  {metric.name}
+                </label>
+                <button
+                  type="button"
+                  onClick={length.toggle}
+                  className="cursor-pointer text-caption text-fg-muted underline-offset-2 transition-colors hover:text-fg hover:underline"
+                >
+                  {length.unit === "cm" ? "Use inches" : "Use centimetres"}
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input
+                  id={fieldId}
+                  className="h-12 w-full bg-surface"
+                  type="number"
+                  inputMode="decimal"
+                  step="any"
+                  min={0.1}
+                  value={length.text}
+                  onChange={(e) => length.setText(e.target.value)}
+                  required
+                />
+                <span className="text-sm text-fg-muted">{length.unit}</span>
+              </div>
             </div>
           ) : (
             <div className="space-y-2">

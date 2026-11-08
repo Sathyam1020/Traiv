@@ -82,7 +82,6 @@ function CompositionSheet({ studioId }: { studioId: string }) {
   const mostRecent = entries.at(-1);
   return (
     <SheetContent side="bottom" className="h-[88dvh] gap-0 p-0">
-      <div aria-hidden="true" className="mx-auto mt-2 h-1 w-8 shrink-0 rounded-full bg-line" />
       <SheetHeader className="shrink-0">
         <p className="mb-1 text-xs text-fg-subtle">BODY</p>
         <SheetTitle className="text-xl font-medium">Body composition</SheetTitle>

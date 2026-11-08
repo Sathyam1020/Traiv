@@ -4,6 +4,7 @@ import { cn } from "@traiv/ui/lib/cn";
 import { useId, useRef, useState } from "react";
 import type { AnswerInput, Metric } from "@/lib/api";
 import { uploadApi } from "@/lib/api";
+import { inchesToCm, type LengthUnit, useCmInches } from "@/lib/length-units";
 import { TRAINING_CHOICES, type WeeklyStep } from "./weekly-steps";
 
 type Props = {
@@ -28,17 +29,12 @@ export function WeeklyFields(p: Props) {
   const items = metrics as Metric[];
   if (p.step.kind === "measurements")
     return (
-      <div className="overflow-hidden rounded-[20px] border border-line bg-surface">
-        {items.map((m) => (
-          <Measurement
-            key={m.id}
-            metric={m}
-            answer={p.answers[m.id]}
-            onAnswer={p.onAnswer}
-            onClear={p.onClear}
-          />
-        ))}
-      </div>
+      <MeasurementStep
+        items={items}
+        answers={p.answers}
+        onAnswer={p.onAnswer}
+        onClear={p.onClear}
+      />
     );
   if (p.step.kind === "photos")
     return (
@@ -101,18 +97,89 @@ export function WeeklyFields(p: Props) {
     );
   return <Rating metric={m} answer={value} mood={p.step.kind === "mood"} onAnswer={p.onAnswer} />;
 }
+/**
+ * The "Body Measurement" (weight, kg) and "Circumference Measurement" (arm/chest/
+ * forearm/hips/thigh/waist, cm) steps both render through here, but never mixed — each
+ * is its own step with fields in one unit. One toggle covers every field in the step at
+ * once, same reasoning as onboarding's circumference step: nobody wants a different
+ * unit per body part.
+ */
+function MeasurementStep({
+  items,
+  answers,
+  onAnswer,
+  onClear,
+}: {
+  items: Metric[];
+  answers: Props["answers"];
+  onAnswer: Props["onAnswer"];
+  onClear: Props["onClear"];
+}) {
+  const [unit, setUnit] = useState<LengthUnit>("cm");
+  const isLengthStep = items.length > 0 && items.every((m) => m.unit === "cm");
+  return (
+    <div className="flex flex-col gap-2">
+      {isLengthStep ? (
+        <button
+          type="button"
+          onClick={() => setUnit((u) => (u === "cm" ? "in" : "cm"))}
+          className="ml-auto cursor-pointer text-sm text-fg-muted underline-offset-2 transition-colors hover:text-fg hover:underline"
+        >
+          {unit === "cm" ? "Use inches" : "Use centimetres"}
+        </button>
+      ) : null}
+      <div className="overflow-hidden rounded-[20px] border border-line bg-surface">
+        {items.map((m) => (
+          <Measurement
+            key={m.id}
+            metric={m}
+            answer={answers[m.id]}
+            onAnswer={onAnswer}
+            onClear={onClear}
+            unit={isLengthStep ? unit : "cm"}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
 function Measurement({
   metric: m,
   answer,
   onAnswer,
   onClear,
+  unit,
 }: {
   metric: Metric;
   answer?: AnswerInput;
   onAnswer: Props["onAnswer"];
   onClear: Props["onClear"];
+  unit: LengthUnit;
 }) {
+  const isLength = m.unit === "cm";
+  const length = useCmInches(answer?.numberValue ?? null, isLength ? unit : undefined);
   const [raw, setRaw] = useState(answer?.numberValue?.toString() ?? "");
+
+  const value = isLength ? length.text : raw;
+  const displayUnit = isLength ? length.unit : m.unit;
+
+  function handleChange(next: string) {
+    if (!/^\d{0,3}(\.\d{0,2})?$/.test(next)) return;
+    if (isLength) {
+      length.setText(next);
+      if (!next || next === ".") onClear(m.id);
+      else
+        onAnswer({
+          metricId: m.id,
+          numberValue: unit === "cm" ? Number(next) : inchesToCm(Number(next)),
+        });
+    } else {
+      setRaw(next);
+      if (!next || next === ".") onClear(m.id);
+      else onAnswer({ metricId: m.id, numberValue: Number(next) });
+    }
+  }
+
   return (
     <label className="flex min-h-[60px] items-center gap-3 border-b border-line px-4 py-3 last:border-b-0">
       <span className="min-w-0 flex-1">
@@ -124,18 +191,12 @@ function Measurement({
         inputMode="decimal"
         type="text"
         autoComplete="off"
-        value={raw}
+        value={value}
         placeholder="0"
         className="w-20 min-w-0 border-0 bg-transparent text-right text-xl font-semibold tabular-nums outline-none placeholder:text-fg-subtle/40"
-        onChange={(e) => {
-          const next = e.target.value;
-          if (!/^\d{0,3}(\.\d{0,2})?$/.test(next)) return;
-          setRaw(next);
-          if (!next || next === ".") onClear(m.id);
-          else onAnswer({ metricId: m.id, numberValue: Number(next) });
-        }}
+        onChange={(e) => handleChange(e.target.value)}
       />
-      <span className="w-6 text-sm text-fg-subtle">{m.unit}</span>
+      <span className="w-6 text-sm text-fg-subtle">{displayUnit}</span>
     </label>
   );
 }

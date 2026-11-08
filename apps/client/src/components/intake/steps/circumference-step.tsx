@@ -3,6 +3,7 @@
 import { Input } from "@traiv/ui/components/input";
 import { useEffect, useMemo, useState } from "react";
 import { apiErrorMessage } from "@/lib/api/client";
+import { cmToInches, inchesToCm, type LengthUnit } from "@/lib/length-units";
 import { useMeasurements } from "@/lib/query/use-measurements";
 import { FieldsSkeleton } from "../fields-skeleton";
 import { saveOnboardingMeasurement, useOnboardingMetrics } from "../onboarding-measurements";
@@ -59,6 +60,34 @@ export function CircumferenceStep({ flow, studioId }: { flow: IntakeFlow; studio
   const [submitting, setSubmitting] = useState(false);
   const loading = metrics.isPending || history.isPending;
 
+  // One unit for every field, not six — a client picks cm or inches once for their
+  // whole body, the same way the height field earlier in this flow does. `values`
+  // always holds raw text in *this* unit; toggling converts what's already typed
+  // rather than losing it.
+  const [unit, setUnit] = useState<LengthUnit>("cm");
+  function toggleUnit() {
+    setUnit((old) => {
+      const next = old === "cm" ? "in" : "cm";
+      setValues((v) =>
+        Object.fromEntries(
+          Object.entries(v).map(([code, raw]) => {
+            const n = Number(raw);
+            if (!raw.trim() || !Number.isFinite(n)) return [code, raw];
+            return [code, String(old === "cm" ? cmToInches(n) : inchesToCm(n))];
+          }),
+        ),
+      );
+      return next;
+    });
+  }
+  // The cm-equivalent of a field's raw text, regardless of which unit is on screen —
+  // every validity check and the save itself works in cm, same as the server does.
+  const toCm = (raw: string | undefined): number | null => {
+    const n = Number(raw);
+    if (!raw?.trim() || !Number.isFinite(n)) return null;
+    return unit === "cm" ? n : inchesToCm(n);
+  };
+
   useEffect(() => {
     if (prefilled || loading) return;
     setValues((v) => ({ ...saved, ...v }));
@@ -69,8 +98,8 @@ export function CircumferenceStep({ flow, studioId }: { flow: IntakeFlow; studio
   const allFilled =
     available.length > 0 &&
     available.every((f) => {
-      const n = Number(values[f.code]);
-      return values[f.code]?.trim() && n > 0 && n <= 300;
+      const cm = toCm(values[f.code]);
+      return cm != null && cm > 0 && cm <= 300;
     });
   // A studio with none of these metrics shared has nothing to ask here — do not block
   // onboarding on a measurement that does not exist.
@@ -83,8 +112,10 @@ export function CircumferenceStep({ flow, studioId }: { flow: IntakeFlow; studio
       await Promise.all(
         available.map((f) => {
           const metricId = metrics.data?.find((m) => m.code === f.code)?.id;
-          const n = Number(values[f.code]);
-          return metricId && n > 0 ? saveOnboardingMeasurement(studioId, metricId, n) : undefined;
+          const cm = toCm(values[f.code]);
+          return metricId && cm != null && cm > 0
+            ? saveOnboardingMeasurement(studioId, metricId, cm)
+            : undefined;
         }),
       );
       await flow.next(6, {});
@@ -109,40 +140,51 @@ export function CircumferenceStep({ flow, studioId }: { flow: IntakeFlow; studio
       {loading ? (
         <FieldsSkeleton rows={6} />
       ) : (
-        <div className="flex flex-col divide-y divide-line rounded-surface border border-line bg-surface">
-          {available.map((f) => (
-            <label
-              key={f.code}
-              htmlFor={`circumference-${f.code}`}
-              className="flex items-center justify-between gap-3 px-4 py-3.5"
+        <div className="flex flex-col gap-2">
+          {available.length > 0 ? (
+            <button
+              type="button"
+              onClick={toggleUnit}
+              className="ml-auto cursor-pointer text-caption text-fg-muted underline-offset-2 transition-colors hover:text-fg hover:underline"
             >
-              <span className="flex flex-col">
-                <span className="text-body-sm font-medium">{f.label}</span>
-                <span className="text-caption text-fg-subtle">Required</span>
-              </span>
-              <div className="flex items-center gap-2">
-                <Input
-                  id={`circumference-${f.code}`}
-                  inputMode="decimal"
-                  value={values[f.code] ?? ""}
-                  onChange={(e) =>
-                    setValues((v) => ({
-                      ...v,
-                      [f.code]: e.target.value.replace(/[^\d.]/g, "").slice(0, 5),
-                    }))
-                  }
-                  placeholder="0"
-                  inputClassName={`w-20 border-none bg-transparent px-0 text-right tabular-nums shadow-none ${FOCUS}`}
-                />
-                <span className="text-body-sm text-fg-muted">cm</span>
-              </div>
-            </label>
-          ))}
-          {available.length === 0 ? (
-            <p className="px-4 py-6 text-center text-body-sm text-fg-muted">
-              Your coach hasn't enabled circumference measurements yet.
-            </p>
+              {unit === "cm" ? "Use inches" : "Use centimetres"}
+            </button>
           ) : null}
+          <div className="flex flex-col divide-y divide-line rounded-surface border border-line bg-surface">
+            {available.map((f) => (
+              <label
+                key={f.code}
+                htmlFor={`circumference-${f.code}`}
+                className="flex items-center justify-between gap-3 px-4 py-3.5"
+              >
+                <span className="flex flex-col">
+                  <span className="text-body-sm font-medium">{f.label}</span>
+                  <span className="text-caption text-fg-subtle">Required</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id={`circumference-${f.code}`}
+                    inputMode="decimal"
+                    value={values[f.code] ?? ""}
+                    onChange={(e) =>
+                      setValues((v) => ({
+                        ...v,
+                        [f.code]: e.target.value.replace(/[^\d.]/g, "").slice(0, 5),
+                      }))
+                    }
+                    placeholder="0"
+                    inputClassName={`w-20 border-none bg-transparent px-0 text-right tabular-nums shadow-none ${FOCUS}`}
+                  />
+                  <span className="text-body-sm text-fg-muted">{unit}</span>
+                </div>
+              </label>
+            ))}
+            {available.length === 0 ? (
+              <p className="px-4 py-6 text-center text-body-sm text-fg-muted">
+                Your coach hasn't enabled circumference measurements yet.
+              </p>
+            ) : null}
+          </div>
         </div>
       )}
     </StepShell>

@@ -8,6 +8,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@traiv/ui/components/po
 import { CalendarDays } from "@traiv/ui/icons";
 import { useEffect, useState } from "react";
 import type { Sex } from "@/lib/api";
+import { useCmInches } from "@/lib/length-units";
 import { useSettings } from "@/lib/query/use-settings";
 import { FieldsSkeleton } from "../fields-skeleton";
 import { StepShell } from "../step-shell";
@@ -17,8 +18,6 @@ const SEXES: readonly { value: Sex; label: string }[] = [
   { value: "male", label: "Male" },
   { value: "female", label: "Female" },
 ];
-
-const CM_PER_INCH = 2.54;
 
 /** Rounded border, no ring — the global `:focus-visible` outline (2px, sharp on some
  * native widgets) reads as a heavy box at this field density; this is the lighter,
@@ -64,18 +63,8 @@ export function PersonalInfoStep({ flow, studioId }: { flow: IntakeFlow; studioI
 
   // Height is always kept in cm — the unit toggle only changes what the field shows
   // and accepts, never what gets saved.
-  const [heightUnit, setHeightUnit] = useState<"cm" | "in">("cm");
-  const startCm = flow.intake?.heightCm ?? null;
-  const [heightCmInput, setHeightCmInput] = useState(startCm ? String(Math.round(startCm)) : "");
-  const [heightInInput, setHeightInInput] = useState(
-    startCm ? String(Math.round((startCm / CM_PER_INCH) * 10) / 10) : "",
-  );
-
-  const heightCm =
-    heightUnit === "cm"
-      ? Number(heightCmInput)
-      : Math.round(Number(heightInInput) * CM_PER_INCH * 10) / 10;
-  const validHeight = heightCm >= 90 && heightCm <= 250;
+  const height = useCmInches(flow.intake?.heightCm ? Math.round(flow.intake.heightCm) : null);
+  const validHeight = height.cm != null && height.cm >= 90 && height.cm <= 250;
 
   return (
     <StepShell
@@ -98,7 +87,7 @@ export function PersonalInfoStep({ flow, studioId }: { flow: IntakeFlow; studioI
           lastName: lastName.trim(),
           ...(dob ? { birthYear: dob.getFullYear() } : {}),
           ...(sex ? { sex } : {}),
-          ...(validHeight ? { heightCm } : {}),
+          ...(validHeight && height.cm != null ? { heightCm: height.cm } : {}),
         })
       }
     >
@@ -186,27 +175,23 @@ export function PersonalInfoStep({ flow, studioId }: { flow: IntakeFlow; studioI
               <Label htmlFor="height">Height</Label>
               <button
                 type="button"
-                onClick={() => setHeightUnit((u) => (u === "cm" ? "in" : "cm"))}
+                onClick={height.toggle}
                 className="cursor-pointer text-caption text-fg-muted underline-offset-2 transition-colors hover:text-fg hover:underline"
               >
-                {heightUnit === "cm" ? "Use inches" : "Use centimetres"}
+                {height.unit === "cm" ? "Use inches" : "Use centimetres"}
               </button>
             </div>
             <div className="flex items-center gap-2">
               <Input
                 id="height"
                 inputMode="decimal"
-                value={heightUnit === "cm" ? heightCmInput : heightInInput}
-                onChange={(e) => {
-                  const v = e.target.value.replace(/[^\d.]/g, "").slice(0, 5);
-                  if (heightUnit === "cm") setHeightCmInput(v);
-                  else setHeightInInput(v);
-                }}
-                placeholder={heightUnit === "cm" ? "175" : "69"}
+                value={height.text}
+                onChange={(e) => height.setText(e.target.value)}
+                placeholder={height.unit === "cm" ? "175" : "69"}
                 className="tabular-nums"
                 inputClassName={FOCUS}
               />
-              <span className="text-body-sm text-fg-muted">{heightUnit}</span>
+              <span className="text-body-sm text-fg-muted">{height.unit}</span>
             </div>
           </div>
         </>

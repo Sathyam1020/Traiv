@@ -6,10 +6,10 @@
  * D-17: asChild → render; persistent → Root disablePointerDismissal.
  */
 
-import * as React from "react";
 import { Dialog as BaseDialog } from "@base-ui/react/dialog";
 import { IconX } from "@tabler/icons-react";
 import { cn } from "@traiv/ui/lib/cn";
+import * as React from "react";
 
 export type SheetSide = "left" | "right" | "top" | "bottom";
 
@@ -149,6 +149,118 @@ export interface SheetContentProps extends React.ComponentPropsWithoutRef<typeof
   showClose?: boolean;
   container?: React.ComponentPropsWithoutRef<typeof BaseDialog.Portal>["container"];
   accessibilityTitle?: string;
+  /**
+   * Swipe-down-to-close on a `side="bottom"` sheet. On by default for bottom sheets —
+   * set false only for one that must stay open mid-gesture (e.g. an upload in
+   * progress), the same case `onInteractOutside` is already used to guard.
+   */
+  dragToDismiss?: boolean;
+}
+
+/**
+ * How far (as a fraction of the sheet's own height) or how fast a downward drag has to
+ * go before release commits to closing rather than snapping back. Matching iOS's own
+ * sheet feel: a confident flick closes even from near the top; a slow dawdle needs to
+ * cross about a third of the sheet before it's read as "let go of this."
+ */
+const DISMISS_HEIGHT_FRACTION = 0.3;
+const DISMISS_VELOCITY = 0.5; // px/ms
+const SETTLE_MS = 220;
+
+/**
+ * Drag tracking for a bottom sheet's handle, as plain pointer events on the popup's own
+ * DOM node — the same "five events and a transform, no library" approach already used
+ * for swipe actions elsewhere in this codebase. Framer Motion's `drag` prop measures
+ * layout in a way that fights Base UI's own open/close transition on the same element;
+ * driving `transform` directly (a property Base UI's own transition never touches —
+ * that's the `translate` property, via the `data-[starting/ending-style]` classes)
+ * keeps the two fully independent.
+ */
+function useSheetDrag(
+  popupRef: React.RefObject<HTMLDivElement | null>,
+  closeRef: React.RefObject<HTMLButtonElement | null>,
+  enabled: boolean,
+) {
+  const drag = React.useRef<{ startY: number; startTime: number } | null>(null);
+
+  const settle = React.useCallback((popup: HTMLDivElement, toY: number, then?: () => void) => {
+    popup.style.transition = `transform ${SETTLE_MS}ms cubic-bezier(0.23,1,0.32,1)`;
+    popup.style.transform = toY === 0 ? "" : `translateY(${toY}px)`;
+    const done = (event: TransitionEvent) => {
+      if (event.target !== popup || event.propertyName !== "transform") return;
+      popup.removeEventListener("transitionend", done);
+      popup.style.transition = "";
+      if (toY === 0) popup.style.transform = "";
+      then?.();
+    };
+    popup.addEventListener("transitionend", done);
+  }, []);
+
+  const onPointerDown = React.useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (!enabled) return;
+      drag.current = { startY: event.clientY, startTime: event.timeStamp };
+      const popup = popupRef.current;
+      if (popup) popup.style.transition = "none";
+      event.currentTarget.setPointerCapture(event.pointerId);
+    },
+    [enabled, popupRef],
+  );
+
+  const onPointerMove = React.useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      const state = drag.current;
+      const popup = popupRef.current;
+      if (!state || !popup) return;
+      const delta = Math.max(0, event.clientY - state.startY);
+      popup.style.transform = `translateY(${delta}px)`;
+    },
+    [popupRef],
+  );
+
+  const onPointerUp = React.useCallback(
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      const state = drag.current;
+      const popup = popupRef.current;
+      drag.current = null;
+      if (!state || !popup) return;
+      const delta = Math.max(0, event.clientY - state.startY);
+      const velocity = delta / Math.max(1, event.timeStamp - state.startTime);
+      const shouldClose =
+        delta > popup.offsetHeight * DISMISS_HEIGHT_FRACTION || velocity > DISMISS_VELOCITY;
+      if (shouldClose) {
+        settle(popup, popup.offsetHeight + 48, () => closeRef.current?.click());
+      } else {
+        settle(popup, 0);
+      }
+    },
+    [popupRef, closeRef, settle],
+  );
+
+  return { onPointerDown, onPointerMove, onPointerUp };
+}
+
+function SheetHandle(
+  props: React.HTMLAttributes<HTMLDivElement> & { ref?: React.Ref<HTMLDivElement> },
+) {
+  const { className, ...rest } = props;
+  return (
+    <div
+      // A good chunk taller than the visible bar so the drag can start from a real
+      // touch target, not a 4px hairline — the bar is just what that target *looks*
+      // like.
+      className={cn(
+        "flex shrink-0 touch-none cursor-grab justify-center pb-2 pt-2.5 active:cursor-grabbing",
+        className,
+      )}
+      {...rest}
+    >
+      <span
+        aria-hidden="true"
+        className="h-1 w-9 rounded-full bg-[color-mix(in_srgb,var(--foreground)_18%,transparent)]"
+      />
+    </div>
+  );
 }
 
 export function SheetContent({
@@ -156,18 +268,28 @@ export function SheetContent({
   children,
   side = "right",
   showClose = true,
+  dragToDismiss = true,
   container,
   accessibilityTitle = "Sheet",
   persistent: _persistentIgnored,
   ...props
 }: SheetContentProps) {
   const hasProvidedTitle = hasSheetTitle(children);
+  const popupRef = React.useRef<HTMLDivElement>(null);
+  const closeRef = React.useRef<HTMLButtonElement>(null);
+  const draggable = side === "bottom" && dragToDismiss;
+  const drag = useSheetDrag(popupRef, closeRef, draggable);
+  // Either button renders — the visible X when `showClose`, an off-screen one when a
+  // drag still needs somewhere to click through to Base UI's own close handling — so
+  // there is exactly one in the DOM, never both.
+  const needsCloseTarget = showClose || side === "bottom";
 
   return (
     <BaseDialog.Portal container={container}>
       <BaseDialog.Backdrop className={backdropClass} />
       <BaseDialog.Viewport className="fixed inset-0 z-[var(--primitive-z-overlay)] outline-none">
         <BaseDialog.Popup
+          ref={popupRef}
           data-slot="sheet-content"
           data-side={side}
           data-surface="modal"
@@ -184,20 +306,34 @@ export function SheetContent({
           {hasProvidedTitle ? null : (
             <BaseDialog.Title className="sr-only">{accessibilityTitle}</BaseDialog.Title>
           )}
+          {draggable ? (
+            <SheetHandle
+              onPointerDown={drag.onPointerDown}
+              onPointerMove={drag.onPointerMove}
+              onPointerUp={drag.onPointerUp}
+              onPointerCancel={drag.onPointerUp}
+            />
+          ) : null}
           <div className="relative flex h-full min-h-0 flex-1 flex-col gap-[inherit]">
             {children}
-            {showClose ? (
+            {needsCloseTarget ? (
               <BaseDialog.Close
-                className={cn(
-                  "absolute right-3 top-3 z-10 inline-flex size-8 items-center justify-center rounded-[var(--primitive-radius-control-sm)]",
-                  "border border-transparent text-[var(--muted-foreground)]",
-                  "transition-[background-color,border-color,color] duration-[var(--primitive-motion-fast)] ease-[var(--primitive-ease)]",
-                  "hover:border-[var(--border)] hover:bg-[var(--primitive-surface-hover)] hover:text-[var(--foreground)]",
-                  "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primitive-ring)]",
-                )}
+                ref={closeRef}
+                className={
+                  showClose
+                    ? cn(
+                        "absolute right-3 top-3 z-10 inline-flex size-8 items-center justify-center rounded-[var(--primitive-radius-control-sm)]",
+                        "border border-transparent text-[var(--muted-foreground)]",
+                        "transition-[background-color,border-color,color] duration-[var(--primitive-motion-fast)] ease-[var(--primitive-ease)]",
+                        "hover:border-[var(--border)] hover:bg-[var(--primitive-surface-hover)] hover:text-[var(--foreground)]",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--primitive-ring)]",
+                      )
+                    : "sr-only"
+                }
+                tabIndex={showClose ? 0 : -1}
                 aria-label="Close"
               >
-                <IconX stroke={1.75} className="size-4" />
+                {showClose ? <IconX stroke={1.75} className="size-4" /> : null}
               </BaseDialog.Close>
             ) : null}
           </div>

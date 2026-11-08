@@ -295,9 +295,9 @@ function VaultPageContent() {
           side="bottom"
           className="h-[62dvh] gap-0 p-0"
           showCloseButton={false}
+          dragToDismiss={!busy}
           onInteractOutside={(e) => busy && e.preventDefault()}
         >
-          <div aria-hidden="true" className="mx-auto mt-2 h-1 w-9 shrink-0 rounded-full bg-line" />
           <SheetHeader className="flex items-start gap-3 px-4 py-5">
             <span className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-signal-subtle text-signal-text">
               <FileText className="size-5" />

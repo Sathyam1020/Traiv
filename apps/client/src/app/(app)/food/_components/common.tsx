@@ -37,12 +37,6 @@ export function Panel({
         side="bottom"
         className="max-h-[92dvh] rounded-t-surface p-0 sm:mx-auto sm:max-w-xl"
       >
-        {eyebrow ? (
-          <div
-            aria-hidden="true"
-            className="mx-auto mt-3 h-1 w-8 shrink-0 rounded-full bg-line-strong"
-          />
-        ) : null}
         <SheetHeader className={eyebrow ? "shrink-0 pr-12" : "shrink-0 border-b border-line pr-10"}>
           {eyebrow ? (
             <div className="text-caption font-semibold uppercase text-signal-text">{eyebrow}</div>
