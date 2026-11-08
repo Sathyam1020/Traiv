@@ -1,4 +1,4 @@
-export type TransportName = "whatsapp" | "sms" | "console";
+export type TransportName = "whatsapp" | "sms" | "console" | "android-sms";
 
 export type OtpTransport = {
   readonly name: TransportName;

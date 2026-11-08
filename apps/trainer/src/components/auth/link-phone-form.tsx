@@ -1,15 +1,6 @@
 "use client";
 
 import { Button } from "@traiv/ui/components/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@traiv/ui/components/dialog";
-import { Input } from "@traiv/ui/components/input";
-import { Label } from "@traiv/ui/components/label";
 import { Logo } from "@traiv/ui/components/logo";
 import { PhoneField } from "@traiv/ui/components/phone-field";
 import { ArrowLeft, ArrowRight } from "@traiv/ui/icons";
@@ -135,45 +126,6 @@ export function LinkPhoneForm() {
           </div>
         )}
       </div>
-
-      {/* Not dismissable — createDefaultStudio named the studio after the person because
-          it had nothing else to call it, and that name must not reach the sidebar. */}
-      <Dialog open={flow.step === "business"} onOpenChange={() => {}}>
-        <DialogContent showCloseButton={false} onInteractOutside={(e) => e.preventDefault()}>
-          <DialogHeader>
-            <DialogTitle>What's your business called?</DialogTitle>
-            <DialogDescription>
-              This is what your clients will see — you can change it later in Settings.
-            </DialogDescription>
-          </DialogHeader>
-          <form
-            className="flex flex-col gap-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (flow.businessName.trim() && !flow.busy) void flow.submitBusinessName();
-            }}
-          >
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="business-name">Business name</Label>
-              <Input
-                id="business-name"
-                value={flow.businessName}
-                onChange={(e) => flow.setBusinessName(e.target.value)}
-                placeholder="Traiv"
-                autoFocus
-              />
-            </div>
-            {flow.error ? <p className="text-caption text-danger">{flow.error}</p> : null}
-            <Button
-              type="submit"
-              className="h-11 w-full"
-              disabled={!flow.businessName.trim() || flow.busy}
-            >
-              {flow.busy ? "Saving…" : "Continue"}
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

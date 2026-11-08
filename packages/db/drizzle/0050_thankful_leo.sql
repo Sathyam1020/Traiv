@@ -1,0 +1,1 @@
+ALTER TYPE "public"."otp_transport" ADD VALUE 'android-sms';

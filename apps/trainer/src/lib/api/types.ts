@@ -15,6 +15,8 @@ export type Studio = {
   brandLogoUrl?: string | null;
   tier: "free" | "starter" | "pro" | "studio";
   role: "owner" | "coach";
+  /** False until the owner has actually chosen this name — see the schema comment. */
+  nameConfirmed: boolean;
 };
 
 export type Session = {

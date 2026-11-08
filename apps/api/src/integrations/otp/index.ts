@@ -1,4 +1,5 @@
 import { env } from "../../env.js";
+import { androidSmsTransport } from "./android-sms.js";
 import { consoleTransport } from "./console.js";
 import { smsTransport } from "./sms.js";
 import type { OtpTransport, TransportName } from "./types.js";
@@ -8,6 +9,7 @@ export type { OtpTransport, TransportName } from "./types.js";
 
 const smsReady = Boolean(env.MSG91_AUTH_KEY && env.MSG91_SENDER_ID && env.MSG91_FLOW_ID);
 const whatsappReady = Boolean(env.WHATSAPP_PHONE_NUMBER_ID && env.WHATSAPP_ACCESS_TOKEN);
+const androidSmsReady = Boolean(env.ANDROID_SMS_USERNAME && env.ANDROID_SMS_PASSWORD);
 
 function build(name: TransportName): OtpTransport | null {
   if (name === "console") return consoleTransport;
@@ -17,6 +19,15 @@ function build(name: TransportName): OtpTransport | null {
           env.MSG91_AUTH_KEY as string,
           env.MSG91_SENDER_ID as string,
           env.MSG91_FLOW_ID as string,
+        )
+      : null;
+  }
+  if (name === "android-sms") {
+    return androidSmsReady
+      ? androidSmsTransport(
+          env.ANDROID_SMS_BASE_URL,
+          env.ANDROID_SMS_USERNAME as string,
+          env.ANDROID_SMS_PASSWORD as string,
         )
       : null;
   }

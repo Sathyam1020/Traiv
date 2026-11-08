@@ -97,6 +97,7 @@ export async function listStudios(userId: string, tx: Tx = db) {
       name: schema.studios.name,
       brandLogoUrl: schema.studios.brandLogoUrl,
       tier: schema.studios.tier,
+      nameConfirmed: schema.studios.nameConfirmed,
       role: schema.memberships.role,
     })
     .from(schema.memberships)
@@ -129,6 +130,7 @@ export async function activateStudio(sessionId: string, studioId: string) {
       name: schema.studios.name,
       brandLogoUrl: schema.studios.brandLogoUrl,
       tier: schema.studios.tier,
+      nameConfirmed: schema.studios.nameConfirmed,
     })
     .from(schema.studios)
     .where(eq(schema.studios.id, studioId))
@@ -144,7 +146,9 @@ export async function activateStudio(sessionId: string, studioId: string) {
 export async function renameStudio(studioId: string, name: string) {
   const [studio] = await db
     .update(schema.studios)
-    .set({ name, updatedAt: new Date() })
+    // An explicit rename is the owner choosing a name — the business-name step and a
+    // later rename in Settings both call this, and either one satisfies it.
+    .set({ name, nameConfirmed: true, updatedAt: new Date() })
     .where(eq(schema.studios.id, studioId))
     .returning({
       id: schema.studios.id,
@@ -152,6 +156,7 @@ export async function renameStudio(studioId: string, name: string) {
       name: schema.studios.name,
       brandLogoUrl: schema.studios.brandLogoUrl,
       tier: schema.studios.tier,
+      nameConfirmed: schema.studios.nameConfirmed,
     });
   if (!studio) throw notFound("Studio not found.");
   return studio;

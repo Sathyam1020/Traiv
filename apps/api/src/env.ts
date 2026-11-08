@@ -54,8 +54,8 @@ const schema = z.object({
 
   // --- OTP delivery ---
   // Switching the primary channel is a one-line change here.
-  OTP_TRANSPORT: z.enum(["sms", "whatsapp", "console"]).default("sms"),
-  OTP_FALLBACK: z.enum(["sms", "whatsapp", "none"]).default("none"),
+  OTP_TRANSPORT: z.enum(["sms", "whatsapp", "console", "android-sms"]).default("sms"),
+  OTP_FALLBACK: z.enum(["sms", "whatsapp", "android-sms", "none"]).default("none"),
 
   // MSG91. FLOW_ID is the DLT-registered template; SENDER_ID the registered 6-char header.
   MSG91_AUTH_KEY: z.string().optional(),
@@ -67,6 +67,14 @@ const schema = z.object({
   WHATSAPP_ACCESS_TOKEN: z.string().optional(),
   WHATSAPP_WEBHOOK_VERIFY_TOKEN: z.string().optional(),
   WHATSAPP_OTP_TEMPLATE: z.string().default("traiv_otp"),
+
+  // android-sms-gateway (capcom6/android-sms-gateway), Cloud Server Mode — a phone's
+  // own SIM, routed through the project's hosted relay rather than a paid SMS provider.
+  // Username/password, not a token: that's what the app's Cloud Server screen shows you
+  // directly, with no separate token-generation step.
+  ANDROID_SMS_BASE_URL: z.string().url().default("https://api.sms-gate.app"),
+  ANDROID_SMS_USERNAME: z.string().optional(),
+  ANDROID_SMS_PASSWORD: z.string().optional(),
 
   // Where the coach app runs. Used for CORS and the post-auth redirect.
   WEB_ORIGIN: z.string().url().default("http://localhost:3000"),
@@ -125,12 +133,17 @@ function load() {
     const missing: string[] = [];
     const needsSms = env.OTP_TRANSPORT === "sms" || env.OTP_FALLBACK === "sms";
     const needsWhatsapp = env.OTP_TRANSPORT === "whatsapp" || env.OTP_FALLBACK === "whatsapp";
+    const needsAndroidSms =
+      env.OTP_TRANSPORT === "android-sms" || env.OTP_FALLBACK === "android-sms";
 
     if (needsSms && !(env.MSG91_AUTH_KEY && env.MSG91_SENDER_ID && env.MSG91_FLOW_ID)) {
       missing.push("MSG91_AUTH_KEY, MSG91_SENDER_ID, MSG91_FLOW_ID");
     }
     if (needsWhatsapp && !(env.WHATSAPP_PHONE_NUMBER_ID && env.WHATSAPP_ACCESS_TOKEN)) {
       missing.push("WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_ACCESS_TOKEN");
+    }
+    if (needsAndroidSms && !(env.ANDROID_SMS_USERNAME && env.ANDROID_SMS_PASSWORD)) {
+      missing.push("ANDROID_SMS_USERNAME, ANDROID_SMS_PASSWORD");
     }
     if (env.OTP_TRANSPORT === "console") {
       missing.push("OTP_TRANSPORT=console is not permitted in production");

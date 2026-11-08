@@ -9,11 +9,10 @@ import {
   usePhoneLinkChallenge,
   usePhoneLinkDirect,
   usePhoneLinkVerify,
-  useRenameStudio,
   useSession,
 } from "@/lib/query";
 
-export type LinkPhoneStep = "phone" | "code" | "business";
+export type LinkPhoneStep = "phone" | "code";
 
 const RESEND_SECONDS = 30;
 
@@ -25,12 +24,10 @@ const RESEND_SECONDS = 30;
  * `setCode`, …) match `useAuthFlow`'s shape so the same `CodeStep` presentation reads
  * the same way here as it does on /signup.
  *
- * One step further than the phone itself: `createDefaultStudio` names a brand-new
- * studio after the person, not a business, because it has nothing else to call it —
- * fine for phone signup where the person typed nothing yet either, but Google already
- * gave a real name, and "Priya Kulkarni" sitting where a business name belongs is wrong
- * the moment it renders. The business-name step is what replaces it before the sidebar
- * ever shows it.
+ * The business-name step used to live here as a local dialog — moved to `AuthGuard` +
+ * `/business-name` instead, driven by `studio.nameConfirmed` rather than a step this
+ * flow remembered in local state, so it survives a refresh and covers the phone-first
+ * signup path too, not just this one.
  */
 export function useLinkPhoneFlow() {
   const router = useRouter();
@@ -40,7 +37,6 @@ export function useLinkPhoneFlow() {
   const [phone, setPhone] = useState("");
   const [countryCode, setCountryCode] = useState<CountryCode>(DEFAULT_COUNTRY);
   const [code, setCode] = useState("");
-  const [businessName, setBusinessName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [transport, setTransport] = useState<TransportName>("sms");
@@ -51,21 +47,17 @@ export function useLinkPhoneFlow() {
   const challenge = usePhoneLinkChallenge();
   const direct = usePhoneLinkDirect();
   const verify = usePhoneLinkVerify();
-  const rename = useRenameStudio();
 
   const parsedPhone = parsePhone(phone, countryCode);
   const phoneValid = parsedPhone.ok;
-  const busy = challenge.isPending || direct.isPending || verify.isPending || rename.isPending;
+  const busy = challenge.isPending || direct.isPending || verify.isPending;
 
-  // Nobody signed in, or nobody who still needs this, has any business on this screen —
-  // except mid-flow: the phone mutations invalidate the session the instant they
-  // succeed, which would otherwise fire this and bounce to /clients before the business
-  // name step ever has a chance to show.
+  // `AuthGuard` takes it from here the moment `needsPhone` clears — including on to
+  // `/business-name` if that's still outstanding too.
   useEffect(() => {
-    if (step === "business") return;
     if (session.isError) router.replace("/signin");
     else if (session.data && !session.data.user.needsPhone) router.replace("/clients");
-  }, [session.isError, session.data, router, step]);
+  }, [session.isError, session.data, router]);
 
   useEffect(() => {
     if (secondsLeft <= 0) return;
@@ -87,7 +79,6 @@ export function useLinkPhoneFlow() {
     try {
       if (!otpRequired) {
         await direct.mutateAsync({ phone: e164 });
-        setStep("business");
         return;
       }
       const res = await challenge.mutateAsync({ phone: e164 });
@@ -103,31 +94,10 @@ export function useLinkPhoneFlow() {
     setError(null);
     try {
       await verify.mutateAsync({ phone: parsedPhone.ok ? parsedPhone.e164 : phone, code });
-      setStep("business");
     } catch (e) {
       fail(e);
     }
   }, [verify, parsedPhone, phone, code, fail]);
-
-  const submitBusinessName = useCallback(async () => {
-    setError(null);
-    const name = businessName.trim();
-    if (!name) {
-      setError("Enter your business name.");
-      return;
-    }
-    const studioId = session.data?.activeStudioId;
-    if (!studioId) {
-      setError("Couldn't find your studio. Try again.");
-      return;
-    }
-    try {
-      await rename.mutateAsync({ id: studioId, name });
-      router.push("/clients");
-    } catch (e) {
-      fail(e);
-    }
-  }, [businessName, session.data?.activeStudioId, rename, router, fail]);
 
   const backToIdentity = useCallback(() => {
     setStep("phone");
@@ -146,11 +116,6 @@ export function useLinkPhoneFlow() {
       setCode(v);
       setError(null);
     },
-    businessName,
-    setBusinessName: (v: string) => {
-      setBusinessName(v);
-      setError(null);
-    },
     error,
     busy,
     otpRequired,
@@ -159,7 +124,6 @@ export function useLinkPhoneFlow() {
     phoneValid,
     sendCode,
     submitCode,
-    submitBusinessName,
     backToIdentity,
   };
 }

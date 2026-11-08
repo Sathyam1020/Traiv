@@ -25,7 +25,7 @@ import { users } from "./user.js";
  * still reference them. Nothing writes them any more.
  */
 export const authProvider = pgEnum("auth_provider", ["password", "google", "apple", "phone"]);
-export const otpTransport = pgEnum("otp_transport", ["whatsapp", "sms", "console"]);
+export const otpTransport = pgEnum("otp_transport", ["whatsapp", "sms", "console", "android-sms"]);
 export const challengePurpose = pgEnum("challenge_purpose", [
   "phone_verify",
   "login",

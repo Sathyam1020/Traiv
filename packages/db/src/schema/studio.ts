@@ -32,6 +32,15 @@ export const studios = pgTable(
     // collision retries, and it becomes <slug>.traiv.fit when white-label ships.
     slug: text().notNull(),
     name: text().notNull(),
+    /**
+     * False until the owner has actually chosen this name. `createDefaultStudio` names
+     * a brand-new studio after the person signing up, because at that point it has
+     * nothing else to call it — true of both the phone-first and Google-first paths.
+     * That placeholder must not reach a client's sidebar as if it were the business's
+     * real name. Set true by the business-name step and by any explicit rename, so a
+     * studio renamed once in Settings is never re-prompted.
+     */
+    nameConfirmed: boolean().notNull().default(false),
 
     tier: studioTier().notNull().default("free"),
     status: studioStatus().notNull().default("active"),

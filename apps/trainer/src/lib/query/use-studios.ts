@@ -12,7 +12,13 @@ export function useRenameStudio() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: ({ id, name }: { id: string; name: string }) => studiosApi.rename(id, name),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.studios.list }),
+    // The session's own `studios` array (not just the settings list) carries
+    // `nameConfirmed` — `AuthGuard` reads it from there, so a rename has to invalidate
+    // both or it keeps redirecting to the business-name step after the name is saved.
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.studios.list });
+      void qc.invalidateQueries({ queryKey: queryKeys.auth.session });
+    },
   });
 }
 

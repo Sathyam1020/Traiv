@@ -180,6 +180,7 @@ function ClientsPageContent() {
         <div
           className={cn(
             "flex-1 overflow-x-auto transition-opacity duration-200 motion-reduce:transition-none",
+            "[scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
             refreshing && "opacity-55",
           )}
         >
