@@ -1,6 +1,7 @@
 import { newId, schema } from "@traiv/db";
 import { and, eq, isNotNull, sql } from "drizzle-orm";
 import { db } from "../db.js";
+import { recordOperationalEvent } from "../features/analytics/operational.js";
 
 export type JobKind = "generate_plan" | "generate_food_image" | "weekly_review" | "purge_auth_rows";
 
@@ -103,7 +104,11 @@ export async function fail(id: string, err: unknown) {
   const message = err instanceof Error ? err.message : String(err);
 
   const [job] = await db
-    .select({ attempts: schema.jobs.attempts, maxAttempts: schema.jobs.maxAttempts })
+    .select({
+      kind: schema.jobs.kind,
+      attempts: schema.jobs.attempts,
+      maxAttempts: schema.jobs.maxAttempts,
+    })
     .from(schema.jobs)
     .where(eq(schema.jobs.id, id))
     .limit(1);
@@ -130,6 +135,12 @@ export async function fail(id: string, err: unknown) {
           },
     )
     .where(eq(schema.jobs.id, id));
+
+  // Only the permanent give-up, per `event-taxonomy.md`: "a job row transitions to
+  // status = 'failed'" — a requeued retry is not that, it's still trying.
+  if (exhausted) {
+    void recordOperationalEvent({ name: "job_failed", jobKind: job?.kind, error: message });
+  }
 
   return { exhausted };
 }

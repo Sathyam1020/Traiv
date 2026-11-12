@@ -3,8 +3,8 @@ import { and, eq, inArray, isNull, or, sql } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../db.js";
 import { isForeignKeyViolation, isUniqueViolation } from "../../lib/db-errors.js";
-import { resetPhones } from "../../test-support/reset.js";
-import { requestChallenge, toE164, verifyChallenge } from "../auth/service.js";
+import { resetEmails } from "../../test-support/reset.js";
+import { requestChallenge, verifyChallenge } from "../auth/service.js";
 import { joinByCode } from "../client/join.js";
 import { listStudios } from "../studio/service.js";
 import {
@@ -20,21 +20,20 @@ import {
  * Money is owed against these rows, so the cases that matter are the ones where a
  * referral is created twice, created for the wrong person, or quietly lost.
  */
-const A = "7980000001";
-const B = "7980000002";
-const C = "7980000003";
-const D = "7980000004";
+const A = "endorse-test-a@example.com";
+const B = "endorse-test-b@example.com";
+const C = "endorse-test-c@example.com";
+const D = "endorse-test-d@example.com";
 const ALL = [A, B, C, D];
 
 async function wipe() {
   // Referrals must go before the studios and endorsers they point at — the endorser FK
   // is `restrict` on purpose, so a half-ordered teardown fails loudly rather than
   // silently leaving rows behind.
-  const phones = ALL.map(toE164);
   const users = await db
     .select({ id: schema.users.id })
     .from(schema.users)
-    .where(inArray(schema.users.phone, phones));
+    .where(inArray(schema.users.email, ALL));
   const ids = users.map((u) => u.id);
 
   if (ids.length) {
@@ -57,16 +56,16 @@ async function wipe() {
       );
     await db.delete(schema.endorsers).where(inArray(schema.endorsers.userId, ids));
   }
-  await resetPhones(phones);
+  await resetEmails(ALL);
 }
 
 beforeEach(wipe);
 afterAll(wipe);
 
-async function signUp(phone: string, name: string, endorserCode?: string) {
-  const res = await requestChallenge({ phone, name, ...(endorserCode ? { endorserCode } : {}) });
+async function signUp(email: string, name: string, endorserCode?: string) {
+  const res = await requestChallenge({ email, name, ...(endorserCode ? { endorserCode } : {}) });
   if (!res.code) throw new Error("console transport expected");
-  return verifyChallenge({ phone, code: res.code });
+  return verifyChallenge({ email, code: res.code });
 }
 
 describe("endorsers", () => {
@@ -143,13 +142,13 @@ describe("endorsers", () => {
       // Validated at request time rather than after verification: dropping it silently
       // later would cost the endorser a referral nobody could see was missing.
       await expect(
-        requestChallenge({ phone: B, name: "Rahul", endorserCode: "NOTREAL1" }),
+        requestChallenge({ email: B, name: "Rahul", endorserCode: "NOTREAL1" }),
       ).rejects.toMatchObject({ status: 404 });
 
       const [{ n } = { n: 0 }] = await db
         .select({ n: sql<number>`count(*)::int` })
         .from(schema.authChallenges)
-        .where(eq(schema.authChallenges.phone, toE164(B)));
+        .where(eq(schema.authChallenges.email, B));
       expect(n).toBe(0); // and no OTP was sent
     });
 
@@ -169,9 +168,9 @@ describe("endorsers", () => {
       expect(coach.referred).toBe(true);
 
       // Signing in again with a different code must not move the attribution.
-      const again = await requestChallenge({ phone: B, endorserCode: second.code });
+      const again = await requestChallenge({ email: B, endorserCode: second.code });
       if (!again.code) throw new Error("console transport expected");
-      await verifyChallenge({ phone: B, code: again.code });
+      await verifyChallenge({ email: B, code: again.code });
 
       expect(await listReferrals(one.user.id)).toHaveLength(1);
       expect(await listReferrals(two.user.id)).toHaveLength(0);
@@ -190,7 +189,7 @@ describe("endorsers", () => {
         ownerUserId: self.user.id,
         code,
       });
-      expect(done).toBe(false);
+      expect(done).toBeNull();
       expect(await listReferrals(self.user.id)).toHaveLength(0);
     });
 

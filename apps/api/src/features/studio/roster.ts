@@ -4,6 +4,7 @@ import { energyTarget } from "@traiv/nutrition";
 import { and, asc, desc, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import { db } from "../../db.js";
 import { badRequest, notFound } from "../../errors.js";
+import { track, userIdForMembership } from "../analytics/service.js";
 
 /**
  * The coach's roster.
@@ -877,6 +878,7 @@ function energyFor(
 export async function updateClient(
   studioId: string,
   clientId: string,
+  membershipId: string | null,
   patch: {
     status?: SettableClientStatus;
     startedAt?: Date;
@@ -886,6 +888,14 @@ export async function updateClient(
     checkInsEnabled?: boolean;
   },
 ) {
+  // Read before the update: `roster_status_changed` needs the status this client is
+  // actually moving *from*, which `.returning()` below can only give the *to* side of.
+  const [before] = await db
+    .select({ status: schema.clients.status })
+    .from(schema.clients)
+    .where(and(alive(studioId), eq(schema.clients.id, clientId)))
+    .limit(1);
+
   const [updated] = await db
     .update(schema.clients)
     .set(patch)
@@ -898,6 +908,35 @@ export async function updateClient(
     });
 
   if (!updated) throw notFound("No such client.");
+
+  // Never allowed to fail the update it's describing, same reasoning as every other
+  // instrumentation site in this codebase.
+  const userId = await userIdForMembership(membershipId);
+  if (before && patch.status !== undefined && patch.status !== before.status) {
+    await track({
+      name: "roster_status_changed",
+      properties: { from_status: before.status, to_status: updated.status },
+      userId,
+      studioId,
+      actorRole: "trainer",
+      sourceApp: "trainer",
+    }).catch(() => {});
+  }
+  if (
+    patch.checkInWeekday !== undefined ||
+    patch.checkInGraceDays !== undefined ||
+    patch.checkInsEnabled !== undefined
+  ) {
+    await track({
+      name: "check_in_schedule_set",
+      properties: {},
+      userId,
+      studioId,
+      actorRole: "trainer",
+      sourceApp: "trainer",
+    }).catch(() => {});
+  }
+
   return updated;
 }
 

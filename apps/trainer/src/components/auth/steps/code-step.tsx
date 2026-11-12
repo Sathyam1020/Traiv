@@ -4,8 +4,7 @@ import { Button } from "@traiv/ui/components/button";
 import { ArrowLeft } from "@traiv/ui/icons";
 
 const CHANNEL_LABEL: Record<string, string> = {
-  sms: "Sent by SMS to",
-  whatsapp: "Sent on WhatsApp to",
+  email: "Sent by email to",
   console: "Printed to the server log for",
 };
 
@@ -21,12 +20,11 @@ export function CodeStep({ flow }: { flow: AuthFlow }) {
           onClick={flow.backToIdentity}
           className="-ml-1 mb-1 flex w-fit cursor-pointer items-center gap-1.5 rounded-control px-1 py-0.5 text-caption text-fg-muted transition-colors hover:text-fg"
         >
-          <ArrowLeft className="size-3.5" /> Change number
+          <ArrowLeft className="size-3.5" /> Change email
         </button>
         <h1 className="text-heading font-medium">Enter the code</h1>
         <p className="text-body-sm text-fg-muted">
-          {CHANNEL_LABEL[flow.transport]}{" "}
-          <span className="tabular-nums text-fg">+91 {flow.phone}</span>
+          {CHANNEL_LABEL[flow.transport]} <span className="text-fg">{flow.identityEmail}</span>
         </p>
       </header>
 

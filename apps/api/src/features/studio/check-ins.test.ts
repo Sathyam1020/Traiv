@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../db.js";
 import { type Agent, signUpOverHttp, startApi, type TestServer } from "../../test-support/http.js";
-import { resetPhones } from "../../test-support/reset.js";
+import { resetEmails } from "../../test-support/reset.js";
 import {
   addDays,
   checkInState,
@@ -21,7 +21,7 @@ import {
  * midnight is a suite nobody trusts at 23:58.
  */
 
-const COACH = "+918600000411";
+const COACH = "studio-checkins-coach@example.com";
 let api: TestServer;
 let coach: Agent;
 let studioId: string;
@@ -32,7 +32,7 @@ const MONDAY = "2026-06-01";
 
 beforeAll(async () => {
   api = await startApi();
-  await resetPhones([COACH]);
+  await resetEmails([COACH]);
 
   const up = await signUpOverHttp(api.url, COACH, "Check Coach");
   coach = up.agent;
@@ -52,7 +52,7 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  await resetPhones([COACH]);
+  await resetEmails([COACH]);
   await api.close();
 });
 

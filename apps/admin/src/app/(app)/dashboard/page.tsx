@@ -20,7 +20,7 @@ export default function DashboardPage() {
 
   if (session.isPending || !signedIn) return <Loading />;
 
-  // 403 is the answer for every account that is not the one named by ADMIN_PHONE, and it
+  // 403 is the answer for every account that is not the one named by ADMIN_EMAIL, and it
   // is the expected case rather than a fault — so it gets its own screen, not an error.
   const forbidden = stats.isError && isApiError(stats.error) && stats.error.status === 403;
 

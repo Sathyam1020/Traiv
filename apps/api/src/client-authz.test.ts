@@ -2,12 +2,11 @@ import { newId, schema } from "@traiv/db";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "./db.js";
-import { toE164 } from "./features/auth/service.js";
 import { clientApp } from "./features/client/routes.js";
 import { listStudios } from "./features/studio/service.js";
 import type { ClientStatus } from "./middleware/client-authorize.js";
 import { Agent, signUpOverHttp, startApi, type TestServer } from "./test-support/http.js";
-import { resetPhones } from "./test-support/reset.js";
+import { resetEmails } from "./test-support/reset.js";
 
 /**
  * Client authorization at the HTTP boundary — ADR 0014.
@@ -16,12 +15,12 @@ import { resetPhones } from "./test-support/reset.js";
  * and neither relationship may stand in for the other. Everything else here is the status
  * table, asserted one row at a time.
  *
- * Numbers are in a reserved 794xxxx range so they cannot collide with the other suites.
+ * Addresses are in a reserved namespace so they cannot collide with the other suites.
  */
-const COACH_A = "8300000001";
-const COACH_B = "8300000002";
-const PERSON = "8300000003";
-const OUTSIDER = "8300000004";
+const COACH_A = "client-authz-coach-a@example.com";
+const COACH_B = "client-authz-coach-b@example.com";
+const PERSON = "client-authz-person@example.com";
+const OUTSIDER = "client-authz-outsider@example.com";
 const ALL = [COACH_A, COACH_B, PERSON, OUTSIDER];
 
 let api: TestServer;
@@ -32,11 +31,11 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await api.close();
-  await resetPhones(ALL.map(toE164));
+  await resetEmails(ALL);
 });
 
 beforeEach(async () => {
-  await resetPhones(ALL.map(toE164));
+  await resetEmails(ALL);
 });
 
 /** Two studios, and one person who is a client of the first. */

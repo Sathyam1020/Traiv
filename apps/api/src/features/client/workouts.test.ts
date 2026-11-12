@@ -3,8 +3,7 @@ import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../db.js";
 import { signUpOverHttp, startApi, type TestServer } from "../../test-support/http.js";
-import { resetPhones } from "../../test-support/reset.js";
-import { toE164 } from "../auth/service.js";
+import { resetEmails } from "../../test-support/reset.js";
 import { listStudios } from "../studio/service.js";
 
 /**
@@ -22,11 +21,11 @@ import { listStudios } from "../studio/service.js";
  *  - **`activated_at` moving on a second workout.** It means *first* logged session.
  *  - **Reading another client's programme or session.**
  *
- * Numbers are in a reserved 860xxxx range so they cannot collide with the other suites.
+ * Addresses are in a reserved namespace so they cannot collide with the other suites.
  */
-const COACH = "8600000001";
-const PERSON = "8600000002";
-const OTHER = "8600000003";
+const COACH = "client-workouts-coach@example.com";
+const PERSON = "client-workouts-person@example.com";
+const OTHER = "client-workouts-other@example.com";
 const ALL = [COACH, PERSON, OTHER];
 
 let api: TestServer;
@@ -37,11 +36,11 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await api.close();
-  await resetPhones(ALL.map(toE164));
+  await resetEmails(ALL);
 });
 
 beforeEach(async () => {
-  await resetPhones(ALL.map(toE164));
+  await resetEmails(ALL);
 });
 
 async function scenario() {

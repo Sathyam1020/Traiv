@@ -2,8 +2,8 @@ import { newId, schema } from "@traiv/db";
 import { and, eq, isNull, sql } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../db.js";
-import { resetPhones } from "../../test-support/reset.js";
-import { requestChallenge, toE164, verifyChallenge } from "../auth/service.js";
+import { resetEmails } from "../../test-support/reset.js";
+import { requestChallenge, verifyChallenge } from "../auth/service.js";
 import { listStudios } from "../studio/service.js";
 import { joinByCode, rotateJoinCode } from "./join.js";
 
@@ -13,22 +13,22 @@ import { joinByCode, rotateJoinCode } from "./join.js";
  * The existing join tests cover the happy path and the obvious refusals. These cover what
  * the review found everywhere else: concurrency, and statuses that should not count.
  */
-const COACH = "8900000001";
-const C1 = "8900000002";
-const C2 = "8900000003";
-const C3 = "8900000004";
+const COACH = "client-join-hardening-coach@example.com";
+const C1 = "client-join-hardening-c1@example.com";
+const C2 = "client-join-hardening-c2@example.com";
+const C3 = "client-join-hardening-c3@example.com";
 const ALL = [COACH, C1, C2, C3];
 
 async function wipe() {
-  await resetPhones(ALL.map(toE164));
+  await resetEmails(ALL);
 }
 beforeEach(wipe);
 afterAll(wipe);
 
-async function signUp(phone: string, name: string) {
-  const res = await requestChallenge({ phone, name });
+async function signUp(email: string, name: string) {
+  const res = await requestChallenge({ email, name });
   if (!res.code) throw new Error("console transport expected");
-  const { user } = await verifyChallenge({ phone, code: res.code });
+  const { user } = await verifyChallenge({ email, code: res.code });
   return user;
 }
 
@@ -144,7 +144,7 @@ describe("joining, under pressure", () => {
 
   it("rotating returns a code that actually took effect", async () => {
     const coach = await coachWithStudio();
-    const next = await rotateJoinCode(coach.studioId);
+    const next = await rotateJoinCode(coach.studioId, coach.user.id);
 
     expect(next).not.toBe(coach.joinCode);
     const [row] = await db
@@ -160,6 +160,6 @@ describe("joining, under pressure", () => {
   });
 
   it("refuses to rotate a studio that no longer exists", async () => {
-    await expect(rotateJoinCode(newId())).rejects.toMatchObject({ status: 404 });
+    await expect(rotateJoinCode(newId(), newId())).rejects.toMatchObject({ status: 404 });
   });
 });

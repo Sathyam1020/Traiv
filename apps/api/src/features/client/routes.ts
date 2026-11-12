@@ -96,8 +96,9 @@ studioJoin.post(
   "/join-code/rotate",
   requireStudio({ param: "studioId", role: "owner" }),
   async (req, res) => {
+    const { userId } = requireSession(req);
     const { studioId } = requireStudioAuth(req);
-    res.json({ joinCode: await rotateJoinCode(studioId) });
+    res.json({ joinCode: await rotateJoinCode(studioId, userId) });
   },
 );
 
@@ -441,12 +442,13 @@ clientApp.get("/:studioId/intake", requireClient(), async (req, res) => {
 
 clientApp.patch("/:studioId/intake", requireClient({ write: true }), async (req, res) => {
   const { userId } = requireSession(req);
+  const { studioId } = requireClientAuth(req);
   const { step, ...patch } = z
     .object({ step: z.int().min(FIRST_STEP).max(LAST_STEP) })
     .extend(intakePatch.shape)
     .parse(req.body);
 
-  await saveStep(userId, step, patch);
+  await saveStep(userId, studioId, step, patch);
   res.json(await getIntake(userId));
 });
 

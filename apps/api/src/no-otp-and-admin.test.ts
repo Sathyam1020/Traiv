@@ -1,12 +1,10 @@
-import { newId, schema } from "@traiv/db";
+import { schema } from "@traiv/db";
 import { eq, inArray } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-const ADMIN = "7990000001";
-const COACH = "7990000002";
-const OUTSIDER = "7990000003";
-const LINK_NUMBER = "7980000001";
-const GOOGLE_EMAIL = "no-otp-google-user@example.com";
+const ADMIN = "no-otp-admin@example.com";
+const COACH = "no-otp-coach@example.com";
+const OUTSIDER = "no-otp-outsider@example.com";
 
 /**
  * `OTP=NO` and the admin gate, which are both env-driven and so are tested with the env
@@ -17,40 +15,28 @@ const GOOGLE_EMAIL = "no-otp-google-user@example.com";
  */
 vi.mock("./env.js", async (importActual) => {
   const actual = await importActual<typeof import("./env.js")>();
-  return { ...actual, env: { ...actual.env, OTP: false, ADMIN_PHONE: ADMIN } };
+  return { ...actual, env: { ...actual.env, OTP: false, ADMIN_EMAIL: ADMIN } };
 });
 
 const { db } = await import("./db.js");
-const { devIssueSession, toE164 } = await import("./features/auth/service.js");
 const { listStudios } = await import("./features/studio/service.js");
 const { becomeEndorser } = await import("./features/endorse/service.js");
 const { Agent, startApi } = await import("./test-support/http.js");
-const { resetPhones } = await import("./test-support/reset.js");
+const { resetEmails } = await import("./test-support/reset.js");
 
 type TestServer = Awaited<ReturnType<typeof startApi>>;
 let api: TestServer;
-const ALL = [ADMIN, COACH, OUTSIDER, LINK_NUMBER];
+const ALL = [ADMIN, COACH, OUTSIDER];
 
 async function wipe() {
-  const [googleUser] = await db
-    .select({ id: schema.users.id })
-    .from(schema.users)
-    .where(eq(schema.users.email, GOOGLE_EMAIL))
-    .limit(1);
-  if (googleUser) {
-    await db.delete(schema.sessions).where(eq(schema.sessions.userId, googleUser.id));
-    await db.delete(schema.users).where(eq(schema.users.id, googleUser.id));
-  }
-
-  const phones = ALL.map(toE164);
   const mine = await db
     .select({ id: schema.users.id })
     .from(schema.users)
-    .where(inArray(schema.users.phone, phones));
+    .where(inArray(schema.users.email, ALL));
   const ids = mine.map((u) => u.id);
 
   if (ids.length) {
-    // Scoped to this file's own numbers. A teardown that deletes every referral would
+    // Scoped to this file's own addresses. A teardown that deletes every referral would
     // pass here and quietly break whichever suite runs next.
     await db
       .delete(schema.referrals)
@@ -65,7 +51,7 @@ async function wipe() {
       );
     await db.delete(schema.endorsers).where(inArray(schema.endorsers.userId, ids));
   }
-  await resetPhones(phones);
+  await resetEmails(ALL);
 }
 
 beforeAll(async () => {
@@ -78,46 +64,25 @@ afterAll(async () => {
 beforeEach(wipe);
 
 /** Signs in over real HTTP with no code, the way the apps do when OTP is off. */
-async function direct(phone: string, name?: string) {
+async function direct(email: string, name?: string) {
   const agent = new Agent(api.url);
-  const res = await agent.request("POST", "/auth/direct", { phone, ...(name ? { name } : {}) });
+  const res = await agent.request("POST", "/auth/direct", { email, ...(name ? { name } : {}) });
   if (res.status !== 200) throw new Error(`direct sign-in failed: ${res.status}`);
   return { agent, user: res.body.user as { id: string; name: string } };
 }
 
-/** Leaves an agent signed in the way the Google callback does — an account, no phone. */
-async function signedInAsGoogleUser() {
-  const [user] = await db
-    .insert(schema.users)
-    .values({
-      id: newId(),
-      email: GOOGLE_EMAIL,
-      name: "Priya Kulkarni",
-      emailVerifiedAt: new Date(),
-    })
-    .returning();
-  if (!user) throw new Error("setup failed");
-  const { token } = await devIssueSession(user.id);
-  const agent = new Agent(api.url);
-  agent.setCookie("traiv_session", token);
-  return { agent, user };
-}
-
 describe("OTP=NO", () => {
-  it("a phone number and a name are enough to create an account", async () => {
+  it("an email address and a name are enough to create an account", async () => {
     const { user } = await direct(COACH, "Rahul Deshmukh");
     expect(user.name).toBe("Rahul Deshmukh");
 
-    const [row] = await db
-      .select()
-      .from(schema.users)
-      .where(eq(schema.users.phone, toE164(COACH)));
-    expect(row?.phoneVerifiedAt).not.toBeNull();
+    const [row] = await db.select().from(schema.users).where(eq(schema.users.email, COACH));
+    expect(row?.emailVerifiedAt).not.toBeNull();
   });
 
   it("creates exactly what the OTP path creates", async () => {
     // The direct path runs the same establishSession, so a studio appears and the
-    // account is a coach — the only thing skipped is proving the number.
+    // account is a coach — the only thing skipped is proving the address.
     const { user } = await direct(COACH, "Rahul Deshmukh");
     const studios = await listStudios(user.id);
     expect(studios).toHaveLength(1);
@@ -129,10 +94,7 @@ describe("OTP=NO", () => {
     const second = await direct(COACH);
     expect(second.user.id).toBe(first.user.id);
 
-    const rows = await db
-      .select()
-      .from(schema.users)
-      .where(eq(schema.users.phone, toE164(COACH)));
+    const rows = await db.select().from(schema.users).where(eq(schema.users.email, COACH));
     expect(rows).toHaveLength(1);
   });
 
@@ -142,7 +104,7 @@ describe("OTP=NO", () => {
 
     const agent = new Agent(api.url);
     const res = await agent.request("POST", "/auth/direct", {
-      phone: COACH,
+      email: COACH,
       name: "Rahul Deshmukh",
       endorserCode: code,
     });
@@ -151,15 +113,15 @@ describe("OTP=NO", () => {
 
   it("still refuses an invalid endorser code", async () => {
     const res = await new Agent(api.url).request("POST", "/auth/direct", {
-      phone: COACH,
+      email: COACH,
       name: "Rahul",
       endorserCode: "NOTREAL1",
     });
     expect(res.status).toBe(404);
   });
 
-  it("still refuses a number it cannot store", async () => {
-    const res = await new Agent(api.url).request("POST", "/auth/direct", { phone: "1234567890" });
+  it("still refuses an address it cannot store", async () => {
+    const res = await new Agent(api.url).request("POST", "/auth/direct", { email: "not-an-email" });
     expect(res.status).toBe(400);
   });
 
@@ -183,36 +145,6 @@ describe("OTP=NO", () => {
   });
 });
 
-describe("OTP=NO, attaching a phone to a Google account", () => {
-  it("attaches the phone with no code, the same shortcut signup takes", async () => {
-    const { agent, user } = await signedInAsGoogleUser();
-    const res = await agent.request("POST", "/auth/phone/direct", { phone: LINK_NUMBER });
-
-    expect(res.status).toBe(200);
-    expect(res.body.user).toMatchObject({
-      id: user.id,
-      phone: toE164(LINK_NUMBER),
-      needsPhone: false,
-    });
-  });
-
-  it("refuses a number that already belongs to someone else", async () => {
-    await direct(LINK_NUMBER, "Already Signed Up");
-    const { agent } = await signedInAsGoogleUser();
-
-    const res = await agent.request("POST", "/auth/phone/direct", { phone: LINK_NUMBER });
-    expect(res.status).toBe(400);
-    expect(res.body.error).toBe("phone_taken");
-  });
-
-  it("requires a session, same as the OTP path", async () => {
-    const res = await new Agent(api.url).request("POST", "/auth/phone/direct", {
-      phone: LINK_NUMBER,
-    });
-    expect(res.status).toBe(401);
-  });
-});
-
 describe("the admin", () => {
   it("refuses an anonymous caller with 401", async () => {
     expect((await new Agent(api.url).get("/admin/stats")).status).toBe(401);
@@ -224,7 +156,7 @@ describe("the admin", () => {
     expect((await coach.agent.get("/admin/me")).status).toBe(403);
   });
 
-  it("admits the one phone number named by ADMIN_PHONE", async () => {
+  it("admits the one email address named by ADMIN_EMAIL", async () => {
     const adm = await direct(ADMIN, "Platform Admin");
     expect((await adm.agent.get("/admin/me")).status).toBe(200);
 

@@ -25,15 +25,24 @@ import { users } from "./user.js";
  * still reference them. Nothing writes them any more.
  */
 export const authProvider = pgEnum("auth_provider", ["password", "google", "apple", "phone"]);
-export const otpTransport = pgEnum("otp_transport", ["whatsapp", "sms", "console", "android-sms"]);
+// "whatsapp" | "sms" | "android-sms" are kept, never written again — ADR 0034 retires
+// phone auth entirely. "email" is the real transport now; "console" stays for dev.
+export const otpTransport = pgEnum("otp_transport", [
+  "whatsapp",
+  "sms",
+  "console",
+  "android-sms",
+  "email",
+]);
 export const challengePurpose = pgEnum("challenge_purpose", [
+  // Kept, never written again — see ADR 0034.
   "phone_verify",
   "login",
   "client_invite",
   "password_reset",
-  // Attaching a phone to a session that already proved itself another way (Google).
-  // Unlike "phone_verify", this never creates a user — it targets one that exists.
+  // Kept, never written again — see ADR 0034.
   "phone_link",
+  "email_verify",
 ]);
 
 /**
@@ -87,6 +96,12 @@ export const authChallenges = pgTable(
     // Same reasoning: signup spans two requests, and an endorser who loses attribution
     // because the server restarted between them has lost real money.
     pendingEndorserCode: text(),
+    // The signup page's own query params, carried the same way — captured here at
+    // challenge time so `verifyChallenge` can write `acquisition_attribution` without
+    // trusting a cookie (there isn't one; see ADR 0021 / attribution-design.md).
+    pendingUtmSource: text(),
+    pendingUtmMedium: text(),
+    pendingUtmCampaign: text(),
 
     codeHash: text().notNull(),
     attempts: integer().notNull().default(0),
@@ -118,6 +133,17 @@ export const authChallenges = pgTable(
     check(
       "auth_challenge_phone_e164",
       sql`${t.phone} is null or ${t.phone} ~ '^[+][1-9][0-9]{7,14}$'`,
+    ),
+    // Same "only the newest code is valid" guarantee as the phone index above, for the
+    // email-based flow that replaces it — ADR 0034.
+    uniqueIndex("auth_challenge_live_email_key")
+      .on(t.email, t.purpose)
+      .where(sql`${t.consumedAt} is null and ${t.email} is not null`),
+    // A sanity backstop, not real validation — `zod`'s `.email()` is the actual
+    // validation at the boundary, same division of labor as the phone check above.
+    check(
+      "auth_challenge_email_format",
+      sql`${t.email} is null or ${t.email} ~ '^[^@[:space:]]+@[^@[:space:]]+[.][^@[:space:]]+$'`,
     ),
   ],
 );

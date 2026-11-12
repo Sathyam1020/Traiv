@@ -27,6 +27,17 @@ export async function storeCoachwayImport(source: ReturnType<typeof prepareCoach
   for (let offset = 0; offset < source.recipes.length; offset += 100) {
     const batch = source.recipes.slice(offset, offset + 100).map((r) => ({ ...r, id: newId() }));
     await db.transaction(async (tx) => {
+      const preExisting = await tx
+        .select({ seedKey: schema.recipes.seedKey })
+        .from(schema.recipes)
+        .where(
+          inArray(
+            schema.recipes.seedKey,
+            batch.map((r) => r.seedKey),
+          ),
+        );
+      const preExistingKeys = new Set(preExisting.map((r) => r.seedKey));
+
       const inserted = await tx
         .insert(schema.recipes)
         .values(
@@ -55,11 +66,33 @@ export async function storeCoachwayImport(source: ReturnType<typeof prepareCoach
             difficulty: sql`excluded.difficulty`,
           },
         })
-        .returning({ id: schema.recipes.id });
-      const accepted = new Set(inserted.map((r) => r.id));
-      const fresh = batch.filter((r) => accepted.has(r.id));
-      added += fresh.length;
-      const lines = fresh.flatMap((r) =>
+        // `seedKey`, not `id` — a conflict (recipe already seen before) returns the
+        // *existing* row's id, which never matches the fresh `newId()` this run just
+        // generated for it. Matching on `id` silently excluded every recipe past its
+        // first import from ever getting its ingredients/steps written, including on
+        // the very first run that hit a mid-batch conflict. `seedKey` is stable across
+        // every re-import, so it is what actually identifies "which batch element is
+        // this row," regardless of whether it was just inserted or just updated.
+        .returning({ id: schema.recipes.id, seedKey: schema.recipes.seedKey });
+      const idBySeedKey = new Map(inserted.map((r) => [r.seedKey, r.id]));
+      const resolved = batch
+        .map((r) => ({ ...r, id: idBySeedKey.get(r.seedKey) ?? r.id }))
+        .filter((r) => idBySeedKey.has(r.seedKey));
+      added += resolved.filter((r) => !preExistingKeys.has(r.seedKey)).length;
+
+      const recipeIds = resolved.map((r) => r.id);
+      // Re-imported every run, not merged — the recipe's own fields above are already
+      // a full replace (`set: {...}` from `excluded`), and ingredients/steps drifting
+      // out of sync with a corrected source the moment it's re-imported would be a
+      // silent, confusing kind of stale.
+      if (recipeIds.length) {
+        await tx
+          .delete(schema.recipeIngredients)
+          .where(inArray(schema.recipeIngredients.recipeId, recipeIds));
+        await tx.delete(schema.recipeSteps).where(inArray(schema.recipeSteps.recipeId, recipeIds));
+      }
+
+      const lines = resolved.flatMap((r) =>
         r.ingredients.map((line, position) => {
           const ingredientId = ids.get(`coachway:${line.sourceIngredientId}`);
           if (!ingredientId)
@@ -74,7 +107,7 @@ export async function storeCoachwayImport(source: ReturnType<typeof prepareCoach
           };
         }),
       );
-      const steps = fresh.flatMap((r) =>
+      const steps = resolved.flatMap((r) =>
         r.steps.map((text, position) => ({ id: newId(), recipeId: r.id, position, text })),
       );
       if (lines.length) await tx.insert(schema.recipeIngredients).values(lines);

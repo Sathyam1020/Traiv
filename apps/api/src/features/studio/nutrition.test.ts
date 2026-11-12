@@ -3,11 +3,10 @@ import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../db.js";
 import { signUpOverHttp, startApi, type TestServer } from "../../test-support/http.js";
-import { resetPhones } from "../../test-support/reset.js";
-import { toE164 } from "../auth/service.js";
+import { resetEmails } from "../../test-support/reset.js";
 import { listStudios } from "./service.js";
 
-const PHONES = ["8600000001", "8600000002"];
+const EMAILS = ["studio-nutrition-coach@example.com", "studio-nutrition-other-coach@example.com"];
 let api: TestServer;
 const systemIds: string[] = [];
 const systemIngredientIds: string[] = [];
@@ -15,18 +14,18 @@ beforeAll(async () => {
   api = await startApi();
 });
 beforeEach(async () => {
-  await resetPhones(PHONES.map(toE164));
+  await resetEmails(EMAILS);
 });
 afterAll(async () => {
   await api.close();
-  await resetPhones(PHONES.map(toE164));
+  await resetEmails(EMAILS);
   for (const id of systemIds) await db.delete(schema.recipes).where(eq(schema.recipes.id, id));
   for (const id of systemIngredientIds)
     await db.delete(schema.ingredients).where(eq(schema.ingredients.id, id));
 });
 async function setup() {
-  const a = await signUpOverHttp(api.url, PHONES[0] ?? "", "Nutrition Coach");
-  const b = await signUpOverHttp(api.url, PHONES[1] ?? "", "Other Coach");
+  const a = await signUpOverHttp(api.url, EMAILS[0] ?? "", "Nutrition Coach");
+  const b = await signUpOverHttp(api.url, EMAILS[1] ?? "", "Other Coach");
   const [sa] = await listStudios(a.userId);
   const [sb] = await listStudios(b.userId);
   if (!sa || !sb) throw new Error("Missing studio");

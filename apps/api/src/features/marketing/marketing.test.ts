@@ -3,7 +3,7 @@ import { eq, inArray, like, sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { db } from "../../db.js";
 import { Agent, signUpOverHttp, startApi, type TestServer } from "../../test-support/http.js";
-import { resetPhones } from "../../test-support/reset.js";
+import { resetEmails } from "../../test-support/reset.js";
 
 /**
  * The public marketing API.
@@ -24,7 +24,7 @@ const PHONE_IN = "9876500011";
 const PHONE_E164 = "+919876500011";
 const SLUG = "marketing-test-post";
 const PATH = "/__marketing-test";
-const COACH_PHONE = "+919876500012";
+const COACH_EMAIL = "marketing-not-the-admin@example.com";
 
 async function countAt(path: string): Promise<number> {
   // `db.execute` hands back a pg QueryResult, not an array — the rows are on `.rows`.
@@ -41,7 +41,7 @@ async function cleanUp() {
   await db
     .delete(schema.analyticsEvents)
     .where(like(schema.analyticsEvents.path, "/__marketing-test%"));
-  await resetPhones([COACH_PHONE]);
+  await resetEmails([COACH_EMAIL]);
 }
 
 beforeAll(async () => {
@@ -226,7 +226,7 @@ describe("the admin surface", () => {
   });
 
   it("refuses a signed-in coach who is not the administrator", async () => {
-    const { agent: coach } = await signUpOverHttp(api.url, COACH_PHONE, "Not The Admin");
+    const { agent: coach } = await signUpOverHttp(api.url, COACH_EMAIL, "Not The Admin");
 
     for (const path of ADMIN_PATHS) {
       expect((await coach.get(path)).status).toBe(403);

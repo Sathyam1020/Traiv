@@ -2,28 +2,28 @@ import { newId, schema } from "@traiv/db";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../db.js";
-import { resetPhones } from "../../test-support/reset.js";
-import { requestChallenge, toE164, verifyChallenge } from "../auth/service.js";
+import { resetEmails } from "../../test-support/reset.js";
+import { requestChallenge, verifyChallenge } from "../auth/service.js";
 import { listStudios } from "../studio/service.js";
 import { joinByCode, newJoinCode, previewJoin, rotateJoinCode, setJoinEnabled } from "./join.js";
 
-const COACH = "8100000001";
-const CLIENT_A = "8100000002";
-const CLIENT_B = "8100000003";
-const CLIENT_C = "8100000004";
+const COACH = "client-join-coach@example.com";
+const CLIENT_A = "client-join-client-a@example.com";
+const CLIENT_B = "client-join-client-b@example.com";
+const CLIENT_C = "client-join-client-c@example.com";
 const ALL = [COACH, CLIENT_A, CLIENT_B, CLIENT_C];
 
-async function codeFor(phone: string) {
-  const res = await requestChallenge({ phone });
+async function codeFor(email: string) {
+  const res = await requestChallenge({ email });
   if (!res.code) throw new Error("console transport expected in tests");
   return res.code;
 }
 
-async function signUp(phone: string, name: string) {
+async function signUp(email: string, name: string) {
   // One challenge only: a second would supersede this one and drop the pending name.
-  const res = await requestChallenge({ phone, name });
+  const res = await requestChallenge({ email, name });
   if (!res.code) throw new Error("console transport expected in tests");
-  const { user } = await verifyChallenge({ phone, code: res.code });
+  const { user } = await verifyChallenge({ email, code: res.code });
   return user;
 }
 
@@ -41,7 +41,7 @@ async function makeCoach() {
 }
 
 async function wipe() {
-  await resetPhones(ALL.map(toE164));
+  await resetEmails(ALL);
 }
 
 beforeEach(wipe);
@@ -85,10 +85,7 @@ describe("scanning the QR", () => {
     const joiner = await signUp(CLIENT_A, "Priya Sharma");
     await joinByCode(joiner.id, coach.joinCode);
 
-    const users = await db
-      .select()
-      .from(schema.users)
-      .where(eq(schema.users.phone, toE164(CLIENT_A)));
+    const users = await db.select().from(schema.users).where(eq(schema.users.email, CLIENT_A));
     expect(users).toHaveLength(1);
   });
 
@@ -98,7 +95,7 @@ describe("scanning the QR", () => {
     const first = await signUp(CLIENT_A, "Priya Sharma");
 
     // Signed out, so scanning sends them through sign-in again before the join.
-    const again = await verifyChallenge({ phone: CLIENT_A, code: await codeFor(CLIENT_A) });
+    const again = await verifyChallenge({ email: CLIENT_A, code: await codeFor(CLIENT_A) });
     expect(again.isNew).toBe(false);
     expect(again.user.id).toBe(first.id);
 
@@ -135,7 +132,7 @@ describe("scanning the QR", () => {
     const coach = await makeCoach();
     const client = await signUp(CLIENT_A, "Priya Sharma");
 
-    const fresh = await rotateJoinCode(coach.studioId);
+    const fresh = await rotateJoinCode(coach.studioId, coach.user.id);
     expect(fresh).not.toBe(coach.joinCode);
 
     await expect(joinByCode(client.id, coach.joinCode)).rejects.toMatchObject({ status: 404 });
@@ -247,9 +244,7 @@ describe("a client of more than one coach", () => {
     // A second, unrelated studio.
     const otherStudioId = newId();
     const otherUserId = newId();
-    await db
-      .insert(schema.users)
-      .values({ id: otherUserId, phone: toE164(CLIENT_B), name: "Dietitian" });
+    await db.insert(schema.users).values({ id: otherUserId, email: CLIENT_B, name: "Dietitian" });
     await db.insert(schema.studios).values({
       id: otherStudioId,
       slug: `other-${Date.now().toString(36)}`,

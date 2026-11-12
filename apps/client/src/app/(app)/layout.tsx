@@ -11,12 +11,19 @@ import { BrandTheme } from "@/components/layout/brand-theme";
 import { navFor } from "@/components/layout/nav-items";
 import { PlatformServices } from "@/components/layout/platform-services";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { startAnalyticsOutboxFlush, track } from "@/lib/analytics/track";
 import type { Today } from "@/lib/api";
 import { isApiError } from "@/lib/api";
 import { API_BASE, http } from "@/lib/api/client";
+import { recall } from "@/lib/join-code";
 import { useActiveStudio, useIntake, useSession, useToday } from "@/lib/query";
+import { APP_VERSION } from "@/lib/version";
 
 import { useVault } from "@/lib/query/use-vault";
+
+/** One `session_started` per tab, not per page — React Query already re-renders this
+ *  layout constantly, and a new browser session is what the event actually means. */
+const SESSION_STARTED_KEY = "traiv.session-started";
 
 const REVEAL_CACHE_KEY = "traiv.reveal-cache";
 
@@ -126,8 +133,39 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const reveal = today.data?.reveal ?? cachedReveal;
 
   useEffect(() => {
+    startAnalyticsOutboxFlush();
+  }, []);
+
+  useEffect(() => {
+    if (!signedIn || !studioId) return;
+    try {
+      if (window.sessionStorage.getItem(SESSION_STARTED_KEY)) return;
+      window.sessionStorage.setItem(SESSION_STARTED_KEY, "1");
+    } catch {
+      // Private windows and blocked site data both throw. Worst case this fires once
+      // more than it should in a tab that can't remember it already did — harmless.
+    }
+    void track("session_started", {
+      app_version: APP_VERSION,
+      platform: window.matchMedia("(display-mode: standalone)").matches ? "pwa-installed" : "web",
+    });
+  }, [signedIn, studioId]);
+
+  useEffect(() => {
     if (unauthorized) router.replace("/");
   }, [unauthorized, router]);
+
+  // Google's redirect round-trip has no room for a return URL, so `/join/[code]`
+  // (outside this layout) remembers its code before sending anyone off-site
+  // (`join-code.ts`) and this is the one place every signed-in session lands
+  // afterwards. A freshly-authenticated tab with a still-live code was mid-join, not
+  // actually here for the dashboard — send it back to finish attaching. Cleared by
+  // `forget()` the moment that attach succeeds, so this fires at most once per code.
+  useEffect(() => {
+    if (!signedIn) return;
+    const code = recall();
+    if (code) router.replace(`/join/${code}`);
+  }, [signedIn, router]);
 
   // Onboarding is not optional, so neither is passing through it. A client whose
   // coaching is paused or over is not sent through it at all — asking somebody to fill

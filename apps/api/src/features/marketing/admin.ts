@@ -11,7 +11,7 @@ import { requireAdmin } from "../../middleware/admin.js";
  * Everything the admin app reads and writes about the marketing site.
  *
  * Mounted under `/admin`, so every route here is behind `requireAdmin` — the single
- * administrator named by `ADMIN_PHONE`, and no endpoint anywhere grants that role.
+ * administrator named by `ADMIN_EMAIL`, and no endpoint anywhere grants that role.
  */
 export const marketingAdmin: Router = Router();
 

@@ -23,6 +23,11 @@ const config: NextConfig = {
       // keep their original image URL rather than being re-uploaded — the path shape isn't
       // ours to depend on, so only the host is scoped.
       { protocol: "https", hostname: "r2-cdn.coachway.io" },
+      // A Google account's profile photo (`avatarUrl`, set from the OAuth profile at
+      // signup — ADR 0034). Google serves these from several numbered subdomains
+      // (lh3-lh6), not just lh3, and its own path segments are opaque — so only the
+      // host is scoped, same as Cloudinary above.
+      { protocol: "https", hostname: "*.googleusercontent.com" },
     ],
   },
 };

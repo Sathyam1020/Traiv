@@ -8,7 +8,7 @@ import { queryKeys } from "./keys";
  * Everything the admin reads and writes about the marketing site.
  *
  * `retry: false` throughout, for the same reason as the stats query: 403 is the correct
- * answer for every account that is not the one named by `ADMIN_PHONE`, and retrying it
+ * answer for every account that is not the one named by `ADMIN_EMAIL`, and retrying it
  * three times only delays telling the person.
  */
 

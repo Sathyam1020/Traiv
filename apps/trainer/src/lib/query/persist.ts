@@ -85,7 +85,7 @@ export const PERSIST_MAX_AGE = 24 * 60 * 60 * 1000;
  * prefix actually contains.
  *
  * Deliberately excluded: `auth` (session/config must always be freshly verified, never
- * served stale — a cached `needsPhone: false` surviving a sign-out is a real bug, not a
+ * served stale — a cached session surviving a sign-out is a real bug, not a
  * convenience), `client`/`client-workouts` (one client's own detail data — narrower
  * surface, and more likely to be stale by the time it's read back than it's worth),
  * `studio` (the join code is a secret, not something to leave sitting in IndexedDB

@@ -3,10 +3,14 @@ import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { db } from "../../db.js";
 import { type Agent, signUpOverHttp, startApi, type TestServer } from "../../test-support/http.js";
-import { resetPhones } from "../../test-support/reset.js";
+import { resetEmails } from "../../test-support/reset.js";
 import { activity, photoMessage } from "./service.js";
 
-const phones = ["+918600009701", "+918600009702", "+918600009703"];
+const emails = [
+  "messaging-coach@example.com",
+  "messaging-client@example.com",
+  "messaging-outside-coach@example.com",
+];
 let api: TestServer,
   coach: Agent,
   client: Agent,
@@ -18,10 +22,10 @@ let api: TestServer,
 let base: string, cbase: string;
 beforeAll(async () => {
   api = await startApi();
-  await resetPhones(phones);
-  const a = await signUpOverHttp(api.url, phones[0]!, "Inbox Coach"),
-    b = await signUpOverHttp(api.url, phones[1]!, "Inbox Client"),
-    c = await signUpOverHttp(api.url, phones[2]!, "Outside Coach");
+  await resetEmails(emails);
+  const a = await signUpOverHttp(api.url, emails[0]!, "Inbox Coach"),
+    b = await signUpOverHttp(api.url, emails[1]!, "Inbox Client"),
+    c = await signUpOverHttp(api.url, emails[2]!, "Outside Coach");
   coach = a.agent;
   client = b.agent;
   stranger = c.agent;
@@ -46,7 +50,7 @@ beforeAll(async () => {
 });
 afterAll(async () => {
   if (studioId) await db.delete(schema.clients).where(eq(schema.clients.studioId, studioId));
-  await resetPhones(phones);
+  await resetEmails(emails);
   await api?.close();
 });
 describe("Unified inbox through authenticated HTTP", () => {
@@ -178,11 +182,19 @@ describe("Unified inbox through authenticated HTTP", () => {
     const unread = await client.get(`${cbase}/unread`);
     expect(unread.status).toBe(200);
     expect(unread.body.unread).toBeGreaterThan(0);
-    const before = (await coach.get(`${base}/messages`)).body.messages as { id: string; read: boolean }[];
+    const before = (await coach.get(`${base}/messages`)).body.messages as {
+      id: string;
+      read: boolean;
+    }[];
     expect(before.find((m) => m.id === id)?.read).toBe(false);
-    expect((await client.post(`${cbase}/read`, { messageId: id, channel: "chat" })).status).toBe(200);
+    expect((await client.post(`${cbase}/read`, { messageId: id, channel: "chat" })).status).toBe(
+      200,
+    );
     expect((await client.get(`${cbase}/unread`)).body.unread).toBe(0);
-    const after = (await coach.get(`${base}/messages`)).body.messages as { id: string; read: boolean }[];
+    const after = (await coach.get(`${base}/messages`)).body.messages as {
+      id: string;
+      read: boolean;
+    }[];
     expect(after.find((m) => m.id === id)?.read).toBe(true);
     expect((await stranger.get(`${cbase}/unread`)).status).toBe(403);
   });

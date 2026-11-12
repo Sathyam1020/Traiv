@@ -1,8 +1,9 @@
-import { activity } from "../messaging/service.js";
 import { newId, schema } from "@traiv/db";
 import { and, asc, desc, eq, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import { db } from "../../db.js";
 import { badRequest, notFound } from "../../errors.js";
+import { track } from "../analytics/service.js";
+import { activity } from "../messaging/service.js";
 
 /**
  * Check-ins: a scheduled form submission, not a workout.
@@ -477,6 +478,18 @@ export async function submitCheckIn(
       source: "check_in",
     });
   }
+
+  // Never allowed to fail the submission it's describing — same reasoning as every
+  // other instrumentation site. `on_time` is "overdue" vs. "upcoming": the only two
+  // states reachable here, since "missed" was already refused above.
+  await track({
+    name: "check_in_submitted",
+    properties: { check_in_id: checkInId, on_time: checkInState(row, now) !== "overdue" },
+    userId: row.userId,
+    studioId,
+    actorRole: "client",
+    sourceApp: "client",
+  }).catch(() => {});
 
   return getCheckIn(studioId, checkInId, now);
 }

@@ -1,5 +1,9 @@
 # 0009 — WhatsApp provider: Meta Cloud API direct
-2026-09-11 · Status: accepted
+2026-09-11 · Status: accepted · As an OTP transport, superseded by ADR 0034 — Business
+verification never completed, and phone auth (and WhatsApp as its transport) is retired.
+The product-delivery-layer half of this ADR (workouts, nudges, check-in prompts) was
+never actually built on top of it; this decision is otherwise unaffected if that is
+picked up again later.
 
 ## Context
 WhatsApp is both the OTP transport (ADR 0005) and the product's delivery layer — workouts,

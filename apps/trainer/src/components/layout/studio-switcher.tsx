@@ -66,9 +66,13 @@ export function StudioSwitcher({ tone = "surface" }: { tone?: "surface" | "rail"
             onClick={() => {
               if (s.id === active.id) return;
               // This tab switches immediately; the session call only records where to
-              // land next time, and must not be what this tab reads back.
+              // land next time, and must not be what this tab reads back. If that call
+              // fails, the optimistic switch has to come back too — otherwise the toast
+              // says it failed while the switcher still shows the studio it failed to
+              // reach.
+              const previousId = active.id;
               setStudioId(s.id);
-              switchStudio.mutate(s.id);
+              switchStudio.mutate(s.id, { onError: () => setStudioId(previousId) });
             }}
             className="flex items-center gap-2"
           >

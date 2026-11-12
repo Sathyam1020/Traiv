@@ -5,11 +5,10 @@ import { db } from "../../db.js";
 import { prepareCoachwayImport } from "../../library/coachway-import.js";
 import { storeCoachwayImport } from "../../library/store-coachway-import.js";
 import { signUpOverHttp, startApi, type TestServer } from "../../test-support/http.js";
-import { resetPhones } from "../../test-support/reset.js";
-import { toE164 } from "../auth/service.js";
+import { resetEmails } from "../../test-support/reset.js";
 import { listStudios } from "./service.js";
 
-const PHONES = ["8640000001", "8640000002"];
+const EMAILS = ["studio-nutrition-import-1@example.com", "studio-nutrition-import-2@example.com"];
 let api: TestServer;
 const sourceIngredientId = newId();
 const sourceA = newId();
@@ -62,12 +61,12 @@ const detail = {
   })),
 };
 beforeAll(async () => {
-  await resetPhones(PHONES.map(toE164));
+  await resetEmails(EMAILS);
   api = await startApi();
 });
 afterAll(async () => {
   await api.close();
-  await resetPhones(PHONES.map(toE164));
+  await resetEmails(EMAILS);
   await db
     .delete(schema.recipes)
     .where(inArray(schema.recipes.seedKey, [`coachway:${sourceA}`, `coachway:${sourceB}`]));
@@ -85,8 +84,8 @@ describe("Source recipe import through the coaching API", () => {
       .from(schema.recipes)
       .where(eq(schema.recipes.seedKey, `coachway:${sourceA}`));
     if (!saved) throw new Error("Source recipe missing");
-    const a = await signUpOverHttp(api.url, PHONES[0] ?? "", "Import coach");
-    const b = await signUpOverHttp(api.url, PHONES[1] ?? "", "Other import coach");
+    const a = await signUpOverHttp(api.url, EMAILS[0] ?? "", "Import coach");
+    const b = await signUpOverHttp(api.url, EMAILS[1] ?? "", "Other import coach");
     const [sa] = await listStudios(a.userId);
     const [sb] = await listStudios(b.userId);
     if (!sa || !sb) throw new Error("Missing studio");

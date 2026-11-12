@@ -4,17 +4,21 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { db } from "../../db.js";
 import { mediaStorage } from "../../integrations/media-storage.js";
 import { type Agent, signUpOverHttp, startApi, type TestServer } from "../../test-support/http.js";
-import { resetPhones } from "../../test-support/reset.js";
+import { resetEmails } from "../../test-support/reset.js";
 
-const phones = ["+918600009801", "+918600009802", "+918600009803"];
+const emails = [
+  "vault-coach@example.com",
+  "vault-client@example.com",
+  "vault-outsider@example.com",
+];
 let api: TestServer, coach: Agent, client: Agent, stranger: Agent;
 let studioId: string, clientId: string, base: string, cbase: string;
 beforeAll(async () => {
   api = await startApi();
-  await resetPhones(phones);
-  const a = await signUpOverHttp(api.url, phones[0]!, "Vault Coach");
-  const b = await signUpOverHttp(api.url, phones[1]!, "Vault Client");
-  const c = await signUpOverHttp(api.url, phones[2]!, "Vault Outsider");
+  await resetEmails(emails);
+  const a = await signUpOverHttp(api.url, emails[0]!, "Vault Coach");
+  const b = await signUpOverHttp(api.url, emails[1]!, "Vault Client");
+  const c = await signUpOverHttp(api.url, emails[2]!, "Vault Outsider");
   coach = a.agent;
   client = b.agent;
   stranger = c.agent;
@@ -24,21 +28,19 @@ beforeAll(async () => {
     .from(schema.memberships)
     .where(and(eq(schema.memberships.studioId, studioId), eq(schema.memberships.userId, a.userId)));
   clientId = newId();
-  await db
-    .insert(schema.clients)
-    .values({
-      id: clientId,
-      studioId,
-      coachId: membership!.id,
-      userId: b.userId,
-      name: "Vault Client",
-    });
+  await db.insert(schema.clients).values({
+    id: clientId,
+    studioId,
+    coachId: membership!.id,
+    userId: b.userId,
+    name: "Vault Client",
+  });
   base = `/studios/${studioId}/vault`;
   cbase = `/c/${studioId}/vault`;
 });
 afterAll(async () => {
   vi.restoreAllMocks();
-  await resetPhones(phones);
+  await resetEmails(emails);
   await api?.close();
 });
 const input = {

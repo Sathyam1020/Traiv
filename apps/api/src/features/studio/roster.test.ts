@@ -3,7 +3,7 @@ import { and, eq, inArray } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { db } from "../../db.js";
 import { type Agent, signUpOverHttp, startApi, type TestServer } from "../../test-support/http.js";
-import { resetPhones } from "../../test-support/reset.js";
+import { resetEmails } from "../../test-support/reset.js";
 
 /**
  * The coach's roster.
@@ -14,8 +14,8 @@ import { resetPhones } from "../../test-support/reset.js";
  * of them, rather than against a shape.
  */
 
-const COACH = "+918600000311";
-const OTHER = "+918600000312";
+const COACH = "studio-roster-coach@example.com";
+const OTHER = "studio-roster-other@example.com";
 
 let api: TestServer;
 let coach: Agent;
@@ -81,7 +81,7 @@ async function logSession(clientId: string, completedAt: Date) {
 
 beforeAll(async () => {
   api = await startApi();
-  await resetPhones([COACH, OTHER]);
+  await resetEmails([COACH, OTHER]);
 
   const signedUp = await signUpOverHttp(api.url, COACH, "Roster Coach");
   coach = signedUp.agent;
@@ -121,7 +121,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await db.delete(schema.clients).where(eq(schema.clients.studioId, studioId));
-  await resetPhones([COACH, OTHER]);
+  await resetEmails([COACH, OTHER]);
   await api.close();
 });
 

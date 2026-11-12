@@ -8,6 +8,14 @@ import { z } from "zod";
 // regardless of which folder they are run from.
 config({ path: resolve(dirname(fileURLToPath(import.meta.url)), "../../../.env") });
 
+// `KEY=` with nothing after the `=` is how a human leaves an optional var unset — but
+// `.optional()` only accepts a genuinely missing key, not an empty string, so a plain
+// `z.string().email().optional()` throws on it instead of treating it as absent. This
+// normalises the empty-string case to `undefined` first, for any field where blank and
+// unset must mean the same thing.
+const optionalEmail = () =>
+  z.preprocess((v) => (v === "" ? undefined : v), z.string().email().optional());
+
 /**
  * Environment is parsed once, at boot. The process refuses to start if anything is
  * missing or malformed — a misconfigured server should fail immediately and loudly,
@@ -33,18 +41,19 @@ const schema = z.object({
     .transform((v) => v === "true"),
 
   /**
-   * The single platform administrator, by phone number.
+   * The single platform administrator, by email address — ADR 0034. Was by phone
+   * number; phone auth no longer exists at all, so this had to move with it.
    *
    * One admin by construction: there is one value here, and no endpoint that grants the
    * role. Admin access is therefore revoked by changing this and restarting, which is
    * the only control that cannot itself be compromised by a bug in the admin surface.
    * Unset means nobody is an admin and the admin API answers 403 to everyone.
    */
-  ADMIN_PHONE: z.string().optional(),
+  ADMIN_EMAIL: optionalEmail(),
 
   /**
-   * `OTP=NO` skips code verification entirely: a phone number and a name create or open
-   * an account. Development only — it means anyone who knows a number can sign in as
+   * `OTP=NO` skips code verification entirely: an email and a name create or open an
+   * account. Development only — it means anyone who knows an address can sign in as
    * that person, so production refuses to boot with it.
    */
   OTP: z
@@ -52,29 +61,17 @@ const schema = z.object({
     .default("YES")
     .transform((v) => v === "YES"),
 
-  // --- OTP delivery ---
-  // Switching the primary channel is a one-line change here.
-  OTP_TRANSPORT: z.enum(["sms", "whatsapp", "console", "android-sms"]).default("sms"),
-  OTP_FALLBACK: z.enum(["sms", "whatsapp", "android-sms", "none"]).default("none"),
+  // --- OTP delivery — ADR 0034 ---
+  // Phone auth (sms/whatsapp/android-sms) is retired; "email" (Resend) is the only
+  // real transport. Switching it, if that ever happens again, is a one-line change here.
+  OTP_TRANSPORT: z.enum(["email", "console"]).default("email"),
+  OTP_FALLBACK: z.enum(["email", "none"]).default("none"),
 
-  // MSG91. FLOW_ID is the DLT-registered template; SENDER_ID the registered 6-char header.
-  MSG91_AUTH_KEY: z.string().optional(),
-  MSG91_SENDER_ID: z.string().optional(),
-  MSG91_FLOW_ID: z.string().optional(),
-
-  // Blank in development — the console transport prints OTPs to stdout instead.
-  WHATSAPP_PHONE_NUMBER_ID: z.string().optional(),
-  WHATSAPP_ACCESS_TOKEN: z.string().optional(),
-  WHATSAPP_WEBHOOK_VERIFY_TOKEN: z.string().optional(),
-  WHATSAPP_OTP_TEMPLATE: z.string().default("traiv_otp"),
-
-  // android-sms-gateway (capcom6/android-sms-gateway), Cloud Server Mode — a phone's
-  // own SIM, routed through the project's hosted relay rather than a paid SMS provider.
-  // Username/password, not a token: that's what the app's Cloud Server screen shows you
-  // directly, with no separate token-generation step.
-  ANDROID_SMS_BASE_URL: z.string().url().default("https://api.sms-gate.app"),
-  ANDROID_SMS_USERNAME: z.string().optional(),
-  ANDROID_SMS_PASSWORD: z.string().optional(),
+  // Resend. A verified sending domain (resend.com/domains) is required before this can
+  // reach a real inbox — unverified, Resend only accepts its own `*.resend.dev` test
+  // addresses. Blank in development — the console transport prints OTPs to stdout instead.
+  RESEND_API_KEY: z.string().optional(),
+  RESEND_FROM_ADDRESS: optionalEmail(),
 
   // Where the coach app runs. Used for CORS and the post-auth redirect.
   WEB_ORIGIN: z.string().url().default("http://localhost:3000"),
@@ -131,19 +128,10 @@ function load() {
   // OTPs into the server log — nobody receives one and signup fails with no error.
   if (env.NODE_ENV === "production") {
     const missing: string[] = [];
-    const needsSms = env.OTP_TRANSPORT === "sms" || env.OTP_FALLBACK === "sms";
-    const needsWhatsapp = env.OTP_TRANSPORT === "whatsapp" || env.OTP_FALLBACK === "whatsapp";
-    const needsAndroidSms =
-      env.OTP_TRANSPORT === "android-sms" || env.OTP_FALLBACK === "android-sms";
+    const needsEmail = env.OTP_TRANSPORT === "email" || env.OTP_FALLBACK === "email";
 
-    if (needsSms && !(env.MSG91_AUTH_KEY && env.MSG91_SENDER_ID && env.MSG91_FLOW_ID)) {
-      missing.push("MSG91_AUTH_KEY, MSG91_SENDER_ID, MSG91_FLOW_ID");
-    }
-    if (needsWhatsapp && !(env.WHATSAPP_PHONE_NUMBER_ID && env.WHATSAPP_ACCESS_TOKEN)) {
-      missing.push("WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_ACCESS_TOKEN");
-    }
-    if (needsAndroidSms && !(env.ANDROID_SMS_USERNAME && env.ANDROID_SMS_PASSWORD)) {
-      missing.push("ANDROID_SMS_USERNAME, ANDROID_SMS_PASSWORD");
+    if (needsEmail && !(env.RESEND_API_KEY && env.RESEND_FROM_ADDRESS)) {
+      missing.push("RESEND_API_KEY, RESEND_FROM_ADDRESS");
     }
     if (env.OTP_TRANSPORT === "console") {
       missing.push("OTP_TRANSPORT=console is not permitted in production");

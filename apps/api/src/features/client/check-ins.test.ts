@@ -3,8 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../db.js";
 import { Agent, signUpOverHttp, startApi, type TestServer } from "../../test-support/http.js";
-import { resetPhones } from "../../test-support/reset.js";
-import { toE164 } from "../auth/service.js";
+import { resetEmails } from "../../test-support/reset.js";
 import { listStudios } from "../studio/service.js";
 
 /**
@@ -22,11 +21,11 @@ import { listStudios } from "../studio/service.js";
  *  - **A paused client submits.** Reading history while paused is correct; writing into
  *    a relationship that is not running is not, and the two sit on adjacent routes.
  *
- * Numbers are in a reserved 870xxxx range so they cannot collide with the other suites.
+ * Addresses are in a reserved namespace so they cannot collide with the other suites.
  */
-const COACH = "8700000001";
-const PERSON = "8700000002";
-const OTHER = "8700000003";
+const COACH = "client-checkins-coach@example.com";
+const PERSON = "client-checkins-person@example.com";
+const OTHER = "client-checkins-other@example.com";
 
 const ALL = [COACH, PERSON, OTHER];
 
@@ -38,11 +37,11 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await api.close();
-  await resetPhones(ALL.map(toE164));
+  await resetEmails(ALL);
 });
 
 beforeEach(async () => {
-  await resetPhones(ALL.map(toE164));
+  await resetEmails(ALL);
 });
 
 /** A coach, a client of theirs, and a second client in the same studio. */
@@ -139,9 +138,13 @@ describe("who may look", () => {
 
   it("refuses a user who is not this studio's client", async () => {
     const { studio } = await scenario();
-    const outsider = await signUpOverHttp(api.url, "8700000009", "Nobody");
+    const outsider = await signUpOverHttp(
+      api.url,
+      "client-checkins-outsider@example.com",
+      "Nobody",
+    );
     expect((await outsider.agent.get(today(studio.id))).status).toBe(403);
-    await resetPhones([toE164("8700000009")]);
+    await resetEmails(["client-checkins-outsider@example.com"]);
   });
 
   it("answers 404, not 403, for another client's check-in in the same studio", async () => {

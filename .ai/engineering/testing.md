@@ -52,13 +52,12 @@ Writing these is a review failure:
 
 Roughly ten tests cover all of auth, and each maps to a real way it breaks:
 
-- Same phone signs up twice → **logs in**, does not create a second user
-- Abandons after OTP, returns three days later → resumes at the email step, no duplicate
+- Same email signs up twice → **logs in**, does not create a second user
 - Requests 5 OTPs, enters the 1st → rejected; only the newest code is valid
 - Uses a valid OTP twice → the second attempt fails
-- Google OAuth with an email that already has a password account → **the account-takeover
-  vector**; must require phone verification before linking, never auto-merge on unverified email
-- Phone belongs to user A, user B tries to verify it → fails, and does not leak that it's taken
+- Google OAuth with an email that already has an unverified account → **the
+  account-takeover vector**; never auto-link on an unverified claim (ADR 0034)
+- Email belongs to user A, user B tries to verify it → fails, and does not leak that it's taken
 - Signup begun on desktop, OTP entered on phone → the session lands on the desktop that started it
 - Coach removes a staff member mid-session → their next request 401s immediately
 - Invite link used twice → the second use fails

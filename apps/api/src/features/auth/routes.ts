@@ -1,5 +1,4 @@
 import { schema } from "@traiv/db";
-import { DEFAULT_COUNTRY, parsePhone, phoneProblemMessage } from "@traiv/phone";
 import { and, desc, inArray, isNotNull, isNull } from "drizzle-orm";
 import { Router } from "express";
 import { z } from "zod";
@@ -17,14 +16,11 @@ import {
   completeProfile,
   devIssueSession,
   getUser,
-  linkPhoneDirect,
   publicUser,
   requestChallenge,
-  requestPhoneLink,
   revokeSession,
   signInDirect,
   verifyChallenge,
-  verifyPhoneLink,
 } from "./service.js";
 
 export const auth: Router = Router();
@@ -37,22 +33,28 @@ auth.get("/config", (_req, res) => {
 });
 
 /**
- * Sign in with a phone number alone. Enabled only when `OTP=NO`, which production
+ * Sign in with an email address alone. Enabled only when `OTP=NO`, which production
  * refuses to boot with.
  */
 auth.post("/direct", async (req, res) => {
   const body = z
     .object({
-      phone,
+      email: z.string().email(),
       name: z.string().max(120).optional(),
       endorserCode: z.string().max(16).optional(),
+      utmSource: z.string().max(200).optional(),
+      utmMedium: z.string().max(200).optional(),
+      utmCampaign: z.string().max(200).optional(),
     })
     .parse(req.body);
 
   const { user, session, isNew, referred } = await signInDirect({
-    phone: body.phone,
+    email: body.email,
     name: body.name,
     endorserCode: body.endorserCode,
+    utmSource: body.utmSource,
+    utmMedium: body.utmMedium,
+    utmCampaign: body.utmCampaign,
     ip: req.ip,
     userAgent: req.get("user-agent"),
   });
@@ -64,6 +66,12 @@ auth.post("/direct", async (req, res) => {
 
 const OAUTH_STATE = "traiv_oauth_state";
 const OAUTH_APP = "traiv_oauth_app";
+// Google's own redirect round-trip carries no room for a request body, so the signup
+// link's own utm params ride a cookie just for this one short hop instead — still no
+// device identifier for an anonymous visitor (ADR 0021 is untouched; this is a signed
+// Google identity completing signup, not an anonymous visit). See
+// `attribution-design.md`.
+const OAUTH_UTM = "traiv_oauth_utm";
 
 // Which app started the flow — the callback is one shared route for both, and has to
 // send the browser back to whichever one actually asked, not always the coach app.
@@ -99,6 +107,18 @@ auth.get("/google/start", (req, res) => {
   };
   res.cookie(OAUTH_STATE, state, cookieOpts);
   res.cookie(OAUTH_APP, app, cookieOpts);
+
+  const utmQuery = z
+    .object({
+      utm_source: z.string().max(200).optional(),
+      utm_medium: z.string().max(200).optional(),
+      utm_campaign: z.string().max(200).optional(),
+    })
+    .parse(req.query);
+  if (utmQuery.utm_source || utmQuery.utm_medium || utmQuery.utm_campaign) {
+    res.cookie(OAUTH_UTM, JSON.stringify(utmQuery), cookieOpts);
+  }
+
   res.redirect(authorizeUrl(state));
 });
 
@@ -113,8 +133,27 @@ auth.get("/google/callback", async (req, res) => {
 
   const expected = readCookie(req, OAUTH_STATE);
   const app = oauthApp.catch("trainer").parse(readCookie(req, OAUTH_APP));
+  const utmRaw = readCookie(req, OAUTH_UTM);
   res.clearCookie(OAUTH_STATE, { path: "/" });
   res.clearCookie(OAUTH_APP, { path: "/" });
+  res.clearCookie(OAUTH_UTM, { path: "/" });
+  // Never allowed to break a real Google sign-in over a malformed analytics cookie.
+  const utm = z
+    .object({
+      utm_source: z.string().optional(),
+      utm_medium: z.string().optional(),
+      utm_campaign: z.string().optional(),
+    })
+    .catch({})
+    .parse(
+      (() => {
+        try {
+          return utmRaw ? JSON.parse(utmRaw) : {};
+        } catch {
+          return {};
+        }
+      })(),
+    );
 
   const origin = originFor(app);
   const fail = (reason: string) => res.redirect(`${origin}${signinPathFor(app)}?error=${reason}`);
@@ -122,58 +161,62 @@ auth.get("/google/callback", async (req, res) => {
   if (query.error || !query.code) return fail("google_cancelled");
   if (!expected || expected !== query.state) return fail("google_state");
 
-  const result = await completeGoogleLogin(query.code, req.ip, req.get("user-agent"));
+  // This endpoint is a browser-navigated redirect target, not a JSON API — every path
+  // out of it has to end in a redirect. Without this, a thrown error (Google's token
+  // exchange failing on a misconfigured redirect URI, a network blip, anything) reaches
+  // the generic error middleware instead, which answers with raw `{error, message}` JSON
+  // on the API's own origin — a dead end with no way back into either app.
+  let result: Awaited<ReturnType<typeof completeGoogleLogin>>;
+  try {
+    result = await completeGoogleLogin(query.code, req.ip, req.get("user-agent"), {
+      utmSource: utm.utm_source,
+      utmMedium: utm.utm_medium,
+      utmCampaign: utm.utm_campaign,
+    });
+  } catch (error) {
+    const code = error instanceof Error && "code" in error ? String(error.code) : "google_failed";
+    console.error("[auth] Google sign-in failed:", error instanceof Error ? error.message : error);
+    return fail(code);
+  }
 
-  if (result.outcome === "needs_phone_to_link") return fail("google_link_phone");
+  if (result.outcome === "email_conflict") return fail("google_email_conflict");
 
   setSessionCookie(res, result.session.token, result.session.expiresAt);
   res.redirect(`${origin}${landingPathFor(app)}`);
 });
 
-/**
- * Any country's mobile number, in any written form.
- *
- * Validated by the same package the apps use, so there is no shape the form accepts and
- * this refuses. The transform means every handler below receives E.164 and nothing else.
- */
-const phone = z
-  .string()
-  .min(4)
-  .max(24)
-  .transform((v, ctx) => {
-    const parsed = parsePhone(v, DEFAULT_COUNTRY);
-    if (!parsed.ok) {
-      ctx.addIssue({
-        code: "custom",
-        message: phoneProblemMessage(parsed.problem, DEFAULT_COUNTRY),
-      });
-      return z.NEVER;
-    }
-    return parsed.e164;
-  });
-
 auth.post("/challenge", async (req, res) => {
   const body = z
     .object({
-      phone,
+      email: z.string().email(),
       name: z.string().max(120).optional(),
       endorserCode: z.string().max(16).optional(),
+      // The signup page's own query params at the moment it called this — see
+      // `attribution-design.md`. Never re-derived from a cookie.
+      utmSource: z.string().max(200).optional(),
+      utmMedium: z.string().max(200).optional(),
+      utmCampaign: z.string().max(200).optional(),
     })
     .parse(req.body);
   const { transport } = await requestChallenge({
-    phone: body.phone,
+    email: body.email,
     name: body.name,
     endorserCode: body.endorserCode,
+    utmSource: body.utmSource,
+    utmMedium: body.utmMedium,
+    utmCampaign: body.utmCampaign,
     ip: req.ip,
   });
-  // Never reveals whether the number is already registered.
+  // Never reveals whether the address is already registered.
   res.json({ sent: true, transport });
 });
 
 auth.post("/verify", async (req, res) => {
-  const body = z.object({ phone, code: z.string().regex(/^\d{6}$/) }).parse(req.body);
+  const body = z
+    .object({ email: z.string().email(), code: z.string().regex(/^\d{6}$/) })
+    .parse(req.body);
   const { user, session, isNew, referred } = await verifyChallenge({
-    phone: body.phone,
+    email: body.email,
     code: body.code,
     ip: req.ip,
     userAgent: req.get("user-agent"),
@@ -188,30 +231,6 @@ auth.post("/profile", async (req, res) => {
     .object({ email: z.string().email().optional(), name: z.string().min(1).max(120).optional() })
     .parse(req.body);
   const user = await completeProfile(userId, body);
-  res.json({ user: publicUser(user) });
-});
-
-/* ---- Phone step for an account that proved itself another way (Google) -------------- */
-
-auth.post("/phone/challenge", async (req, res) => {
-  const { userId } = requireSession(req);
-  const body = z.object({ phone }).parse(req.body);
-  const { transport } = await requestPhoneLink(userId, { phone: body.phone, ip: req.ip });
-  res.json({ sent: true, transport });
-});
-
-auth.post("/phone/verify", async (req, res) => {
-  const { userId } = requireSession(req);
-  const body = z.object({ phone, code: z.string().regex(/^\d{6}$/) }).parse(req.body);
-  const user = await verifyPhoneLink(userId, body);
-  res.json({ user: publicUser(user) });
-});
-
-/** Only answers when the API reports `otpRequired: false`. */
-auth.post("/phone/direct", async (req, res) => {
-  const { userId } = requireSession(req);
-  const body = z.object({ phone }).parse(req.body);
-  const user = await linkPhoneDirect(userId, body);
   res.json({ user: publicUser(user) });
 });
 

@@ -3,8 +3,7 @@ import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../db.js";
 import { signUpOverHttp, startApi, type TestServer } from "../../test-support/http.js";
-import { resetPhones } from "../../test-support/reset.js";
-import { toE164 } from "../auth/service.js";
+import { resetEmails } from "../../test-support/reset.js";
 import { listStudios } from "./service.js";
 
 /**
@@ -24,12 +23,12 @@ import { listStudios } from "./service.js";
  *  - **Duplicate-to-client editing the source**, or another client's copy.
  *  - **Reading or writing another studio's template or exercise.**
  *
- * Numbers are in a reserved 850xxxx range so they cannot collide with the other suites.
+ * Addresses are in a reserved namespace so they cannot collide with the other suites.
  */
-const COACH = "8500000001";
-const CLIENT_A = "8500000002";
-const CLIENT_B = "8500000003";
-const OTHER_COACH = "8500000004";
+const COACH = "studio-workouts-coach@example.com";
+const CLIENT_A = "studio-workouts-client-a@example.com";
+const CLIENT_B = "studio-workouts-client-b@example.com";
+const OTHER_COACH = "studio-workouts-other-coach@example.com";
 const ALL = [COACH, CLIENT_A, CLIENT_B, OTHER_COACH];
 
 let api: TestServer;
@@ -40,11 +39,11 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await api.close();
-  await resetPhones(ALL.map(toE164));
+  await resetEmails(ALL);
 });
 
 beforeEach(async () => {
-  await resetPhones(ALL.map(toE164));
+  await resetEmails(ALL);
 });
 
 async function scenario() {
@@ -301,9 +300,12 @@ describe("duplicate and save-as-template", () => {
     await s.coach.agent.patch(`${libraryPath}/${source.id}/status`, { status: "active" });
 
     const clientProgram = body(
-      await s.coach.agent.post(`/studios/${s.studio.id}/clients/${s.clientA}/workouts/from-template`, {
-        templateId: source.id,
-      }),
+      await s.coach.agent.post(
+        `/studios/${s.studio.id}/clients/${s.clientA}/workouts/from-template`,
+        {
+          templateId: source.id,
+        },
+      ),
     );
 
     const saved = body(

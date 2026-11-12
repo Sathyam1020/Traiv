@@ -1,6 +1,5 @@
 "use client";
 
-import { type CountryCode, DEFAULT_COUNTRY, parsePhone } from "@traiv/phone";
 import { useCallback, useState } from "react";
 import { isApiError } from "@/lib/api";
 import { forget } from "@/lib/join-code";
@@ -13,6 +12,8 @@ import {
 } from "@/lib/query";
 
 export type JoinStep = "identity" | "code" | "attaching";
+
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * Signing up and attaching to a coach, as one flow on one route.
@@ -27,8 +28,7 @@ export type JoinStep = "identity" | "code" | "attaching";
  */
 export function useJoinFlow(code: string) {
   const [step, setStep] = useState<JoinStep>("identity");
-  const [phone, setPhone] = useState("");
-  const [countryCode, setCountryCode] = useState<CountryCode>(DEFAULT_COUNTRY);
+  const [email, setEmail] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -61,31 +61,30 @@ export function useJoinFlow(code: string) {
   /** Returns the outcome when the no-OTP path completed the whole thing here. */
   const sendCode = useCallback(async () => {
     setError(null);
-    const parsed = parsePhone(phone, countryCode);
-    if (!parsed.ok) {
-      setError("Enter a valid mobile number.");
+    const trimmed = email.trim();
+    if (!EMAIL.test(trimmed)) {
+      setError("Enter a valid email address.");
       return undefined;
     }
-    const e164 = parsed.e164;
     try {
       if (!otpRequired) {
-        await direct.mutateAsync({ phone: e164, name: name.trim() || undefined });
+        await direct.mutateAsync({ email: trimmed, name: name.trim() || undefined });
         return attachNow();
       }
-      await request.mutateAsync({ phone: e164, name: name.trim() || undefined });
+      await request.mutateAsync({ email: trimmed, name: name.trim() || undefined });
       setStep("code");
       return undefined;
     } catch (e) {
       setError(isApiError(e) ? e.message : "Couldn't sign you in. Try again.");
       return undefined;
     }
-  }, [request, direct, otpRequired, attachNow, phone, countryCode, name]);
+  }, [request, direct, otpRequired, attachNow, email, name]);
 
   const submitCode = useCallback(
     async (otp: string) => {
       setError(null);
       try {
-        await verify.mutateAsync({ phone: e164Of(phone, countryCode), code: otp });
+        await verify.mutateAsync({ email: email.trim(), code: otp });
       } catch (e) {
         setError(isApiError(e) ? e.message : "That code didn't work.");
         return;
@@ -97,7 +96,7 @@ export function useJoinFlow(code: string) {
       if (!outcome) setStep("code");
       return outcome;
     },
-    [verify, attachNow, phone, countryCode],
+    [verify, attachNow, email],
   );
 
   /** Already signed in when the link was opened — skip signup entirely. */
@@ -115,10 +114,8 @@ export function useJoinFlow(code: string) {
 
   return {
     step,
-    phone,
-    setPhone,
-    countryCode,
-    setCountryCode,
+    email,
+    setEmail,
     name,
     setName,
     error,
@@ -129,10 +126,4 @@ export function useJoinFlow(code: string) {
     attachOnly,
     back,
   };
-}
-
-/** The stored form of what is in the field, for the second step of the OTP flow. */
-function e164Of(input: string, forCountry: CountryCode): string {
-  const parsed = parsePhone(input, forCountry);
-  return parsed.ok ? parsed.e164 : input;
 }

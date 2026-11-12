@@ -11,8 +11,8 @@ import { useRenameStudio, useSession } from "@/lib/query";
 
 /**
  * The business-name step, reached only from `AuthGuard` redirecting a session whose
- * active studio still has `nameConfirmed: false` — both the phone-first and Google-first
- * signup paths end up here, never a general entry point. `createDefaultStudio` named the
+ * active studio still has `nameConfirmed: false` — both the email+OTP and Google signup
+ * paths end up here, never a general entry point. `createDefaultStudio` named the
  * studio after the person signing up because it had nothing else to call it, and that
  * placeholder must not reach a client's sidebar as if it were the business's real name.
  */
@@ -30,9 +30,8 @@ export function BusinessNameForm() {
   // navigating here directly while a different step is actually outstanding.
   useEffect(() => {
     if (session.isError) router.replace("/signin");
-    else if (session.data?.user.needsPhone) router.replace("/link-phone");
     else if (activeStudio?.nameConfirmed) router.replace("/clients");
-  }, [session.isError, session.data, activeStudio, router]);
+  }, [session.isError, activeStudio, router]);
 
   const submit = async () => {
     setError(null);

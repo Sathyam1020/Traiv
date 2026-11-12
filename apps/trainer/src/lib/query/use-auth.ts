@@ -60,26 +60,6 @@ export function useVerifyCode() {
   });
 }
 
-export function usePhoneLinkChallenge() {
-  return useMutation({ mutationFn: authApi.phoneLinkChallenge });
-}
-
-export function usePhoneLinkVerify() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: authApi.phoneLinkVerify,
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.auth.session }),
-  });
-}
-
-export function usePhoneLinkDirect() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: authApi.phoneLinkDirect,
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.auth.session }),
-  });
-}
-
 export function useUpdateProfile() {
   const qc = useQueryClient();
   return useMutation({

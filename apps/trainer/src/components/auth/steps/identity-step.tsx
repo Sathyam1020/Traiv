@@ -4,8 +4,8 @@ import { Button } from "@traiv/ui/components/button";
 import { GoogleButton } from "@traiv/ui/components/google-button";
 import { Input } from "@traiv/ui/components/input";
 import { Label } from "@traiv/ui/components/label";
-import { PhoneField } from "@traiv/ui/components/phone-field";
 import { ArrowRight } from "@traiv/ui/icons";
+import { useSearchParams } from "next/navigation";
 import { EndorserField, useEndorserCode } from "@/components/auth/endorser-field";
 import { TrustMarkers } from "@/components/auth/trust-markers";
 import type { AuthFlow, AuthMode } from "@/components/auth/use-auth-flow";
@@ -14,7 +14,19 @@ import { useAuthConfig } from "@/lib/query";
 
 export function IdentityStep({ mode, flow }: { mode: AuthMode; flow: AuthFlow }) {
   const { data: config } = useAuthConfig();
+  const params = useSearchParams();
   const isSignup = mode === "signup";
+
+  // The cookie-free bridge that cannot ride through Google's own redirect round-trip
+  // on the request body — `/auth/google/start` reads these straight off this link's
+  // own query string instead (`attribution-design.md`).
+  const googleParams = new URLSearchParams({ app: "trainer" });
+  if (isSignup) {
+    for (const key of ["utm_source", "utm_medium", "utm_campaign"]) {
+      const value = params.get(key);
+      if (value) googleParams.set(key, value);
+    }
+  }
 
   // A referral code that is still being checked is not a reason to block somebody who
   // never entered one, so an empty code is ready. Everything else waits for an answer.
@@ -41,7 +53,7 @@ export function IdentityStep({ mode, flow }: { mode: AuthMode; flow: AuthFlow })
           after the click. */}
       <GoogleButton
         enabled={Boolean(config?.google)}
-        href={`${API_BASE}/auth/google/start?app=trainer`}
+        href={`${API_BASE}/auth/google/start?${googleParams.toString()}`}
         label={isSignup ? "Sign up with Google" : "Sign in with Google"}
       />
       <div className="flex items-center gap-3">
@@ -69,17 +81,17 @@ export function IdentityStep({ mode, flow }: { mode: AuthMode; flow: AuthFlow })
           </div>
         ) : null}
 
-        <PhoneField
-          value={flow.phone}
-          onChange={flow.setPhone}
-          countryCode={flow.countryCode}
-          onCountryChange={flow.setCountryCode}
-          hint={
-            config?.otp.primary === "whatsapp"
-              ? "We'll send a WhatsApp code to verify your number."
-              : "We'll text you a code to verify your number."
-          }
-        />
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="identity-email">Email</Label>
+          <Input
+            id="identity-email"
+            type="email"
+            value={flow.identityEmail}
+            onChange={(e) => flow.setIdentityEmail(e.target.value)}
+            placeholder="you@example.com"
+          />
+          <p className="text-caption text-fg-subtle">We'll email you a code to verify it.</p>
+        </div>
 
         {/* Signup only — there is nothing to attribute when an account already exists. */}
         {isSignup ? (

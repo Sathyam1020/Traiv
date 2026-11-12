@@ -1,12 +1,10 @@
 "use client";
 
-import { isValidMobile } from "@traiv/phone";
 import { Button } from "@traiv/ui/components/button";
 import { GoogleButton } from "@traiv/ui/components/google-button";
 import { Input } from "@traiv/ui/components/input";
 import { Label } from "@traiv/ui/components/label";
 import { Logo } from "@traiv/ui/components/logo";
-import { PhoneField } from "@traiv/ui/components/phone-field";
 import { ArrowLeft, ArrowRight, Check } from "@traiv/ui/icons";
 import Link from "next/link";
 import { useState } from "react";
@@ -17,10 +15,12 @@ import { TrustMarkers } from "@/components/common/trust-markers";
 import { API_BASE } from "@/lib/api";
 import { useAuthConfig } from "@/lib/query";
 
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /**
  * The same shape as the coach app's sign-in, minus the referral code — there is nothing
  * to attribute here. One form does both jobs, because auth is passwordless: an unknown
- * number gets an account, a known one gets its session.
+ * address gets an account, a known one gets its session.
  */
 export function SignInCard({ mode, onDone }: { mode: AuthMode; onDone: () => void }) {
   const flow = useSignInFlow(mode);
@@ -29,7 +29,7 @@ export function SignInCard({ mode, onDone }: { mode: AuthMode; onDone: () => voi
   const { data: config } = useAuthConfig();
   const [otp, setOtp] = useState("");
 
-  const canSend = isValidMobile(flow.phone, flow.countryCode) && !flow.busy;
+  const canSend = EMAIL.test(flow.email.trim()) && !flow.busy;
 
   async function submit() {
     const ok = await flow.submitCode(otp);
@@ -50,7 +50,7 @@ export function SignInCard({ mode, onDone }: { mode: AuthMode; onDone: () => voi
       </div>
 
       <div className="rounded-surface border border-line bg-surface p-6 shadow-sm sm:p-7">
-        {flow.step === "phone" ? (
+        {flow.step === "identity" ? (
           <div className="flex flex-col gap-5">
             <header className="flex flex-col gap-1.5 text-center">
               <h1 className="text-heading font-medium">
@@ -98,19 +98,21 @@ export function SignInCard({ mode, onDone }: { mode: AuthMode; onDone: () => voi
                 </div>
               ) : null}
 
-              <PhoneField
-                value={flow.phone}
-                onChange={flow.setPhone}
-                countryCode={flow.countryCode}
-                onCountryChange={flow.setCountryCode}
-                hint={
-                  flow.otpRequired
-                    ? config?.otp.primary === "whatsapp"
-                      ? "We'll send a WhatsApp code to verify your number."
-                      : "We'll text you a code to verify your number."
-                    : "Development mode — no code needed."
-                }
-              />
+              <div className="flex flex-col gap-2">
+                <Label htmlFor="signin-email">Email</Label>
+                <Input
+                  id="signin-email"
+                  type="email"
+                  value={flow.email}
+                  onChange={(e) => flow.setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                />
+                <p className="text-caption text-fg-subtle">
+                  {flow.otpRequired
+                    ? "We'll email you a code to verify it."
+                    : "Development mode — no code needed."}
+                </p>
+              </div>
 
               {flow.error ? <p className="text-caption text-danger">{flow.error}</p> : null}
 
@@ -137,11 +139,11 @@ export function SignInCard({ mode, onDone }: { mode: AuthMode; onDone: () => voi
                 }}
                 className="-ml-1 mb-1 flex w-fit cursor-pointer items-center gap-1.5 rounded-control px-1 py-0.5 text-caption text-fg-muted transition-colors hover:text-fg"
               >
-                <ArrowLeft className="size-3.5" /> Change number
+                <ArrowLeft className="size-3.5" /> Change email
               </button>
               <h1 className="text-heading font-medium">Enter the code</h1>
               <p className="text-body-sm text-fg-muted">
-                Sent to <span className="tabular-nums text-fg">+91 {flow.phone}</span>
+                Sent to <span className="text-fg">{flow.email}</span>
               </p>
             </header>
 

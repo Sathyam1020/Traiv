@@ -14,6 +14,7 @@ import { and, desc, eq, ilike, isNull, sql } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "../../db.js";
 import { AppError, badRequest, notFound } from "../../errors.js";
+import { track, userIdForMembership } from "../analytics/service.js";
 import { getRecipe, getIngredient, listRecipes, libraryQuery } from "./nutrition.js";
 
 const pct = z.number().min(0).max(100);
@@ -375,6 +376,9 @@ async function persist(
   create = false,
   clientId: string | null = null,
 ) {
+  // Set only by the genuine fresh-insert branch below — every early `return` above it
+  // (already exists, a conflict-recovery retry) is not a new plan.
+  let created = false;
   await db.transaction(async (tx) => {
     const [existing] = await tx
       .select()
@@ -421,6 +425,7 @@ async function persist(
         .onConflictDoNothing()
         .returning({ id: schema.mealPlanTemplates.id });
       if (!inserted.length) return;
+      created = true;
     }
     await tx.delete(schema.mealPlanSlots).where(eq(schema.mealPlanSlots.templateId, id));
     if (document.slots.length)
@@ -449,6 +454,19 @@ async function persist(
     );
     if (lines.length) await tx.insert(schema.mealPlanRecipes).values(lines);
   });
+
+  if (created) {
+    // Outside the transaction, never allowed to fail the save it's describing.
+    await track({
+      name: "mealplan_created",
+      properties: { source: "coach" },
+      userId: await userIdForMembership(membershipId),
+      studioId,
+      actorRole: "trainer",
+      sourceApp: "trainer",
+    }).catch(() => {});
+  }
+
   return getMealPlan(studioId, id);
 }
 export async function createMealPlan(

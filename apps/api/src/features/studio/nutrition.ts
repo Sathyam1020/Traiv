@@ -5,6 +5,7 @@ import { z } from "zod";
 import { db } from "../../db.js";
 import { AppError, badRequest, forbidden, notFound } from "../../errors.js";
 import { isUniqueViolation } from "../../lib/db-errors.js";
+import { track, userIdForMembership } from "../analytics/service.js";
 
 const nullableText = z.string().trim().max(200).nullable().default(null);
 const media = z
@@ -374,6 +375,9 @@ export async function saveRecipe(
 ) {
   const { ingredients, steps, expectedUpdatedAt, id: requestedId, ...values } = input;
   const id = existingId ?? requestedId ?? newId();
+  // Set only by the genuine fresh-insert branch just below — the conflict-recovery path
+  // right after it (a retry landing on a row that already exists) is not a new recipe.
+  let created = false;
   await db.transaction(async (tx) => {
     if (!existingId) {
       const inserted = await tx
@@ -386,6 +390,7 @@ export async function saveRecipe(
         if (!prior || prior.studioId !== studioId || prior.deletedAt) throw forbidden();
         return;
       }
+      created = true;
     } else {
       const [prior] = await tx
         .select()
@@ -443,6 +448,19 @@ export async function saveRecipe(
         .insert(schema.recipeSteps)
         .values(steps.map((text, position) => ({ id: newId(), recipeId: id, position, text })));
   });
+
+  if (created) {
+    // Outside the transaction, never allowed to fail the save it's describing.
+    await track({
+      name: "recipe_created",
+      properties: { source: "coach" },
+      userId: await userIdForMembership(membershipId),
+      studioId,
+      actorRole: "trainer",
+      sourceApp: "trainer",
+    }).catch(() => {});
+  }
+
   return getRecipe(studioId, id);
 }
 export async function duplicateRecipe(

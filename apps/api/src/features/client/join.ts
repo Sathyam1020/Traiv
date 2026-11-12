@@ -4,6 +4,7 @@ import { and, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "../../db.js";
 import { badRequest, forbidden, notFound } from "../../errors.js";
 import { isUniqueViolation } from "../../lib/db-errors.js";
+import { track } from "../analytics/service.js";
 import { membershipIsLive } from "../studio/service.js";
 
 // No 0/O/1/I/L/U — these codes get read aloud in a gym and typed by hand when a camera
@@ -60,8 +61,11 @@ export async function previewJoin(code: string) {
  */
 export async function joinByCode(userId: string, rawCode: string): Promise<JoinOutcome> {
   const code = rawCode.toUpperCase();
+  // Set inside the transaction's "joined" branch, read after it commits — the row the
+  // transaction scope can't see. See the comment below for why tracking happens out here.
+  let joinedStudioId: string | null = null;
 
-  return db.transaction(async (tx) => {
+  const result = await db.transaction(async (tx) => {
     // Locked on the way in, not just around the seat count. The duplicate check was a
     // read before the lock, so two taps in the same second both saw no existing row,
     // both inserted, and the second hit the unique index as a 500 instead of coming back
@@ -168,6 +172,7 @@ export async function joinByCode(userId: string, rawCode: string): Promise<JoinO
       email: user?.email ?? null,
       joinedVia: "join_code",
     });
+    joinedStudioId = studio.id;
 
     return {
       status: "joined" as const,
@@ -175,6 +180,22 @@ export async function joinByCode(userId: string, rawCode: string): Promise<JoinO
       studioName: studio.brandDisplayName || studio.name,
     };
   });
+
+  // Outside the transaction, same reasoning as signup's own instrumentation: this is
+  // `client_joined`, per event-taxonomy.md "the only path that creates a client row" —
+  // and only ever fires for a real new row, never the `already_joined` no-op above.
+  if (result.status === "joined" && joinedStudioId) {
+    await track({
+      name: "client_joined",
+      properties: {},
+      userId,
+      studioId: joinedStudioId,
+      actorRole: "client",
+      sourceApp: "client",
+    }).catch(() => {});
+  }
+
+  return result;
 }
 
 /**
@@ -184,7 +205,7 @@ export async function joinByCode(userId: string, rawCode: string): Promise<JoinO
  * attempt, which is small enough to ignore right up until it happens to a coach mid-
  * demo and surfaces as a 500. Retrying is three lines; explaining the 500 is not.
  */
-export async function rotateJoinCode(studioId: string) {
+export async function rotateJoinCode(studioId: string, userId: string) {
   for (let attempt = 0; attempt < 5; attempt++) {
     const code = newJoinCode();
     try {
@@ -195,6 +216,20 @@ export async function rotateJoinCode(studioId: string) {
         .returning({ id: schema.studios.id });
 
       if (!updated) throw notFound("That studio no longer exists.");
+
+      // `client_invited`'s best available real signal: generating a new code to hand
+      // out. Sharing an already-issued QR/link is invisible server-side (a client-side
+      // render of data already on the device), so this undercounts true invite-sharing
+      // — documented, not solved, in `docs/analytics/risks-and-open-questions.md`.
+      await track({
+        name: "client_invited",
+        properties: { invite_method: "join_code" },
+        userId,
+        studioId,
+        actorRole: "trainer",
+        sourceApp: "trainer",
+      }).catch(() => {});
+
       return code;
     } catch (err) {
       if (!isUniqueViolation(err) || attempt === 4) throw err;

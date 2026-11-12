@@ -365,6 +365,48 @@
       "when": 1794147017697,
       "tag": "0051_brown_molten_man",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1794386541141,
+      "tag": "0052_ambiguous_rachel_grey",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1794390188442,
+      "tag": "0053_hesitant_bruce_banner",
+      "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1794412251757,
+      "tag": "0054_cynical_captain_cross",
+      "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1794412689872,
+      "tag": "0055_seed_funnel_definitions",
+      "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1794416661935,
+      "tag": "0056_brown_starhawk",
+      "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1794502392615,
+      "tag": "0057_square_smasher",
+      "breakpoints": true
     }
   ]
 }

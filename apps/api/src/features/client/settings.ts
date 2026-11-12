@@ -103,8 +103,8 @@ clientSettingsRouter.patch("/personal", requireClient(), async (req, res) => {
     .from(schema.users)
     .where(and(eq(schema.users.id, userId), isNull(schema.users.deletedAt)));
   if (!current) throw badRequest("missing_user", "Account not found.");
-  if (phone !== current.phone && phone === env.ADMIN_PHONE)
-    throw badRequest("reserved_phone", "That phone number cannot be used for this account.");
+  if (email !== current.email && email === env.ADMIN_EMAIL?.trim().toLowerCase())
+    throw badRequest("reserved_email", "That email address cannot be used for this account.");
   try {
     await db.transaction(async (tx) => {
       await tx

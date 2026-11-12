@@ -3,6 +3,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { db } from "../../db.js";
 import { env } from "../../env.js";
 import { badRequest } from "../../errors.js";
+import { track } from "../analytics/service.js";
 import { createDefaultStudio, resolveActiveStudio } from "../studio/service.js";
 import { issueSession } from "./service.js";
 
@@ -58,13 +59,22 @@ async function fetchProfile(code: string): Promise<Profile> {
 /**
  * Resolve a Google login to a session.
  *
- * The account-linking rule is the important part. Our users sign up by phone and their
- * email is stored *unverified* — they typed it, they never proved it. So if someone
- * arrives from Google with an email that matches an existing unverified email, linking
- * them would hand over that account to whoever actually controls the mailbox. We refuse,
- * and tell them to sign in with their phone instead. See ADR 0005.
+ * The account-linking rule is the important part. An email collected via `/profile` or
+ * email+OTP signup can be unverified at either end, so if someone arrives from Google
+ * with an email that matches an existing *unverified* email, linking them would hand
+ * over that account to whoever actually controls the mailbox. We refuse — and since
+ * Google itself vouches for the address (`profile.email_verified`), the other account's
+ * claim was never real, so it loses the address and the Google sign-in proceeds as a
+ * fresh account instead. Only when Google doesn't vouch for it either do we have no safe
+ * way to resolve who the address really belongs to, so that case is refused outright.
+ * See ADR 0034 (was ADR 0005, back when phone was the proven identity to fall back to).
  */
-export async function completeGoogleLogin(code: string, ip?: string, userAgent?: string) {
+export async function completeGoogleLogin(
+  code: string,
+  ip?: string,
+  userAgent?: string,
+  utm?: { utmSource?: string; utmMedium?: string; utmCampaign?: string },
+) {
   const profile = await fetchProfile(code);
   const email = profile.email?.toLowerCase() ?? null;
 
@@ -91,24 +101,23 @@ export async function completeGoogleLogin(code: string, ip?: string, userAgent?:
       .where(and(eq(schema.users.email, email), isNull(schema.users.deletedAt)))
       .limit(1);
 
-    if (byEmail) {
-      // The classic federated pre-hijack: an attacker signs up with the victim's address
-      // and waits for them to click "Sign in with Google". Linking to an account that
-      // never proved the address would hand over whatever the attacker set up on it.
-      if (!byEmail.emailVerifiedAt) {
-        // Google has verified it and this account has not, so the unverified claim loses
-        // the address. They keep the account and their phone login; they just stop
-        // holding an address that was never theirs, which would otherwise block the real
-        // owner forever behind a unique index nobody can evict.
-        if (profile.email_verified) {
-          await db
-            .update(schema.users)
-            .set({ email: null, updatedAt: new Date() })
-            .where(eq(schema.users.id, byEmail.id));
-        }
-        return { outcome: "needs_phone_to_link" as const };
+    // The classic federated pre-hijack: an attacker signs up with the victim's address
+    // and waits for them to click "Sign in with Google". Linking to an account that
+    // never proved the address would hand over whatever the attacker set up on it.
+    if (byEmail && !byEmail.emailVerifiedAt) {
+      if (!profile.email_verified) {
+        // Neither side has proven this address, so there is no safe way to tell who it
+        // really belongs to. Refuse rather than guess.
+        return { outcome: "email_conflict" as const };
       }
-
+      // Google has verified it and this account has not, so the unverified claim loses
+      // the address — it was never actually theirs. Falls through to "create a new
+      // account" below, using the address this just freed.
+      await db
+        .update(schema.users)
+        .set({ email: null, updatedAt: new Date() })
+        .where(eq(schema.users.id, byEmail.id));
+    } else if (byEmail) {
       await db.transaction(async (tx) => {
         await tx.insert(schema.authIdentities).values({
           id: newId(),
@@ -146,9 +155,38 @@ export async function completeGoogleLogin(code: string, ip?: string, userAgent?:
       providerUid: profile.sub,
     });
     await createDefaultStudio(tx, { id, name: profile.name ?? "" });
+
+    // Same transaction as the user, same reasoning as the phone-signup path in
+    // `service.ts` — see `attribution-design.md`. Only when at least one param
+    // actually arrived (the `OAUTH_UTM` cookie, set only when `/google/start` saw one).
+    if (utm?.utmSource || utm?.utmMedium || utm?.utmCampaign) {
+      await tx.insert(schema.acquisitionAttributions).values({
+        userId: id,
+        firstTouchSource: utm.utmSource ?? null,
+        firstTouchMedium: utm.utmMedium ?? null,
+        firstTouchCampaign: utm.utmCampaign ?? null,
+        firstTouchAt: new Date(),
+        lastTouchSource: utm.utmSource ?? null,
+        lastTouchMedium: utm.utmMedium ?? null,
+        lastTouchCampaign: utm.utmCampaign ?? null,
+        lastTouchAt: new Date(),
+      });
+    }
   });
 
   const activeStudioId = await resolveActiveStudio(id);
   const session = await issueSession(db, id, ip, userAgent, activeStudioId);
+
+  // After the transaction, never allowed to fail the signup it's describing — same
+  // reasoning as the phone-signup instrumentation in service.ts.
+  await track({
+    name: "signup_completed",
+    properties: { method: "google" },
+    userId: id,
+    studioId: activeStudioId,
+    actorRole: "trainer",
+    sourceApp: "trainer",
+  }).catch(() => {});
+
   return { session, outcome: "created" as const };
 }

@@ -131,17 +131,17 @@ export class Agent {
  *
  * One challenge only: a second would supersede the first and drop the pending name.
  */
-export async function signUpOverHttp(base: string, phone: string, name: string) {
+export async function signUpOverHttp(base: string, email: string, name: string) {
   const agent = new Agent(base);
 
-  const challenge = await requestChallenge({ phone, name });
+  const challenge = await requestChallenge({ email, name });
   if (!challenge.code) {
     throw new Error(
       `console transport expected in tests, got "${challenge.transport}" — set OTP_TRANSPORT=console`,
     );
   }
 
-  const verified = await agent.post("/auth/verify", { phone, code: challenge.code });
+  const verified = await agent.post("/auth/verify", { email, code: challenge.code });
   if (verified.status !== 200) {
     throw new Error(`signup failed: ${verified.status} ${JSON.stringify(verified.body)}`);
   }

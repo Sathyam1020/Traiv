@@ -41,6 +41,16 @@ export type ToastData = {
   variant?: ToastVariant;
 };
 
+/**
+ * Deliberately solid, never the tinted `-surface` tokens `Alert` uses for inline page
+ * banners. A toast floats over arbitrary, uncontrolled page content as a stack — a ~10%
+ * alpha fill there reads as a washed-out smudge and lets whatever's behind it bleed
+ * through between stacked toasts, which is exactly what "Solid surfaces — never
+ * translucent/glass" below is guarding against. `--surface-face` is left alone so it
+ * inherits the solid `--primitive-overlay-face` every other overlay (dialog, popover,
+ * menu) already resolves to from `[data-surface="overlay"]` — only the border and icon
+ * carry the semantic color.
+ */
 const variantStyles: Record<
   ToastVariant,
   {
@@ -51,7 +61,7 @@ const variantStyles: Record<
 > = {
   info: {
     root: cn(
-      "[--surface-face:var(--primitive-info-surface)] [--surface-rim:var(--primitive-info-border)] [--surface-rim-top:var(--primitive-info-border)]",
+      "[--surface-rim:var(--primitive-info-border)] [--surface-rim-top:var(--primitive-info-border)]",
       "text-[var(--foreground)]",
     ),
     icon: "text-[var(--primitive-info)]",
@@ -59,7 +69,7 @@ const variantStyles: Record<
   },
   success: {
     root: cn(
-      "[--surface-face:var(--primitive-success-surface)] [--surface-rim:var(--primitive-success-border)] [--surface-rim-top:var(--primitive-success-border)]",
+      "[--surface-rim:var(--primitive-success-border)] [--surface-rim-top:var(--primitive-success-border)]",
       "text-[var(--foreground)]",
     ),
     icon: "text-[var(--primitive-success)]",
@@ -67,7 +77,7 @@ const variantStyles: Record<
   },
   warning: {
     root: cn(
-      "[--surface-face:var(--primitive-warning-surface)] [--surface-rim:var(--primitive-warning-border)] [--surface-rim-top:var(--primitive-warning-border)]",
+      "[--surface-rim:var(--primitive-warning-border)] [--surface-rim-top:var(--primitive-warning-border)]",
       "text-[var(--foreground)]",
     ),
     icon: "text-[var(--primitive-warning)]",
@@ -75,14 +85,14 @@ const variantStyles: Record<
   },
   error: {
     root: cn(
-      "[--surface-face:var(--primitive-destructive-surface)] [--surface-rim:var(--primitive-destructive-border)] [--surface-rim-top:var(--primitive-destructive-border)]",
+      "[--surface-rim:var(--primitive-destructive-border)] [--surface-rim-top:var(--primitive-destructive-border)]",
       "text-[var(--foreground)]",
     ),
     icon: "text-[var(--primitive-destructive)]",
     iconNode: <IconCircleX stroke={1.9} />,
   },
   action: {
-    root: cn("[--surface-face:var(--primitive-surface-elevated)]", "text-[var(--foreground)]"),
+    root: cn("text-[var(--foreground)]"),
     icon: "text-[var(--primitive-text-secondary)]",
     iconNode: <IconInfoCircle stroke={1.9} />,
   },

@@ -1,5 +1,10 @@
 # 0018 — One definition of a phone number
-2026-10-07 · Status: accepted · Supersedes the inline phone regex in ADR 0010
+2026-10-07 · Status: accepted · Supersedes the inline phone regex in ADR 0010 · The
+opening line below ("the phone number is the only identity in Traiv") no longer holds —
+ADR 0034 retires phone as an identity entirely. Everything else here stays accurate and
+in force: `@traiv/phone`, E.164 storage, and mobile-vs-landline validation still serve
+`client.phone`/`user.phone` as denormalized contact info and the marketing waitlist's
+`PhoneField`, none of which this ADR's parsing decisions needed to change.
 
 ## Context
 

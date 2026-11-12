@@ -1,10 +1,10 @@
 "use client";
 
-import { isValidMobile } from "@traiv/phone";
 import { Button } from "@traiv/ui/components/button";
 import { GoogleButton } from "@traiv/ui/components/google-button";
+import { Input } from "@traiv/ui/components/input";
+import { Label } from "@traiv/ui/components/label";
 import { Logo } from "@traiv/ui/components/logo";
-import { PhoneField } from "@traiv/ui/components/phone-field";
 import { ArrowLeft, ArrowRight, Check } from "@traiv/ui/icons";
 import { useState } from "react";
 import { DevBypass } from "@/components/auth/dev-bypass";
@@ -14,12 +14,14 @@ import { TrustMarkers } from "@/components/common/trust-markers";
 import { API_BASE, MARKETING_URL } from "@/lib/api";
 import { useAuthConfig } from "@/lib/query";
 
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export function SignInCard({ onDone }: { onDone: () => void }) {
   const flow = useSignInFlow();
   const { data: config } = useAuthConfig();
   const [otp, setOtp] = useState("");
 
-  const canSend = isValidMobile(flow.phone, flow.countryCode) && !flow.busy;
+  const canSend = EMAIL.test(flow.email.trim()) && !flow.busy;
 
   async function submit() {
     const ok = await flow.submitCode(otp);
@@ -35,7 +37,7 @@ export function SignInCard({ onDone }: { onDone: () => void }) {
       </div>
 
       <div className="rounded-surface border border-line bg-surface p-6 shadow-sm sm:p-7">
-        {flow.step === "phone" ? (
+        {flow.step === "identity" ? (
           <form
             className="flex flex-col gap-4"
             onSubmit={(e) => {
@@ -50,7 +52,7 @@ export function SignInCard({ onDone }: { onDone: () => void }) {
               <h1 className="text-subheading font-semibold tracking-[-0.02em]">Sign in</h1>
               <p className="text-body-sm text-fg-muted">
                 {flow.otpRequired
-                  ? "Use the number your coach has for you. New or returning, the same number works."
+                  ? "Use the email your coach has for you. New or returning, the same address works."
                   : "Development mode — no code needed."}
               </p>
             </header>
@@ -67,13 +69,17 @@ export function SignInCard({ onDone }: { onDone: () => void }) {
               <span className="h-px flex-1 bg-line" />
             </div>
 
-            <PhoneField
-              value={flow.phone}
-              onChange={flow.setPhone}
-              countryCode={flow.countryCode}
-              onCountryChange={flow.setCountryCode}
-              hint="We'll text you a code to verify your number."
-            />
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="signin-email">Email</Label>
+              <Input
+                id="signin-email"
+                type="email"
+                value={flow.email}
+                onChange={(e) => flow.setEmail(e.target.value)}
+                placeholder="you@example.com"
+              />
+              <p className="text-caption text-fg-subtle">We'll email you a code to verify it.</p>
+            </div>
 
             {flow.error ? <p className="text-caption text-danger">{flow.error}</p> : null}
 
@@ -99,11 +105,11 @@ export function SignInCard({ onDone }: { onDone: () => void }) {
                 }}
                 className="-ml-1 mb-1 flex w-fit cursor-pointer items-center gap-1.5 rounded-control px-1 py-0.5 text-caption text-fg-muted transition-colors hover:text-fg"
               >
-                <ArrowLeft className="size-3.5" /> Change number
+                <ArrowLeft className="size-3.5" /> Change email
               </button>
               <h1 className="text-subheading font-semibold tracking-[-0.02em]">Enter the code</h1>
               <p className="text-body-sm text-fg-muted">
-                Sent to <span className="tabular-nums text-fg">+91 {flow.phone}</span>
+                Sent to <span className="text-fg">{flow.email}</span>
               </p>
             </header>
 

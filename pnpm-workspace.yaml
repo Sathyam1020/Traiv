@@ -52,6 +52,8 @@ catalog:
   # api
   express: ^5.2.1
   "@types/express": ^5.0.0
+  # Email OTP delivery (ADR 0034) — replaces the whatsapp/android-sms/sms transports.
+  resend: ^6.38.0
 
   # PDF exports (lazy client chunk)
   jspdf: ^4.2.1

@@ -39,6 +39,13 @@ export default defineConfig({
       // guard that keeps code verification from being skippable. The file that needs it
       // off mocks the env for itself.
       OTP: "YES",
+      // Forced regardless of .env, unlike OTP above — this isn't a philosophy choice,
+      // it's a mechanical requirement. `signUpOverHttp` and every scenario test that
+      // signs up a user read the code back off the console transport's response; a real
+      // transport sends nothing back; and a real email provider configured for manual
+      // dev testing (ADR 0034) will outright reject the `@example.com`-style addresses
+      // these tests use anyway.
+      OTP_TRANSPORT: "console",
     },
     // Scenario tests share one real database, so they run serially. Parallel runs would
     // have them tripping over each other's rows.

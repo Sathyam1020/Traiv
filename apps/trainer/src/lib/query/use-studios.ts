@@ -24,6 +24,10 @@ export function useRenameStudio() {
 
 export function useSwitchStudio() {
   return useMutation({
+    // `studio-switcher.tsx` sets the local studio id optimistically before this call
+    // lands, with nothing else on screen watching it — a failure here has to say so, or
+    // the tab is left showing a studio the server never actually switched to.
+    meta: { feedback: { error: "Couldn't switch studios. Try again." } },
     mutationFn: studiosApi.activate,
     // Every query on the page is studio-scoped, so a reload is both correct and simpler
     // than invalidating each one and hoping nothing was missed.

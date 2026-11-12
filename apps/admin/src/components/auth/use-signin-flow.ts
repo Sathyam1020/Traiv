@@ -1,31 +1,42 @@
 "use client";
 
-import { type CountryCode, DEFAULT_COUNTRY, parsePhone } from "@traiv/phone";
-import { useCallback, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { isApiError } from "@/lib/api";
 import { useAuthConfig, useDirectSignIn, useRequestCode, useVerifyCode } from "@/lib/query";
 
-export type SignInStep = "phone" | "code";
+export type SignInStep = "identity" | "code";
 
 /** Which screen this is. It changes what is asked for, not the flow underneath. */
 export type AuthMode = "signin" | "signup";
 
+const OAUTH_ERRORS: Record<string, string> = {
+  google_cancelled: "Google sign-in was cancelled.",
+  google_state: "That sign-in link expired. Try again.",
+  google_email_conflict: "That email is already associated with another account.",
+  google_off: "Google sign-in isn't available right now.",
+  google_token: "Google sign-in failed. Try again.",
+  google_profile: "Couldn't read your Google profile. Try again.",
+};
+
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 /**
- * Signing in, or signing up. Phone, code, done.
+ * Signing in, or signing up. Email, code, done.
  *
  * Deliberately not the join flow: that one attaches you to a coach as well, and these are
  * different things. Joining needs a link; signing in never does, because the account
  * already exists and the relationship was made the first time round.
  *
  * Auth is passwordless, so the API treats sign-in and sign-up as one path — an unknown
- * number gets an account. That account simply has no coach, and the dashboard says so
+ * address gets an account. That account simply has no coach, and the dashboard says so
  * rather than this screen refusing them.
  */
 export function useSignInFlow(mode: AuthMode = "signin") {
-  const [step, setStep] = useState<SignInStep>("phone");
-  const [phone, setPhone] = useState("");
-  const [countryCode, setCountryCode] = useState<CountryCode>(DEFAULT_COUNTRY);
-  // Optional, and only used if this number has no account yet — or has one with no name.
+  const params = useSearchParams();
+  const [step, setStep] = useState<SignInStep>("identity");
+  const [email, setEmail] = useState("");
+  // Optional, and only used if this address has no account yet — or has one with no name.
   const [name, setName] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -33,6 +44,12 @@ export function useSignInFlow(mode: AuthMode = "signin") {
   const verify = useVerifyCode();
   const direct = useDirectSignIn();
   const { data: config } = useAuthConfig();
+
+  // Errors arrive back from the OAuth callback as a query param.
+  useEffect(() => {
+    const e = params.get("error");
+    if (e) setError(OAUTH_ERRORS[e] ?? "Sign-in failed. Try again.");
+  }, [params]);
 
   // The API decides, not the app. In development with OTP=NO there is no code to send,
   // so asking for one would show a screen nobody can complete.
@@ -42,22 +59,21 @@ export function useSignInFlow(mode: AuthMode = "signin") {
   /** Returns true when sign-in is already complete — the no-OTP path finishes here. */
   const sendCode = useCallback(async () => {
     setError(null);
-    const parsed = parsePhone(phone, countryCode);
-    if (!parsed.ok) {
-      setError("Enter a valid mobile number.");
+    const trimmed = email.trim();
+    if (!EMAIL.test(trimmed)) {
+      setError("Enter a valid email address.");
       return false;
     }
-    const e164 = parsed.e164;
     try {
       if (!otpRequired) {
         await direct.mutateAsync({
-          phone: e164,
+          email: trimmed,
           ...(mode === "signup" && name.trim() ? { name: name.trim() } : {}),
         });
         return true;
       }
       await request.mutateAsync({
-        phone: e164,
+        email: trimmed,
         ...(mode === "signup" && name.trim() ? { name: name.trim() } : {}),
       });
       setStep("code");
@@ -66,33 +82,31 @@ export function useSignInFlow(mode: AuthMode = "signin") {
       setError(isApiError(e) ? e.message : "Couldn't sign you in. Try again.");
       return false;
     }
-  }, [request, direct, otpRequired, phone, countryCode, name, mode]);
+  }, [request, direct, otpRequired, email, name, mode]);
 
   const submitCode = useCallback(
     async (otp: string) => {
       setError(null);
       try {
-        await verify.mutateAsync({ phone: e164Of(phone, countryCode), code: otp });
+        await verify.mutateAsync({ email: email.trim(), code: otp });
         return true;
       } catch (e) {
         setError(isApiError(e) ? e.message : "That code didn't work.");
         return false;
       }
     },
-    [verify, phone, countryCode],
+    [verify, email],
   );
 
   const back = useCallback(() => {
     setError(null);
-    setStep("phone");
+    setStep("identity");
   }, []);
 
   return {
     step,
-    phone,
-    setPhone,
-    countryCode,
-    setCountryCode,
+    email,
+    setEmail,
     name,
     setName,
     error,
@@ -102,10 +116,4 @@ export function useSignInFlow(mode: AuthMode = "signin") {
     submitCode,
     back,
   };
-}
-
-/** The stored form of what is in the field, for the second step of the OTP flow. */
-function e164Of(input: string, forCountry: CountryCode): string {
-  const parsed = parsePhone(input, forCountry);
-  return parsed.ok ? parsed.e164 : input;
 }

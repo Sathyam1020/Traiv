@@ -6,33 +6,33 @@ export const authApi = {
 
   me: async () => (await http.get<Session>("/auth/me")).data,
 
-  challenge: async (input: { phone: string; name?: string; endorserCode?: string }) =>
-    (await http.post<{ sent: true; transport: TransportName }>("/auth/challenge", input)).data,
+  challenge: async (input: {
+    email: string;
+    name?: string;
+    endorserCode?: string;
+    utmSource?: string;
+    utmMedium?: string;
+    utmCampaign?: string;
+  }) => (await http.post<{ sent: true; transport: TransportName }>("/auth/challenge", input)).data,
 
   /** Public. Confirms whose code it is before anything is submitted. */
   endorserCode: async (code: string) => (await http.get<{ name: string }>(`/e/code/${code}`)).data,
 
-  verify: async (input: { phone: string; code: string }) =>
+  verify: async (input: { email: string; code: string }) =>
     (await http.post<{ user: User; isNew: boolean }>("/auth/verify", input)).data,
 
   /** Only answers when the API reports `otpRequired: false`. */
-  direct: async (input: { phone: string; name?: string; endorserCode?: string }) =>
-    (await http.post<{ user: User; isNew: boolean }>("/auth/direct", input)).data,
+  direct: async (input: {
+    email: string;
+    name?: string;
+    endorserCode?: string;
+    utmSource?: string;
+    utmMedium?: string;
+    utmCampaign?: string;
+  }) => (await http.post<{ user: User; isNew: boolean }>("/auth/direct", input)).data,
 
   updateProfile: async (input: { email?: string; name?: string }) =>
     (await http.post<{ user: User }>("/auth/profile", input)).data,
-
-  /** The phone step for an account that signed in another way (Google). */
-  phoneLinkChallenge: async (input: { phone: string }) =>
-    (await http.post<{ sent: true; transport: TransportName }>("/auth/phone/challenge", input))
-      .data,
-
-  phoneLinkVerify: async (input: { phone: string; code: string }) =>
-    (await http.post<{ user: User }>("/auth/phone/verify", input)).data,
-
-  /** Only answers when the API reports `otpRequired: false`. */
-  phoneLinkDirect: async (input: { phone: string }) =>
-    (await http.post<{ user: User }>("/auth/phone/direct", input)).data,
 
   logout: async () => (await http.post<{ ok: true }>("/auth/logout")).data,
 

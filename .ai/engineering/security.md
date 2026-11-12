@@ -14,14 +14,15 @@ scoped to `.traiv.app`. Rotate on privilege change. Revoking kills the row.
 ## OTP
 
 6 digits, 5-minute expiry, hashed at rest, single-use, constant-time compare. Only the
-newest code is valid. Rate limits: 5 sends per phone per hour, 5 attempts per code,
-limited independently per-IP and per-phone.
+newest code is valid. Rate limits: 5 sends per email per hour, 5 attempts per code,
+limited independently per-IP and per-email.
 
 ## Account linking — the takeover vector
 
-OAuth returning an email that already exists as a password account must **never**
-auto-merge. Require phone verification before linking. This is the single most likely way
-someone takes over a coach's account.
+OAuth returning an email that already exists as an *unverified* claim must **never**
+auto-merge. If Google vouches for the address, the unverified claim loses it and the
+Google sign-in proceeds as a new account; if neither side vouches for it, refuse outright
+(ADR 0034). This is the single most likely way someone takes over a coach's account.
 
 ## Secrets
 

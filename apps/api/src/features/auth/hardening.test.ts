@@ -3,7 +3,7 @@ import { and, eq, isNull, sql } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../db.js";
 import { hashOtp } from "../../lib/crypto.js";
-import { resetPhones } from "../../test-support/reset.js";
+import { resetEmails } from "../../test-support/reset.js";
 import { requestChallenge, toE164, verifyChallenge } from "./service.js";
 
 /**
@@ -13,12 +13,12 @@ import { requestChallenge, toE164, verifyChallenge } from "./service.js";
  * someone is actively trying to break it: concurrent guesses, concurrent wins, resend
  * used to reset a limit, and input shaped to defeat a uniqueness constraint.
  */
-const N1 = "8800000001";
-const N2 = "8800000002";
-const ALL = [N1, N2];
+const E1 = "hardening-test-1@example.com";
+const E2 = "hardening-test-2@example.com";
+const ALL = [E1, E2];
 
 async function wipe() {
-  await resetPhones(ALL.map(toE164));
+  await resetEmails(ALL);
 }
 
 beforeEach(wipe);
@@ -27,19 +27,19 @@ afterAll(wipe);
 describe("auth hardening", () => {
   // TWO ACTORS
   it("twenty concurrent wrong guesses cost twenty attempts, not one", async () => {
-    await requestChallenge({ phone: N1 });
+    await requestChallenge({ email: E1 });
 
     // All twenty start before any of them finishes, which is the shape that let a
     // read-check-increment cycle hand out twenty guesses for the price of one.
     const results = await Promise.allSettled(
-      Array.from({ length: 20 }, () => verifyChallenge({ phone: N1, code: "000000" })),
+      Array.from({ length: 20 }, () => verifyChallenge({ email: E1, code: "000000" })),
     );
     expect(results.every((r) => r.status === "rejected")).toBe(true);
 
     const [row] = await db
       .select({ attempts: schema.authChallenges.attempts })
       .from(schema.authChallenges)
-      .where(eq(schema.authChallenges.phone, toE164(N1)))
+      .where(eq(schema.authChallenges.email, E1))
       .limit(1);
 
     // The cap holds regardless of concurrency: attempts never exceed the maximum, and
@@ -50,12 +50,12 @@ describe("auth hardening", () => {
 
   // TWO ACTORS
   it("two correct submissions of the same code produce one session, not two", async () => {
-    const issued = await requestChallenge({ phone: N1 });
+    const issued = await requestChallenge({ email: E1 });
     if (!issued.code) throw new Error("console transport expected");
 
     const both = await Promise.allSettled([
-      verifyChallenge({ phone: N1, code: issued.code }),
-      verifyChallenge({ phone: N1, code: issued.code }),
+      verifyChallenge({ email: E1, code: issued.code }),
+      verifyChallenge({ email: E1, code: issued.code }),
     ]);
 
     const won = both.filter((r) => r.status === "fulfilled");
@@ -65,39 +65,37 @@ describe("auth hardening", () => {
       .select({ n: sql<number>`count(*)::int` })
       .from(schema.sessions)
       .innerJoin(schema.users, eq(schema.users.id, schema.sessions.userId))
-      .where(eq(schema.users.phone, toE164(N1)));
+      .where(eq(schema.users.email, E1));
     expect(sessions[0]?.n).toBe(1);
   });
 
   // AFTER EXPIRY — the limit that actually binds
   it("resending does not reset the failure budget", async () => {
-    await requestChallenge({ phone: N1 });
+    await requestChallenge({ email: E1 });
 
     // Burn the per-challenge cap, then ask for a fresh code and burn it again. The
-    // per-challenge counter resets; the per-number budget must not.
+    // per-challenge counter resets; the per-address budget must not.
     for (let round = 0; round < 4; round++) {
       for (let i = 0; i < 5; i++) {
-        await verifyChallenge({ phone: N1, code: "000000" }).catch(() => {});
+        await verifyChallenge({ email: E1, code: "000000" }).catch(() => {});
       }
-      await requestChallenge({ phone: N1 }).catch(() => {});
+      await requestChallenge({ email: E1 }).catch(() => {});
     }
 
-    await expect(verifyChallenge({ phone: N1, code: "000000" })).rejects.toMatchObject({
+    await expect(verifyChallenge({ email: E1, code: "000000" })).rejects.toMatchObject({
       status: 429,
     });
   });
 
-  it("only one code is ever live for a number", async () => {
-    await requestChallenge({ phone: N2 });
-    await requestChallenge({ phone: N2 });
-    await requestChallenge({ phone: N2 });
+  it("only one code is ever live for an address", async () => {
+    await requestChallenge({ email: E2 });
+    await requestChallenge({ email: E2 });
+    await requestChallenge({ email: E2 });
 
     const [row] = await db
       .select({ n: sql<number>`count(*)::int` })
       .from(schema.authChallenges)
-      .where(
-        and(eq(schema.authChallenges.phone, toE164(N2)), isNull(schema.authChallenges.consumedAt)),
-      );
+      .where(and(eq(schema.authChallenges.email, E2), isNull(schema.authChallenges.consumedAt)));
     // Enforced by a partial unique index, so it holds even if the application forgets.
     expect(row?.n).toBe(1);
   });

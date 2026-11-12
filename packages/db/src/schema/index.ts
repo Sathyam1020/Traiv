@@ -12,6 +12,7 @@ export * from "./marketing.js";
 export * from "./measurements.js";
 export * from "./messaging.js";
 export * from "./nutrition.js";
+export * from "./product-analytics.js";
 export * from "./steps.js";
 export * from "./studio.js";
 export * from "./tag.js";

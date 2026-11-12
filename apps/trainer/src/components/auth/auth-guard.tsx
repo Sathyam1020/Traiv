@@ -18,25 +18,22 @@ import { useSession } from "@/lib/query";
  * `isError` exactly like an expired session and bounce the coach to `/signin`, even
  * though their cookie was still good for weeks. A non-auth failure gets a retry instead.
  *
- * The business-name redirect is server-driven for the same reason `needsPhone` already
- * is: both signup paths (phone-first and Google-first) end up here regardless of how
- * they got here, and checking a server flag on every mount — rather than a step a local
- * flow machine remembers — is what makes it survive a refresh mid-signup.
+ * The business-name redirect is server-driven: both signup paths (email+OTP and
+ * Google) end up here regardless of how they got here, and checking a server flag on
+ * every mount — rather than a step a local flow machine remembers — is what makes it
+ * survive a refresh mid-signup.
  */
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const { data, isPending, isError, error, refetch } = useSession();
   const unauthorized = isError && isApiError(error) && error.status === 401;
   const activeStudio = data?.studios.find((s) => s.id === data.activeStudioId);
-  const needsBusinessName = Boolean(
-    data && !data.user.needsPhone && activeStudio && !activeStudio.nameConfirmed,
-  );
+  const needsBusinessName = Boolean(data && activeStudio && !activeStudio.nameConfirmed);
 
   useEffect(() => {
     if (unauthorized) router.replace("/signin");
-    else if (data?.user.needsPhone) router.replace("/link-phone");
     else if (needsBusinessName) router.replace("/business-name");
-  }, [unauthorized, data, needsBusinessName, router]);
+  }, [unauthorized, needsBusinessName, router]);
 
   if (isError && !unauthorized) {
     return (
@@ -49,7 +46,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (isPending || unauthorized || data?.user.needsPhone || needsBusinessName) {
+  if (isPending || unauthorized || needsBusinessName) {
     return (
       <div className="flex min-h-dvh items-center justify-center bg-canvas">
         <span className="text-body-sm text-fg-muted">Checking your session…</span>

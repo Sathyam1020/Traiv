@@ -122,9 +122,10 @@ studios.post("/:id/activate", requireStudio({ param: "id" }), async (req, res) =
 
 /** The business's own name, not the owner's — owner-only, same reasoning as billing. */
 studios.patch("/:id", requireStudio({ param: "id", role: "owner" }), async (req, res) => {
+  const { userId } = requireSession(req);
   const { studioId } = requireStudioAuth(req);
   const body = z.object({ name: z.string().trim().min(1).max(120) }).parse(req.body);
-  res.json({ studio: await renameStudio(studioId, body.name) });
+  res.json({ studio: await renameStudio(studioId, userId, body.name) });
 });
 
 /* -------------------------------------------------------------------------- */
@@ -260,12 +261,12 @@ const clientPatch = z.object({
 });
 
 studios.patch("/:id/clients/:clientId", requireStudio({ param: "id" }), async (req, res) => {
-  const { studioId } = requireStudioAuth(req);
+  const { studioId, membershipId } = requireStudioAuth(req);
   const { clientId } = clientParam.parse(req.params);
   const body = clientPatch.parse(req.body);
 
   res.json({
-    client: await updateClient(studioId, clientId, {
+    client: await updateClient(studioId, clientId, membershipId, {
       ...(body.status ? { status: body.status } : {}),
       ...(body.startedAt ? { startedAt: new Date(body.startedAt) } : {}),
       ...("endsAt" in body ? { endsAt: body.endsAt ? new Date(body.endsAt) : null } : {}),

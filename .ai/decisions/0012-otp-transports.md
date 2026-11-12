@@ -1,5 +1,11 @@
 # 0012 — OTP delivery transports
-2026-09-12 · Status: accepted · Extends ADR 0009
+2026-09-12 · Status: accepted · Extends ADR 0009 · The transport choice (MSG91/WhatsApp,
+phone as the identifier) is superseded by ADR 0034 — SMS never cleared DLT registration
+and WhatsApp never cleared Business verification, so neither shipped as a reliable
+channel. The `OtpTransport` interface shape, the fallback-only-on-throw semantics, the
+"server tells the client which channel delivered," and the "production refuses to boot
+without working credentials" guard all carried forward unchanged onto the Resend email
+transport that replaced them.
 
 ## Context
 

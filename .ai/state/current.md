@@ -1,5 +1,187 @@
 # Current state
 
+## Retire phone auth — Google OAuth + email OTP via Resend, 2026-11-12
+
+ADR `0034-retire-phone-auth.md`. Phone number is no longer an auth method anywhere, for
+any app, for any user — only Google OAuth or email + OTP. `.env`/`.env.example`:
+`ADMIN_PHONE` → `ADMIN_EMAIL`, `MSG91_*`/`WHATSAPP_*`/`ANDROID_SMS_*` removed,
+`RESEND_API_KEY`/`RESEND_FROM_ADDRESS` added, `OTP_TRANSPORT`/`OTP_FALLBACK` enums now
+`email | console` / `email | none`.
+
+Schema: `otp_transport` gets `email` and `challenge_purpose` gets `email_verify`
+(migration `0057`, applied to dev and `traiv_test`); both retired alongside
+`phone_verify`/`phone_link`/`sms`/`whatsapp`/`android-sms` in their enum definitions —
+never written again, never dropped, so no migration has to touch rows that already
+reference them. A new partial unique index + CHECK on `auth_challenge.email` mirrors the
+existing phone ones exactly.
+
+Backend: `apps/api/src/integrations/otp/{sms,whatsapp,android-sms}.ts` deleted outright;
+`resend.ts` added. `requestChallenge`/`verifyChallenge`/`signInDirect`/`establishSession`
+in `features/auth/service.ts` re-keyed from `phone` to `email`;
+`requestPhoneLink`/`verifyPhoneLink`/`linkPhoneDirect` and their three
+`/auth/phone/*` routes deleted (no replacement — Google sign-in no longer needs a
+follow-up verification step of any kind). `requireAdmin()` matches `ADMIN_EMAIL` against
+`users.email` — the only admin-identification mechanism in the codebase. `signup_completed`'s
+tracked `method` is `"email" | "google"`.
+
+`completeGoogleLogin` (`features/auth/google.ts`) got one real behavior fix the plan
+hadn't anticipated: an email collision against an unverified address used to resolve by
+pointing the person at phone verification (`needs_phone_to_link`); with phone gone, it
+now resolves by freeing the unverified claim when Google vouches for the address (and
+falling through to create a new account) or refusing outright when neither side vouches
+for it (`email_conflict`).
+
+Frontend: all four apps (trainer, client, admin, endorse) rewrote their own sign-in UI —
+there is no shared auth-flow package. Trainer additionally deleted `/link-phone`,
+`use-link-phone-flow.ts`, `link-phone-form.tsx`, and the `needsPhone` redirects in
+`AuthGuard`/`business-name-form.tsx` — Google sign-in is now complete and self-sufficient
+the moment it returns. Client's `/join/[code]` invite-claim flow is now email+OTP, same
+mechanism, no backend change needed (it already called the generic
+`/auth/challenge`/`/auth/verify`, just with the wrong field name). All four apps' dev-bypass
+picker now shows email instead of phone.
+
+`@traiv/phone`/`PhoneField` are untouched — `client.phone`/`user.phone` stay as
+denormalized contact info, and the marketing site's waitlist capture
+(`apps/web/src/components/notify-me.tsx`) still uses `PhoneField` for something
+unrelated to auth.
+
+## In-house product analytics — Phases 0–4 (full roadmap except "Future"), 2026-11-11
+
+Plan: `docs/analytics/*.md` (12 docs, not committed). Phase 0 (structured logging) and
+Phase 1 (event ingestion + the admin Overview page) of `implementation-roadmap.md` are
+built and tested, not yet committed.
+
+Phase 0: `apps/api/src/lib/logger.ts`, wired into `middleware/error.ts` and a new
+request-timing stamp in `app.ts`.
+
+Phase 1: `product_event`/`event_definition`/`daily_metric_rollup`/`analytics_checkpoint`
+tables (migration `0052`, applied to dev and `traiv_test`); `POST /analytics/events`
+ingestion (`features/analytics/routes.ts`); the top 5 events instrumented server-side
+at the exact call sites named in `event-taxonomy.md` (`signup_completed` ×2 paths,
+`client_joined`, `check_in_submitted`, `workout_session_completed`,
+`onboarding_step_completed`), each outside its transaction and `.catch(() => {})`'d so
+tracking can never fail the real action; an hourly, checkpoint-resumable daily rollup
+(`features/analytics/rollup.ts`) computing DAU/WAU/MAU per role into
+`daily_metric_rollup`, started from `server.ts`; an admin read API
+(`features/admin/product-analytics.ts`, `GET /admin/analytics/overview`); the admin
+app's Overview page (`apps/admin/src/app/(app)/analytics/overview`), with the existing
+marketing dashboard relocated to `analytics/marketing` under a shared sub-nav layout.
+
+Five scenario tests (`features/analytics/analytics.test.ts`) cover retry/dedup, two
+actors, the untrusted-`occurredAt`-vs-server-`receivedAt` ordering guarantee, day/month
+boundary correctness, and checkpoint resumption — the boundary test caught and fixed a
+real bug (a bare `::date` cast comparing against a `timestamptz` column was resolving
+against the session timezone, not UTC, shifting DAU bucket edges). `tsc --noEmit`,
+`biome check`, and the full API test suite (420/422; the 2 failures are pre-existing
+and unrelated — an `ingredient` upsert ON CONFLICT constraint and an exercise-library
+404 bug in `studio/workouts.test.ts`) pass. The admin app's `next build` and `tsc
+--noEmit` pass.
+
+Phase 2 (full event catalog + client SDK + Acquisition/Funnels/Product Usage/
+Engagement): all ~13 remaining `event-taxonomy.md` events instrumented — 10 server-side
+(`business_name_confirmed`, `client_invited`, `workout_template_created`/
+`workout_assigned_to_client` split by `clientId` in one `createTemplate`,
+`workout_session_started`, `check_in_schedule_set`/`roster_status_changed` split by
+which fields actually changed in one `updateClient`, `recipe_created`, `mealplan_created`,
+`referral_code_created`, `referral_attributed`) plus 3 client-originated
+(`session_started`, `meal_logged`, `measurement_logged`) via a new offline-buffered,
+append-only IndexedDB outbox (`apps/client/src/lib/analytics/{outbox,track}.ts`,
+deliberately not the workout outbox's "latest write wins" semantics — an event is a
+fact, not a correction). `onboarding_abandoned` stays unimplemented (no single trigger
+exists for it; needs an inactivity threshold nothing in `.ai/` specifies). New schema:
+`analytics_session` (unpopulated so far — flagged, not papered over),
+`acquisition_attribution`, `funnel_definition` (migrations `0053`–`0055`, applied to
+dev and `traiv_test`; `0055` seeds the two funnels named in `admin-dashboard-spec.md`
+§3). The acquisition bridge threads `utm_source/medium/campaign` from the signup
+page's own query string through `auth_challenge`'s new `pending_utm_*` columns (phone
+path) and a short-lived `traiv_oauth_utm` cookie (Google path, mirroring the existing
+`OAUTH_STATE`/`OAUTH_APP` cookies) into `acquisition_attribution`, written in the same
+transaction as the new user. Four new read endpoints
+(`features/admin/product-analytics.ts`: `/acquisition`, `/product-usage`,
+`/engagement`, `/funnels` + `/funnels/:id`) and four new admin pages, all querying raw
+`product_event` bounded by date range rather than extending the rollup (data-model.md's
+own "funnel/cohort exploration, bounded by date range" posture) — the funnel endpoint
+walks each user's events in JS (ordered-step-with-break, median gap per step), not one
+large SQL aggregate.
+
+11 new scenario tests across `features/analytics/phase2-events.test.ts` (conditional
+event-firing correctness — the false→true edge, field-vs-field independence,
+clientId-based event split, referral idempotency, invalid-code handling, create-vs-
+update) and `features/admin/funnels.test.ts` (the funnel walk itself) caught two real
+bugs before they shipped: a `name = any($1,$2,...)` raw-SQL mismatch (drizzle renders
+an interpolated array as an `IN`-shaped list, not a single array value `ANY()` needs),
+and a raw `db.execute` timestamp column coming back as a string, not a `Date`, breaking
+every gap calculation. `tsc --noEmit`, `biome check`, and the full API suite (428/430 —
+same 2 pre-existing unrelated failures as Phase 1) pass; `next build` passes for api,
+admin, client, and trainer.
+
+Phase 3 (Retention/Cohorts, Trainers & Studios health, System Health, Data Quality —
+`admin-dashboard-spec.md` §6, §8, §11–12): new `operational_event` table (separate from
+`product_event`, never joined to it) — `api_request_failed` from the existing error
+middleware, a new `api_request_completed` on every request via a `res.on("finish")`
+hook (added beyond `event-taxonomy.md`'s original two names because System Health's
+p50/p95 latency KPI needs the full duration distribution, not just failures),
+`job_failed` from `jobs/queue.ts`'s `fail()` only on the permanent give-up branch (not
+a requeued retry), and `admin_drilldown_viewed` on every studio drilldown read, per
+`privacy-security.md`'s own instruction. A rule-based (0–100) studio health score
+(`features/analytics/health-score.ts`, `metric-definitions.md`'s weight table exactly:
+25/25/20/15/15), computed hourly alongside the existing rollup tick into a new
+`studio_activity_summary` table, with every input's pass/fail or rate stored in
+`healthScoreExplanation` for the drilldown's "why." The "no drop in active clients vs.
+30 days ago" input has no real baseline on day one — it defaults to full credit,
+explicitly labeled `no_baseline_yet` rather than faking a comparison; the job also
+writes today's per-studio active-client count into `daily_metric_rollup` each run, so
+that baseline becomes real after 30 days. Retention cohorts (signup-week × weeks-since,
+cell = % of cohort weekly-active) and the Trainers & Studios list/drilldown are computed
+on demand from `product_event`/`studio_activity_summary`, same "bounded by date range,
+no new rollup" posture as Phase 2's Funnels. Migrations `0056` (new tables). 4 new admin
+pages (Retention, Studios + `[id]` drilldown, System Health, Data Quality).
+
+A new scenario test (`features/analytics/health-score.test.ts`) seeds one studio that
+clears every input and one that clears none, asserting the exact weighted score (100
+and 15) and that `onboardingCompletionRate`'s 0/1 rate reads as 0, not a silent
+full-credit default — the one input that's supposed to do that is `noDropInActiveClients30d`,
+and only when there's genuinely no baseline. `tsc --noEmit`, `biome check`, the full API
+suite (429/431 — same 2 pre-existing unrelated failures as Phase 1/2), and `next build`
+for api/admin/client/trainer all pass.
+
+Phase 4 (Referrals page, full funnel builder UI, CSV export, aggregation-threshold
+enforcement — `implementation-roadmap.md`'s last scheduled phase): `GET
+/admin/analytics/referrals` (codes created, referrals attributed, and a
+still-active-conversion rate computed only over attributed studios — kept separate
+from Acquisition's UTM numbers per `attribution-design.md`); full funnel CRUD (`POST`/
+`PATCH`/`DELETE /admin/analytics/funnels[/:id]`, plus `GET .../event-names` so the
+builder's step picker reads the real server-side event catalog instead of a second
+hardcoded list) and a builder sheet in the Funnels page — create, edit, and delete a
+funnel with no deploy, not just view the two seeded ones. A shared CSV-export utility
+(`apps/admin/src/lib/csv.ts`) with small-cell suppression (masks any count under 5 as
+`"<5"` rather than silently dropping the row, which would still leak its approximate
+size via the gap in the total) wired into Acquisition, Product Usage, Studios, System
+Health, Retention, and Funnels — Retention additionally masks a whole cohort's
+percentages, not just its size, since the percentage alone would still reveal a single
+studio's outcome in a cohort that small.
+
+3 new scenario tests (`features/admin/phase4.test.ts`) cover the funnel CRUD round
+trip end to end (create → list → compute → edit → recompute → delete → 404), the
+<2-steps rejection, and that the referrals conversion rate correctly excludes a
+referred studio that was later soft-deleted. `tsc --noEmit`, `biome check`, the full
+API suite (432/434 — same 2 pre-existing unrelated failures as every earlier phase),
+and `next build` for admin pass.
+
+**This closes every phase in `implementation-roadmap.md` except "Future"** (revenue
+analytics, a possible ClickHouse migration, admin RBAC beyond one phone number — all
+three explicitly prerequisite-gated in that doc, not scheduled work).
+
+**Not done:** manual browser verification of any new page; populating
+`analytics_session` itself (nothing writes to it yet — Engagement's "sessions/week" is
+a `session_started`-event proxy, not real sessions); a generic multi-property-filter
+funnel step (the builder supports one `key=value` filter per step, the only shape any
+real funnel in this codebase has needed so far).
+
+## Lead intelligence — 2026-11-11
+
+Initial executed research pipeline in `packages/lead-intelligence`, with 201 records (147 gyms, 50 published-online-offer coaching prospects, 4 unverified trainers). The additional 25-prospect batch requested on 12 November 2026 is complete; no ongoing search or outreach. Live seven-tab Sheets CRM and local CSV/XLSX exports delivered. See package README and feature acceptance for verification, evidence, commands and limitations. Stretch collection targets and fully automated enrichment are not complete. No outreach sent.
+
 ## PWA rollout (client + trainer) — in progress, not committed
 
 Phases 0–5 done, phase 6 in progress. Full plan, the six founder-approved requirements,

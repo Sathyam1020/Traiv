@@ -2,12 +2,11 @@ import { newId, schema } from "@traiv/db";
 import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "./db.js";
-import { toE164 } from "./features/auth/service.js";
 import { studioJoin } from "./features/client/routes.js";
 import { studios as studioRouter } from "./features/studio/routes.js";
 import { listStudios } from "./features/studio/service.js";
 import { Agent, signUpOverHttp, startApi, type TestServer } from "./test-support/http.js";
-import { resetPhones } from "./test-support/reset.js";
+import { resetEmails } from "./test-support/reset.js";
 
 /**
  * Authorization at the HTTP boundary.
@@ -17,12 +16,12 @@ import { resetPhones } from "./test-support/reset.js";
  * mapping, because the failure mode this file exists to catch is a route that simply
  * never calls the gate.
  *
- * Numbers are in a reserved 793xxxx range so they cannot collide with the other suites.
+ * Addresses are in a reserved namespace so they cannot collide with the other suites.
  */
-const OWNER_A = "8200000001";
-const COACH_A = "8200000002";
-const OWNER_B = "8200000003";
-const LONER = "8200000004";
+const OWNER_A = "authz-owner-a@example.com";
+const COACH_A = "authz-coach-a@example.com";
+const OWNER_B = "authz-owner-b@example.com";
+const LONER = "authz-loner@example.com";
 const ALL = [OWNER_A, COACH_A, OWNER_B, LONER];
 
 let api: TestServer;
@@ -33,11 +32,11 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await api.close();
-  await resetPhones(ALL.map(toE164));
+  await resetEmails(ALL);
 });
 
 beforeEach(async () => {
-  await resetPhones(ALL.map(toE164));
+  await resetEmails(ALL);
 });
 
 /** Owner A with a coach in their studio, plus an unrelated owner B. */

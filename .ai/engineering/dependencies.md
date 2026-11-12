@@ -76,6 +76,7 @@ Adding a catalog entry means the process above was completed first.
 | tw-animate-css | 1.4.0 | ui | the `animate-in` utilities every shadcn component already uses |
 | react-markdown | 10.1.0 | web | rendering blog posts written in the admin app |
 | remark-gfm | 4.0.1 | web | tables, strikethrough and task lists in those posts |
+| resend | 6.38.0 | api | OTP email delivery (ADR 0034) |
 
 **Not installed yet:** Serwist (client PWA), AWS SDK (SES), Razorpay SDK, Playwright.
 
@@ -292,3 +293,22 @@ persister's `removeClient()` directly rather than relying only on the throttled
 auto-persist of an emptied cache).
 
 Reference: https://tanstack.com/query/latest/docs/framework/react/plugins/persistQueryClient
+
+## Email OTP delivery (Resend) — 2026-11-12
+
+`resend` **6.38.0** (npm stable verified via `pnpm view resend version`) replaces the
+MSG91/WhatsApp/android-sms-gateway transports as the only remaining OTP channel
+(ADR 0034 — phone auth is retired). Sending transactional email reliably — SPF/DKIM/DMARC,
+bounce and complaint handling, deliverability reputation — is not something to hand-roll
+over raw SMTP; a dedicated transactional provider is the standard solution, and nothing
+in the platform or stdlib substitutes for one. Current docs
+(resend.com/docs/send-with-nodejs, resend.com/pricing) read before implementation, not
+assumed from memory: `new Resend(apiKey)` + `resend.emails.send({ from, to, subject,
+html })`; `from` must be an address on a domain verified in the Resend dashboard — an
+unverified domain can only deliver to the account owner's own address, which is why the
+console transport remains the dev/test fallback exactly as it was for phone. Free tier
+is 100 emails/day (3,000/month); Pro is $20/mo for 50k/month with no daily cap — far
+beyond Traiv's current signup volume on either tier. Server-only (`apps/api`); no bundle
+cost on any frontend app.
+
+Reference: https://resend.com/docs/send-with-nodejs

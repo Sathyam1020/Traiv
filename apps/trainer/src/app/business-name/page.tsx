@@ -4,9 +4,8 @@ import { BusinessNameForm } from "@/components/auth/business-name-form";
 export const metadata = { title: "Name your business · Traiv" };
 
 /**
- * Just the card, centered — no `AuthAside`. See `/link-phone/page.tsx`: this is the same
- * kind of one-step detour for someone already signed in, not a first impression to sell
- * the product with.
+ * Just the card, centered — no `AuthAside`. A one-step detour for someone already
+ * signed in, not a first impression to sell the product with.
  */
 export default function Page() {
   return (

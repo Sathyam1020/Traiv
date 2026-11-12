@@ -3,6 +3,7 @@ import { newId, schema } from "@traiv/db";
 import { and, asc, eq, isNull } from "drizzle-orm";
 import { db } from "../../db.js";
 import { notFound } from "../../errors.js";
+import { track } from "../analytics/service.js";
 import { newJoinCode } from "../client/join.js";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0] | typeof db;
@@ -143,7 +144,16 @@ export async function activateStudio(sessionId: string, studioId: string) {
  * this runs — this must not be called without that gate having already confirmed the
  * caller owns the studio they're asking to rename.
  */
-export async function renameStudio(studioId: string, name: string) {
+export async function renameStudio(studioId: string, userId: string, name: string) {
+  // Read before the update, not after — `nameConfirmed` is always set to `true` below
+  // (the business-name step and a later rename in Settings both call this), so the only
+  // way to tell "first confirmation" from "just a rename" is whether it was already true.
+  const [before] = await db
+    .select({ nameConfirmed: schema.studios.nameConfirmed })
+    .from(schema.studios)
+    .where(eq(schema.studios.id, studioId))
+    .limit(1);
+
   const [studio] = await db
     .update(schema.studios)
     // An explicit rename is the owner choosing a name — the business-name step and a
@@ -159,6 +169,18 @@ export async function renameStudio(studioId: string, name: string) {
       nameConfirmed: schema.studios.nameConfirmed,
     });
   if (!studio) throw notFound("Studio not found.");
+
+  if (before && !before.nameConfirmed) {
+    await track({
+      name: "business_name_confirmed",
+      properties: {},
+      userId,
+      studioId,
+      actorRole: "trainer",
+      sourceApp: "trainer",
+    }).catch(() => {});
+  }
+
   return studio;
 }
 

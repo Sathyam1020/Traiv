@@ -29,7 +29,8 @@
     "express": "catalog:",
     "zod": "catalog:",
     "web-push": "catalog:",
-    "@traiv/exercises": "workspace:*"
+    "@traiv/exercises": "workspace:*",
+    "resend": "catalog:"
   },
   "devDependencies": {
     "@types/express": "catalog:",

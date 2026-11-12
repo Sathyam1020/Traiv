@@ -3,16 +3,15 @@ export type User = {
   name: string;
   email: string | null;
   phone: string | null;
-  needsPhone: boolean;
   needsProfile: boolean;
 };
 
-export type TransportName = "whatsapp" | "sms" | "console";
+export type TransportName = "email" | "console";
 
 export type AuthConfig = {
   google: boolean;
   otp: { primary: TransportName; fallback: TransportName | null; live: boolean };
-  /** False in development with OTP=NO: a name and a number are enough. */
+  /** False in development with OTP=NO: a name and an email are enough. */
   otpRequired: boolean;
 };
 

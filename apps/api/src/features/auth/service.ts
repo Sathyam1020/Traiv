@@ -6,6 +6,7 @@ import { env } from "../../env.js";
 import { badRequest, notFound, tooManyRequests, unauthorized } from "../../errors.js";
 import { sendOtp } from "../../integrations/otp/index.js";
 import { hash, hashOtp, newOtp, newSessionToken, otpMatches } from "../../lib/crypto.js";
+import { track } from "../analytics/service.js";
 import { attributeStudio, normaliseCode, previewEndorserCode } from "../endorse/service.js";
 import { createDefaultStudio, defaultStudioFor, resolveActiveStudio } from "../studio/service.js";
 
@@ -41,18 +42,21 @@ export function toE164(input: string): string {
 }
 
 /**
- * Issue an OTP for a phone number.
+ * Issue an OTP for an email address.
  *
- * Deliberately does not reveal whether the number already has an account — the same
+ * Deliberately does not reveal whether the address already has an account — the same
  * response either way, so this endpoint can't be used to enumerate customers.
  */
 export async function requestChallenge(input: {
-  phone: string;
+  email: string;
   name?: string | undefined;
   ip?: string | undefined;
   endorserCode?: string | undefined;
+  utmSource?: string | undefined;
+  utmMedium?: string | undefined;
+  utmCampaign?: string | undefined;
 }) {
-  const phone = toE164(input.phone);
+  const email = input.email.trim().toLowerCase();
 
   // Checked here, before the code is sent, so a typo is caught while the person can
   // still fix it. Validating after verification instead would mean silently dropping a
@@ -66,8 +70,8 @@ export async function requestChallenge(input: {
     .from(schema.authChallenges)
     .where(
       and(
-        eq(schema.authChallenges.phone, phone),
-        eq(schema.authChallenges.purpose, "phone_verify"),
+        eq(schema.authChallenges.email, email),
+        eq(schema.authChallenges.purpose, "email_verify"),
         gte(schema.authChallenges.createdAt, hourAgo),
         isNotNull(schema.authChallenges.sentAt),
       ),
@@ -77,10 +81,10 @@ export async function requestChallenge(input: {
     throw tooManyRequests("Too many codes requested. Try again in an hour.");
   }
 
-  // Per IP, and deliberately counting rows we never sent. The per-phone quota ignores
+  // Per IP, and deliberately counting rows we never sent. The per-email quota ignores
   // failed sends because an outage is ours not the user's — but applying that here would
-  // make deliberately invalid numbers a free way to hammer the endpoint, which is exactly
-  // how SMS pumping works.
+  // make deliberately invalid addresses a free way to hammer the endpoint, which is
+  // exactly how email pumping works.
   if (input.ip) {
     const [{ count: fromIp } = { count: 0 }] = await db
       .select({ count: sql<number>`count(*)::int` })
@@ -102,33 +106,36 @@ export async function requestChallenge(input: {
   // "Only the newest code is valid" was a query-ordering convention, which a double-tap
   // on resend could break by leaving two live rows. Superseding in the same transaction
   // as the insert makes it an invariant, and the partial unique index on
-  // (phone, purpose) where consumed_at is null is what enforces it.
+  // (email, purpose) where consumed_at is null is what enforces it.
   await db.transaction(async (tx) => {
     await tx
       .update(schema.authChallenges)
       .set({ consumedAt: new Date() })
       .where(
         and(
-          eq(schema.authChallenges.phone, phone),
-          eq(schema.authChallenges.purpose, "phone_verify"),
+          eq(schema.authChallenges.email, email),
+          eq(schema.authChallenges.purpose, "email_verify"),
           isNull(schema.authChallenges.consumedAt),
         ),
       );
 
     await tx.insert(schema.authChallenges).values({
       id: challengeId,
-      purpose: "phone_verify",
-      phone,
+      purpose: "email_verify",
+      email,
       codeHash: hashOtp(challengeId, code),
       expiresAt: new Date(Date.now() + OTP_TTL_MS),
       requestIp: input.ip ?? null,
       pendingName: input.name?.trim() || null,
       pendingEndorserCode: endorserCode,
+      pendingUtmSource: input.utmSource?.trim() || null,
+      pendingUtmMedium: input.utmMedium?.trim() || null,
+      pendingUtmCampaign: input.utmCampaign?.trim() || null,
     });
   });
 
   try {
-    const { transport, fellBack } = await sendOtp(phone, code);
+    const { transport, fellBack } = await sendOtp(email, code);
     await db
       .update(schema.authChallenges)
       .set({ transport, sentAt: new Date() })
@@ -158,12 +165,12 @@ export async function requestChallenge(input: {
 }
 
 export async function verifyChallenge(input: {
-  phone: string;
+  email: string;
   code: string;
   ip?: string | undefined;
   userAgent?: string | undefined;
 }) {
-  const phone = toE164(input.phone);
+  const email = input.email.trim().toLowerCase();
 
   // Only the newest outstanding code is valid — requesting a second one invalidates the
   // first, which is what stops an attacker keeping many live codes in play.
@@ -172,8 +179,8 @@ export async function verifyChallenge(input: {
     .from(schema.authChallenges)
     .where(
       and(
-        eq(schema.authChallenges.phone, phone),
-        eq(schema.authChallenges.purpose, "phone_verify"),
+        eq(schema.authChallenges.email, email),
+        eq(schema.authChallenges.purpose, "email_verify"),
       ),
     )
     .orderBy(desc(schema.authChallenges.createdAt))
@@ -183,14 +190,14 @@ export async function verifyChallenge(input: {
 
   // Per-challenge attempts reset every time a new code is issued, so on its own the cap
   // only costs an attacker a resend. This counts failures across every challenge for the
-  // number in the last hour, which is the limit that actually binds.
+  // address in the last hour, which is the limit that actually binds.
   const [{ failed } = { failed: 0 }] = await db
     .select({ failed: sql<number>`coalesce(sum(${schema.authChallenges.attempts}), 0)::int` })
     .from(schema.authChallenges)
     .where(
       and(
-        eq(schema.authChallenges.phone, phone),
-        eq(schema.authChallenges.purpose, "phone_verify"),
+        eq(schema.authChallenges.email, email),
+        eq(schema.authChallenges.purpose, "email_verify"),
         gte(schema.authChallenges.createdAt, new Date(Date.now() - 60 * 60 * 1000)),
       ),
     );
@@ -243,28 +250,34 @@ export async function verifyChallenge(input: {
   if (!won) throw badRequest("code_used", "That code has already been used.");
 
   return establishSession({
-    phone,
+    email,
     pendingName: challenge.pendingName,
     pendingEndorserCode: challenge.pendingEndorserCode,
+    utmSource: challenge.pendingUtmSource,
+    utmMedium: challenge.pendingUtmMedium,
+    utmCampaign: challenge.pendingUtmCampaign,
     ip: input.ip,
     userAgent: input.userAgent,
   });
 }
 
 /**
- * Sign in with a phone number and nothing else.
+ * Sign in with an email address and nothing else.
  *
  * Only reachable when `OTP=NO`, which production refuses to boot with — otherwise
- * knowing somebody's number would be enough to become them. It exists so development
+ * knowing somebody's address would be enough to become them. It exists so development
  * does not require reading a code out of a log on every single sign-in.
  *
  * It deliberately runs the same `establishSession` as the real flow, so what gets
  * created, attributed and sessioned is identical. The only thing skipped is the proof.
  */
 export async function signInDirect(input: {
-  phone: string;
+  email: string;
   name?: string | undefined;
   endorserCode?: string | undefined;
+  utmSource?: string | undefined;
+  utmMedium?: string | undefined;
+  utmCampaign?: string | undefined;
   ip?: string | undefined;
   userAgent?: string | undefined;
 }) {
@@ -272,44 +285,50 @@ export async function signInDirect(input: {
     throw badRequest("otp_required", "A verification code is required.");
   }
 
-  const phone = toE164(input.phone);
+  const email = input.email.trim().toLowerCase();
   const endorserCode = input.endorserCode?.trim() ? normaliseCode(input.endorserCode) : null;
   // Checked the same way the OTP path checks it, so a bad code fails here too rather
   // than being silently dropped.
   if (endorserCode) await previewEndorserCode(endorserCode);
 
   return establishSession({
-    phone,
+    email,
     pendingName: input.name?.trim() || null,
     pendingEndorserCode: endorserCode,
+    utmSource: input.utmSource,
+    utmMedium: input.utmMedium,
+    utmCampaign: input.utmCampaign,
     ip: input.ip,
     userAgent: input.userAgent,
   });
 }
 
 /**
- * Everything that happens once a phone number has been proven.
+ * Everything that happens once an email address has been proven.
  *
  * Shared by both ways in — the OTP flow, and the direct path used when `OTP=NO` in
  * development. One function on purpose: account creation, the default studio, referral
- * attribution and the session must behave identically however the number was proven,
+ * attribution and the session must behave identically however the address was proven,
  * and two copies would drift the first time either changed.
  */
 async function establishSession(input: {
-  phone: string;
+  email: string;
   pendingName: string | null;
   pendingEndorserCode: string | null;
+  utmSource?: string | null;
+  utmMedium?: string | null;
+  utmCampaign?: string | null;
   ip?: string | undefined;
   userAgent?: string | undefined;
 }) {
-  const { phone } = input;
-  let referred = false;
+  const { email } = input;
+  let referredEndorserId: string | null = null;
 
-  return db.transaction(async (tx) => {
+  const result = await db.transaction(async (tx) => {
     let [user] = await tx
       .select()
       .from(schema.users)
-      .where(and(eq(schema.users.phone, phone), isNull(schema.users.deletedAt)))
+      .where(and(eq(schema.users.email, email), isNull(schema.users.deletedAt)))
       .limit(1);
 
     const isNew = !user;
@@ -320,18 +339,18 @@ async function establishSession(input: {
         .insert(schema.users)
         .values({
           id: newId(),
-          phone,
+          email,
           name,
-          phoneVerifiedAt: new Date(),
+          emailVerifiedAt: new Date(),
         })
         .returning();
       user = created;
 
       if (user) {
-        // No phone row in auth_identity. The number on `user` is the credential, and a
+        // No email row in auth_identity. The address on `user` is the credential, and a
         // second copy here would be a second thing to keep in step on every change —
-        // which is how a stale identity outlives a phone number and lets its next owner
-        // in. auth_identity is for providers we do not own.
+        // which is how a stale identity outlives an email address and lets its next
+        // owner in. auth_identity is for providers we do not own.
         //
         // Same transaction as the user, so "every trainer has a studio" cannot be broken
         // by a partial failure.
@@ -341,17 +360,36 @@ async function establishSession(input: {
         // be lost while the account it belongs to survives, which is the one outcome
         // nobody can detect afterwards.
         if (input.pendingEndorserCode) {
-          referred = await attributeStudio(tx, {
+          referredEndorserId = await attributeStudio(tx, {
             studioId,
             ownerUserId: user.id,
             code: input.pendingEndorserCode,
           });
         }
+
+        // The bridge `attribution-design.md` adds to the existing anonymous
+        // `analytics_event` system: the signup-time UTM params, written once, same
+        // transaction as the user — a crash between commit and this write would leave
+        // a real trainer with no attribution row, same reasoning as the studio above.
+        // Only when at least one param actually arrived; a signup with none has
+        // nothing to record, not a record of "no channel."
+        if (input.utmSource || input.utmMedium || input.utmCampaign) {
+          await tx.insert(schema.acquisitionAttributions).values({
+            userId: user.id,
+            firstTouchSource: input.utmSource ?? null,
+            firstTouchMedium: input.utmMedium ?? null,
+            firstTouchCampaign: input.utmCampaign ?? null,
+            firstTouchAt: new Date(),
+            lastTouchSource: input.utmSource ?? null,
+            lastTouchMedium: input.utmMedium ?? null,
+            lastTouchCampaign: input.utmCampaign ?? null,
+            lastTouchAt: new Date(),
+          });
+        }
       }
     } else {
-      // Refreshed on every successful OTP, not only the first. Indian carriers reassign
-      // disconnected numbers after about 90 days, and this is the column that makes
-      // "how long since this number proved itself" answerable at all.
+      // Refreshed on every successful OTP, not only the first — the column that makes
+      // "how long since this address proved itself" answerable at all.
       //
       // A name is filled in only if there isn't one. An account can be created by an app
       // that never asked for a name — and then stay nameless forever, which shows up as
@@ -360,7 +398,7 @@ async function establishSession(input: {
       const fillName = !user.name && input.pendingName ? { name: input.pendingName } : {};
       await tx
         .update(schema.users)
-        .set({ phoneVerifiedAt: new Date(), updatedAt: new Date(), ...fillName })
+        .set({ emailVerifiedAt: new Date(), updatedAt: new Date(), ...fillName })
         .where(eq(schema.users.id, user.id));
       if (fillName.name) user = { ...user, name: fillName.name };
     }
@@ -369,13 +407,49 @@ async function establishSession(input: {
 
     const activeStudioId = await resolveActiveStudio(user.id, null, tx);
     const session = await issueSession(tx, user.id, input.ip, input.userAgent, activeStudioId);
+
     return {
-      user: { ...user, phoneVerifiedAt: user.phoneVerifiedAt ?? new Date() },
+      user: { ...user, emailVerifiedAt: user.emailVerifiedAt ?? new Date() },
       session,
       isNew,
-      referred,
+      // The public, HTTP-facing field — unchanged shape, every existing caller keeps
+      // reading a plain boolean.
+      referred: Boolean(referredEndorserId),
+      // Internal-only, for the `referral_attributed` track call below — never
+      // destructured by a route, so it adds nothing to the response.
+      referredEndorserId,
+      activeStudioId,
     };
   });
+
+  if (result.isNew) {
+    // Outside the transaction, and never allowed to fail the signup it's describing —
+    // this is a separate connection via `track()`'s own `db`, so coupling it to the
+    // transaction above would only let an analytics hiccup take a real signup down with
+    // it, for no benefit (the event is only meaningful once the signup actually
+    // committed, which by this point it has).
+    await track({
+      name: "signup_completed",
+      properties: { method: "email" },
+      userId: result.user.id,
+      studioId: result.activeStudioId,
+      actorRole: "trainer",
+      sourceApp: "trainer",
+    }).catch(() => {});
+
+    if (result.referredEndorserId) {
+      await track({
+        name: "referral_attributed",
+        properties: { endorser_id: result.referredEndorserId },
+        userId: result.user.id,
+        studioId: result.activeStudioId,
+        actorRole: "trainer",
+        sourceApp: "trainer",
+      }).catch(() => {});
+    }
+  }
+
+  return result;
 }
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -444,232 +518,6 @@ export async function completeProfile(userId: string, input: { email?: string; n
   return user;
 }
 
-/**
- * The phone step for an account that proved itself another way (Google).
- *
- * Deliberately not `requestChallenge` with a `userId` bolted on: that function's job is
- * "look up or create a user by this phone," which is exactly wrong here — the user
- * already exists and is already signed in. This only ever attaches a phone to the
- * session that asked, and unlike `requestChallenge` it does reveal whether the number is
- * taken, because the caller is already authenticated — there is no anonymous enumeration
- * to protect against, only a real person deciding whether to use a different number.
- */
-export async function requestPhoneLink(userId: string, input: { phone: string; ip?: string }) {
-  const phone = toE164(input.phone);
-
-  const [taken] = await db
-    .select({ id: schema.users.id })
-    .from(schema.users)
-    .where(and(eq(schema.users.phone, phone), isNull(schema.users.deletedAt)))
-    .limit(1);
-  if (taken && taken.id !== userId) {
-    throw badRequest("phone_taken", "That number is already on another account.");
-  }
-
-  const hourAgo = new Date(Date.now() - 60 * 60 * 1000);
-
-  const [{ count } = { count: 0 }] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(schema.authChallenges)
-    .where(
-      and(
-        eq(schema.authChallenges.phone, phone),
-        eq(schema.authChallenges.purpose, "phone_link"),
-        gte(schema.authChallenges.createdAt, hourAgo),
-        isNotNull(schema.authChallenges.sentAt),
-      ),
-    );
-  if (count >= MAX_SENDS_PER_HOUR) {
-    throw tooManyRequests("Too many codes requested. Try again in an hour.");
-  }
-
-  if (input.ip) {
-    const [{ count: fromIp } = { count: 0 }] = await db
-      .select({ count: sql<number>`count(*)::int` })
-      .from(schema.authChallenges)
-      .where(
-        and(
-          eq(schema.authChallenges.requestIp, input.ip),
-          gte(schema.authChallenges.createdAt, hourAgo),
-        ),
-      );
-    if (fromIp >= MAX_SENDS_PER_IP_PER_HOUR) {
-      throw tooManyRequests("Too many codes requested. Try again in an hour.");
-    }
-  }
-
-  const code = newOtp();
-  const challengeId = newId();
-
-  await db.transaction(async (tx) => {
-    await tx
-      .update(schema.authChallenges)
-      .set({ consumedAt: new Date() })
-      .where(
-        and(
-          eq(schema.authChallenges.phone, phone),
-          eq(schema.authChallenges.purpose, "phone_link"),
-          isNull(schema.authChallenges.consumedAt),
-        ),
-      );
-
-    await tx.insert(schema.authChallenges).values({
-      id: challengeId,
-      purpose: "phone_link",
-      phone,
-      userId,
-      codeHash: hashOtp(challengeId, code),
-      expiresAt: new Date(Date.now() + OTP_TTL_MS),
-      requestIp: input.ip ?? null,
-    });
-  });
-
-  try {
-    const { transport, fellBack } = await sendOtp(phone, code);
-    await db
-      .update(schema.authChallenges)
-      .set({ transport, sentAt: new Date() })
-      .where(eq(schema.authChallenges.id, challengeId));
-    return {
-      sent: true as const,
-      transport,
-      fellBack,
-      ...(transport === "console" ? { code } : {}),
-    };
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    await db
-      .update(schema.authChallenges)
-      .set({ sendError: message.slice(0, 500) })
-      .where(eq(schema.authChallenges.id, challengeId));
-    console.error("[otp] every transport failed:", message);
-    throw badRequest("otp_send_failed", "Couldn't send the code right now. Try again.");
-  }
-}
-
-/**
- * Spend the code and attach the phone to the session that requested it.
- *
- * Mirrors `verifyChallenge`'s guard clauses exactly — same rate limits, same one-shot
- * consumption — but the payoff is different: no new user, no new session, no studio.
- * Just the one column this account was missing. The uniqueness check runs again here,
- * not only in `requestPhoneLink`, because the window between request and verify is
- * exactly when someone else could have claimed the number — the database's own unique
- * index is the real guard; this is what turns that race into a clean error instead of a
- * 500.
- */
-export async function verifyPhoneLink(userId: string, input: { phone: string; code: string }) {
-  const phone = toE164(input.phone);
-
-  const [challenge] = await db
-    .select()
-    .from(schema.authChallenges)
-    .where(
-      and(eq(schema.authChallenges.phone, phone), eq(schema.authChallenges.purpose, "phone_link")),
-    )
-    .orderBy(desc(schema.authChallenges.createdAt))
-    .limit(1);
-
-  if (!challenge || challenge.userId !== userId) {
-    throw badRequest("no_challenge", "Request a code first.");
-  }
-
-  const [{ failed } = { failed: 0 }] = await db
-    .select({ failed: sql<number>`coalesce(sum(${schema.authChallenges.attempts}), 0)::int` })
-    .from(schema.authChallenges)
-    .where(
-      and(
-        eq(schema.authChallenges.phone, phone),
-        eq(schema.authChallenges.purpose, "phone_link"),
-        gte(schema.authChallenges.createdAt, new Date(Date.now() - 60 * 60 * 1000)),
-      ),
-    );
-  if (failed >= MAX_FAILED_PER_HOUR) {
-    throw tooManyRequests("Too many incorrect codes. Request a new code.");
-  }
-
-  const [spent] = await db
-    .update(schema.authChallenges)
-    .set({ attempts: sql`${schema.authChallenges.attempts} + 1` })
-    .where(
-      and(
-        eq(schema.authChallenges.id, challenge.id),
-        isNull(schema.authChallenges.consumedAt),
-        gt(schema.authChallenges.expiresAt, new Date()),
-        lt(schema.authChallenges.attempts, MAX_ATTEMPTS),
-      ),
-    )
-    .returning();
-
-  if (!spent) {
-    if (challenge.consumedAt) throw badRequest("code_used", "That code has already been used.");
-    if (challenge.expiresAt < new Date()) {
-      throw badRequest("code_expired", "That code has expired.");
-    }
-    throw tooManyRequests("Too many attempts. Request a new code.");
-  }
-
-  if (!otpMatches(spent.id, input.code, spent.codeHash)) {
-    throw badRequest("code_invalid", "That code isn't right. Check the latest message.");
-  }
-
-  const [won] = await db
-    .update(schema.authChallenges)
-    .set({ consumedAt: new Date() })
-    .where(and(eq(schema.authChallenges.id, spent.id), isNull(schema.authChallenges.consumedAt)))
-    .returning({ id: schema.authChallenges.id });
-
-  if (!won) throw badRequest("code_used", "That code has already been used.");
-
-  const [taken] = await db
-    .select({ id: schema.users.id })
-    .from(schema.users)
-    .where(and(eq(schema.users.phone, phone), isNull(schema.users.deletedAt)))
-    .limit(1);
-  if (taken && taken.id !== userId) {
-    throw badRequest("phone_taken", "That number is already on another account.");
-  }
-
-  const [user] = await db
-    .update(schema.users)
-    .set({ phone, phoneVerifiedAt: new Date(), updatedAt: new Date() })
-    .where(eq(schema.users.id, userId))
-    .returning();
-
-  if (!user) throw notFound("Account not found.");
-  return user;
-}
-
-/**
- * Dev-only twin of `verifyPhoneLink`, for `OTP=NO` — attaches the phone with no code,
- * the same shortcut `signInDirect` takes for a brand-new account. Gated the same way.
- */
-export async function linkPhoneDirect(userId: string, input: { phone: string }) {
-  if (env.OTP) {
-    throw badRequest("otp_required", "A verification code is required.");
-  }
-
-  const phone = toE164(input.phone);
-
-  const [taken] = await db
-    .select({ id: schema.users.id })
-    .from(schema.users)
-    .where(and(eq(schema.users.phone, phone), isNull(schema.users.deletedAt)))
-    .limit(1);
-  if (taken && taken.id !== userId) {
-    throw badRequest("phone_taken", "That number is already on another account.");
-  }
-
-  const [user] = await db
-    .update(schema.users)
-    .set({ phone, phoneVerifiedAt: new Date(), updatedAt: new Date() })
-    .where(eq(schema.users.id, userId))
-    .returning();
-
-  if (!user) throw notFound("Account not found.");
-  return user;
-}
-
 export async function getUser(userId: string) {
   const [user] = await db
     .select()
@@ -700,9 +548,8 @@ export function publicUser(u: typeof schema.users.$inferSelect) {
     avatarUrl: u.avatarUrl,
     email: u.email,
     phone: u.phone,
-    // Every step is derived from the row, never stored — a stored step column drifts the
-    // first time someone abandons the flow and comes back days later. See ADR 0005.
-    needsPhone: !u.phoneVerifiedAt,
+    // Derived from the row, never stored — a stored step column drifts the first time
+    // someone abandons the flow and comes back days later. See ADR 0034 (was ADR 0005).
     needsProfile: !u.email,
   };
 }

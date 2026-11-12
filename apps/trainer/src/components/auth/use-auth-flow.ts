@@ -1,6 +1,5 @@
 "use client";
 
-import { type CountryCode, DEFAULT_COUNTRY, parsePhone } from "@traiv/phone";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { isApiError, type TransportName } from "@/lib/api";
@@ -18,9 +17,13 @@ export type AuthStep = "identity" | "code" | "profile";
 const OAUTH_ERRORS: Record<string, string> = {
   google_cancelled: "Google sign-in was cancelled.",
   google_state: "That sign-in link expired. Try again.",
-  google_link_phone: "An account already uses that email. Sign in with your phone number instead.",
+  google_email_conflict: "That email is already associated with another account.",
   google_off: "Google sign-in isn't available right now.",
+  google_token: "Google sign-in failed. Try again.",
+  google_profile: "Couldn't read your Google profile. Try again.",
 };
+
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const RESEND_SECONDS = 30;
 
@@ -28,16 +31,16 @@ const RESEND_SECONDS = 30;
  * The whole sign-in / sign-up state machine, kept out of the views.
  *
  * Steps are driven by what the server reports about the account, never by a local guess —
- * `needsProfile` decides whether we ask for an email, so someone who abandoned signup
- * days ago resumes in the right place.
+ * `needsProfile` decides whether we ask for an email, so the rare Google signup that
+ * arrives with no address (consent partially denied) resumes in the right place. An
+ * email+OTP signup always has one by construction and never sees this step.
  */
 export function useAuthFlow(mode: AuthMode) {
   const router = useRouter();
   const params = useSearchParams();
 
   const [step, setStep] = useState<AuthStep>("identity");
-  const [phone, setPhone] = useState("");
-  const [countryCode, setCountryCode] = useState<CountryCode>(DEFAULT_COUNTRY);
+  const [identityEmail, setIdentityEmail] = useState("");
   const [name, setName] = useState("");
   // Optional, and signup only. Someone who was not referred leaves it blank.
   const [endorserCode, setEndorserCode] = useState("");
@@ -45,7 +48,7 @@ export function useAuthFlow(mode: AuthMode) {
   const [code, setCode] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
-  const [transport, setTransport] = useState<TransportName>("sms");
+  const [transport, setTransport] = useState<TransportName>("email");
 
   const requestCode = useRequestCode();
   const verifyCode = useVerifyCode();
@@ -57,9 +60,8 @@ export function useAuthFlow(mode: AuthMode) {
   const otpRequired = authConfig?.otpRequired !== false;
   const updateProfile = useUpdateProfile();
 
-  const parsedPhone = parsePhone(phone, countryCode);
-  const phoneValid = parsedPhone.ok;
-  const canSubmitIdentity = mode === "signin" ? phoneValid : phoneValid && name.trim().length >= 2;
+  const emailValid = EMAIL.test(identityEmail.trim());
+  const canSubmitIdentity = mode === "signin" ? emailValid : emailValid && name.trim().length >= 2;
   const busy =
     requestCode.isPending ||
     verifyCode.isPending ||
@@ -84,19 +86,33 @@ export function useAuthFlow(mode: AuthMode) {
 
   const sendCode = useCallback(async () => {
     setError(null);
-    if (!parsedPhone.ok) {
-      setError("Enter a valid mobile number.");
+    const trimmedEmail = identityEmail.trim();
+    if (!EMAIL.test(trimmedEmail)) {
+      setError("Enter a valid email address.");
       return;
     }
-    const e164 = parsedPhone.e164;
+    // Signup only — there is nothing to attribute for an account that already exists.
+    // Read from this page's own query string, the same way `apps/web`'s click-through
+    // handoff appends them (`attribution-design.md`) — never a cookie.
+    const utm =
+      mode === "signup"
+        ? {
+            ...(params.get("utm_source") ? { utmSource: params.get("utm_source") as string } : {}),
+            ...(params.get("utm_medium") ? { utmMedium: params.get("utm_medium") as string } : {}),
+            ...(params.get("utm_campaign")
+              ? { utmCampaign: params.get("utm_campaign") as string }
+              : {}),
+          }
+        : {};
     try {
       if (!otpRequired) {
         const { user } = await directSignIn.mutateAsync({
-          phone: e164,
+          email: trimmedEmail,
           ...(mode === "signup" && name.trim() ? { name: name.trim() } : {}),
           ...(mode === "signup" && endorserCode.trim()
             ? { endorserCode: endorserCode.trim() }
             : {}),
+          ...utm,
         });
         // Same landing as the verified path, including the profile step.
         if (user.needsProfile) setStep("profile");
@@ -105,9 +121,10 @@ export function useAuthFlow(mode: AuthMode) {
       }
 
       const res = await requestCode.mutateAsync({
-        phone: e164,
+        email: trimmedEmail,
         ...(mode === "signup" && name.trim() ? { name: name.trim() } : {}),
         ...(mode === "signup" && endorserCode.trim() ? { endorserCode: endorserCode.trim() } : {}),
+        ...utm,
       });
       // The server decides — it may have fallen back to another channel.
       setTransport(res.transport);
@@ -116,13 +133,24 @@ export function useAuthFlow(mode: AuthMode) {
     } catch (e) {
       fail(e);
     }
-  }, [requestCode, directSignIn, otpRequired, parsedPhone, name, endorserCode, mode, router, fail]);
+  }, [
+    requestCode,
+    directSignIn,
+    otpRequired,
+    identityEmail,
+    name,
+    endorserCode,
+    mode,
+    router,
+    fail,
+    params,
+  ]);
 
   const submitCode = useCallback(async () => {
     setError(null);
     try {
       const { user } = await verifyCode.mutateAsync({
-        phone: parsedPhone.ok ? parsedPhone.e164 : phone,
+        email: identityEmail.trim(),
         code,
       });
       if (user.needsProfile) setStep("profile");
@@ -130,7 +158,7 @@ export function useAuthFlow(mode: AuthMode) {
     } catch (e) {
       fail(e);
     }
-  }, [verifyCode, parsedPhone, phone, code, router, fail]);
+  }, [verifyCode, identityEmail, code, router, fail]);
 
   const submitProfile = useCallback(async () => {
     setError(null);
@@ -153,9 +181,7 @@ export function useAuthFlow(mode: AuthMode) {
 
   return {
     step,
-    phone,
-    countryCode,
-    setCountryCode,
+    identityEmail,
     name,
     email,
     code,
@@ -166,9 +192,9 @@ export function useAuthFlow(mode: AuthMode) {
     setEndorserCode,
     secondsLeft,
     transport,
-    phoneValid,
+    emailValid,
     canSubmitIdentity,
-    setPhone,
+    setIdentityEmail,
     setName,
     setEmail,
     setCode: (v: string) => {

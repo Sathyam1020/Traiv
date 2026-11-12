@@ -1,38 +1,16 @@
 import { env } from "../../env.js";
-import { androidSmsTransport } from "./android-sms.js";
 import { consoleTransport } from "./console.js";
-import { smsTransport } from "./sms.js";
+import { resendTransport } from "./resend.js";
 import type { OtpTransport, TransportName } from "./types.js";
-import { whatsappTransport } from "./whatsapp.js";
 
 export type { OtpTransport, TransportName } from "./types.js";
 
-const smsReady = Boolean(env.MSG91_AUTH_KEY && env.MSG91_SENDER_ID && env.MSG91_FLOW_ID);
-const whatsappReady = Boolean(env.WHATSAPP_PHONE_NUMBER_ID && env.WHATSAPP_ACCESS_TOKEN);
-const androidSmsReady = Boolean(env.ANDROID_SMS_USERNAME && env.ANDROID_SMS_PASSWORD);
+const emailReady = Boolean(env.RESEND_API_KEY && env.RESEND_FROM_ADDRESS);
 
 function build(name: TransportName): OtpTransport | null {
   if (name === "console") return consoleTransport;
-  if (name === "sms") {
-    return smsReady
-      ? smsTransport(
-          env.MSG91_AUTH_KEY as string,
-          env.MSG91_SENDER_ID as string,
-          env.MSG91_FLOW_ID as string,
-        )
-      : null;
-  }
-  if (name === "android-sms") {
-    return androidSmsReady
-      ? androidSmsTransport(
-          env.ANDROID_SMS_BASE_URL,
-          env.ANDROID_SMS_USERNAME as string,
-          env.ANDROID_SMS_PASSWORD as string,
-        )
-      : null;
-  }
-  return whatsappReady
-    ? whatsappTransport(env.WHATSAPP_PHONE_NUMBER_ID as string, env.WHATSAPP_ACCESS_TOKEN as string)
+  return emailReady
+    ? resendTransport(env.RESEND_API_KEY as string, env.RESEND_FROM_ADDRESS as string)
     : null;
 }
 
@@ -63,9 +41,9 @@ export type SendResult = { transport: TransportName; fellBack: boolean };
  * rather than by reaching for module mocks.
  */
 export function createSender(first: OtpTransport, second: OtpTransport | null) {
-  return async function send(phone: string, code: string): Promise<SendResult> {
+  return async function send(target: string, code: string): Promise<SendResult> {
     try {
-      await first.send(phone, code);
+      await first.send(target, code);
       return { transport: first.name, fellBack: false };
     } catch (primaryError) {
       if (!second || second.name === first.name) throw primaryError;
@@ -75,7 +53,7 @@ export function createSender(first: OtpTransport, second: OtpTransport | null) {
         primaryError instanceof Error ? primaryError.message : primaryError,
       );
 
-      await second.send(phone, code);
+      await second.send(target, code);
       return { transport: second.name, fellBack: true };
     }
   };

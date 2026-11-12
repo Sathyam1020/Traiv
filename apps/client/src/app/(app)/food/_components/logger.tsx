@@ -1,21 +1,23 @@
 "use client";
-import { useRef, useState } from "react";
-import { Button } from "@traiv/ui/components/button";
 import { useQuery } from "@tanstack/react-query";
-import { Textarea } from "@traiv/ui/components/textarea";
-import { Input } from "@traiv/ui/components/input";
+import { Button } from "@traiv/ui/components/button";
 import { Calendar } from "@traiv/ui/components/calendar";
-import { Popover, PopoverTrigger, PopoverContent } from "@traiv/ui/components/popover";
+import { Input } from "@traiv/ui/components/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@traiv/ui/components/popover";
 import {
   Select,
-  SelectTrigger,
-  SelectValue,
   SelectContent,
   SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@traiv/ui/components/select";
-import { Plus, Minus, Star, CalendarDays } from "@traiv/ui/icons";
-import { foodApi, localDay, slots, type FoodItem, type Slot, type Entry } from "@/lib/api/food";
-import { Panel, ErrorText, Field, card, NutritionRing } from "./common";
+import { Textarea } from "@traiv/ui/components/textarea";
+import { CalendarDays, Minus, Plus, Star } from "@traiv/ui/icons";
+import { notifyAction } from "@traiv/ui/lib/action-feedback";
+import { useRef, useState } from "react";
+import { track } from "@/lib/analytics/track";
+import { type Entry, type FoodItem, foodApi, localDay, type Slot, slots } from "@/lib/api/food";
+import { card, ErrorText, Field, NutritionRing, Panel } from "./common";
 export function Logger({
   studio,
   item,
@@ -84,7 +86,7 @@ export function Logger({
     try {
       if (entry)
         await api.patch(`/entries/${entry.id}`, { revision: entry.revision, date, slot, quantity });
-      else
+      else {
         await api.post("/entries", {
           id: requestId.current,
           date,
@@ -106,6 +108,11 @@ export function Logger({
               }
             : {}),
         });
+        // Never the food name or quantity — see `privacy-security.md`. Only on a fresh
+        // log, not the edit/PATCH branch above.
+        void track("meal_logged", { kind: item.kind });
+      }
+      notifyAction(entry ? "Changes saved" : "Meal logged", "success");
       onSaved();
       onClose();
     } catch (e) {

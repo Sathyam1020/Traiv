@@ -10,7 +10,7 @@ import { isApiError } from "@/lib/api";
  *
  * Written once because there are four screens now and each had been about to grow its
  * own copy — and the one that matters is the middle one: 403 is the correct answer for
- * every account that is not the one named by `ADMIN_PHONE`, so it is an expected state
+ * every account that is not the one named by `ADMIN_EMAIL`, so it is an expected state
  * with its own explanation, not an error.
  */
 export function AdminState({

@@ -20,7 +20,13 @@ export async function upsertSystemIngredients(input: (typeof schema.ingredients.
       .values(rows.slice(i, i + 200))
       .onConflictDoUpdate({
         target: [schema.ingredients.name, schema.ingredients.dataSource],
-        targetWhere: sql`"studio_id" is null and "deleted_at" is null`,
+        // Must match `ingredient_system_name_key` exactly — Postgres refuses an
+        // `ON CONFLICT ... WHERE` clause that isn't the same predicate as an existing
+        // partial unique index, rather than falling back to a slower check. This was
+        // missing `client_id is null and barcode is null`, so every upsert threw
+        // `42P10` and aborted the whole import — including every recipe and its steps
+        // past this point, since `storeCoachwayImport` calls this first.
+        targetWhere: sql`"studio_id" is null and "client_id" is null and "barcode" is null and "deleted_at" is null`,
         set: {
           dataSource: sql`excluded.data_source`,
           category: sql`excluded.category`,

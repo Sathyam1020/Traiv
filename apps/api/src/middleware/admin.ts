@@ -4,16 +4,16 @@ import type { NextFunction, Request, RequestHandler, Response } from "express";
 import { db } from "../db.js";
 import { env } from "../env.js";
 import { forbidden } from "../errors.js";
-import { toE164 } from "../features/auth/service.js";
 import { requireSession } from "./session.js";
 
 /**
  * The platform administrator.
  *
  * Deliberately not a table and not a role column. There is exactly one admin, named by
- * `ADMIN_PHONE`, and no endpoint anywhere that grants the role — so the only way to
- * become admin is to change the environment and restart. That matters because every
- * other privilege in this system is data, and data can be written by a bug.
+ * `ADMIN_EMAIL` — ADR 0034, was `ADMIN_PHONE` — and no endpoint anywhere that grants the
+ * role — so the only way to become admin is to change the environment and restart. That
+ * matters because every other privilege in this system is data, and data can be written
+ * by a bug.
  *
  * Unset means nobody is an admin, which is the right default for a deployment that
  * forgot to configure it.
@@ -23,16 +23,10 @@ export function requireAdmin(): RequestHandler {
     try {
       const { userId } = requireSession(req);
 
-      if (!env.ADMIN_PHONE) throw forbidden("Not allowed.");
+      if (!env.ADMIN_EMAIL) throw forbidden("Not allowed.");
 
-      // Normalised through the same function everything else uses, so the env can be
-      // written as ten digits or E.164 and still match what is stored.
-      let adminPhone: string;
-      try {
-        adminPhone = toE164(env.ADMIN_PHONE);
-      } catch {
-        throw forbidden("Not allowed.");
-      }
+      // Same normalisation applied everywhere else an email is stored or compared.
+      const adminEmail = env.ADMIN_EMAIL.trim().toLowerCase();
 
       const [row] = await db
         .select({ id: schema.users.id })
@@ -40,7 +34,7 @@ export function requireAdmin(): RequestHandler {
         .where(
           and(
             eq(schema.users.id, userId),
-            eq(schema.users.phone, adminPhone),
+            eq(schema.users.email, adminEmail),
             isNull(schema.users.deletedAt),
           ),
         )

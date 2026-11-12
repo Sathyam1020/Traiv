@@ -4,7 +4,6 @@ export type User = {
   avatarUrl?: string | null;
   email: string | null;
   phone: string | null;
-  needsPhone: boolean;
   needsProfile: boolean;
 };
 
@@ -25,7 +24,7 @@ export type Session = {
   activeStudioId: string;
 };
 
-export type TransportName = "whatsapp" | "sms" | "console";
+export type TransportName = "email" | "console";
 
 export type AuthConfig = {
   google: boolean;

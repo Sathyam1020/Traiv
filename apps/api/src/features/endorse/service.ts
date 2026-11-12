@@ -3,6 +3,7 @@ import { newId, schema } from "@traiv/db";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
 import { db } from "../../db.js";
 import { badRequest, notFound } from "../../errors.js";
+import { track } from "../analytics/service.js";
 
 /** Same alphabet as the join code: no 0/O/1/I/L/U, because this gets read aloud. */
 const CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTVWXYZ";
@@ -48,7 +49,20 @@ export async function becomeEndorser(userId: string): Promise<EndorserSummary> {
       .onConflictDoNothing()
       .returning();
 
-    if (row) return { id: row.id, code: row.code, createdAt: row.createdAt, referrals: 0 };
+    if (row) {
+      // Never allowed to fail the join it's describing — same reasoning as every other
+      // instrumentation site. Only the fresh-insert branch: a double-tap or a lost-race
+      // retry below resolves to the endorser's existing record, not a new join.
+      await track({
+        name: "referral_code_created",
+        properties: {},
+        userId,
+        studioId: null,
+        actorRole: "endorser",
+        sourceApp: "endorse",
+      }).catch(() => {});
+      return { id: row.id, code: row.code, createdAt: row.createdAt, referrals: 0 };
+    }
 
     const now = await findEndorserByUser(userId);
     if (now) return now; // lost the race to our own second request — that is a success
@@ -116,12 +130,13 @@ export async function previewEndorserCode(rawCode: string): Promise<{ name: stri
  * create someone's account over it is worse. The caller is creating a user — that has to
  * succeed.
  *
- * Returns whether the referral was recorded, so the caller can say so.
+ * Returns the endorser's id if the referral was recorded, so the caller can both say so
+ * and — for `referral_attributed` tracking — say who it was.
  */
 export async function attributeStudio(
   tx: Tx,
   input: { studioId: string; ownerUserId: string; code: string },
-): Promise<boolean> {
+): Promise<string | null> {
   const code = normaliseCode(input.code);
 
   const [endorser] = await tx
@@ -130,12 +145,12 @@ export async function attributeStudio(
     .where(and(eq(schema.endorsers.code, code), isNull(schema.endorsers.deletedAt)))
     .limit(1);
 
-  if (!endorser) return false;
+  if (!endorser) return null;
 
   // You cannot refer yourself. Unreachable at signup today — the user is created in this
   // same transaction, so they cannot already hold a code — but the rule is the rule, and
   // the day a code can be entered after signup this is the only thing standing in the way.
-  if (endorser.userId === input.ownerUserId) return false;
+  if (endorser.userId === input.ownerUserId) return null;
 
   const [row] = await tx
     .insert(schema.referrals)
@@ -150,7 +165,7 @@ export async function attributeStudio(
     .onConflictDoNothing()
     .returning({ id: schema.referrals.id });
 
-  return Boolean(row);
+  return row ? endorser.id : null;
 }
 
 export type ReferralRow = {

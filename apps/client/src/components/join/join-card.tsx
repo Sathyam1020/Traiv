@@ -1,22 +1,24 @@
 "use client";
 
-import { isValidMobile } from "@traiv/phone";
 import { Button } from "@traiv/ui/components/button";
+import { GoogleButton } from "@traiv/ui/components/google-button";
 import { Input } from "@traiv/ui/components/input";
 import { Label } from "@traiv/ui/components/label";
 import { Logo } from "@traiv/ui/components/logo";
-import { PhoneField } from "@traiv/ui/components/phone-field";
 import { ArrowLeft, ArrowRight, Check } from "@traiv/ui/icons";
 import { useState } from "react";
 import { OtpInput } from "@/components/common/otp-input";
 import { useJoinFlow } from "@/components/join/use-join-flow";
-import { type JoinOutcome, MARKETING_URL } from "@/lib/api";
+import { API_BASE, type JoinOutcome, MARKETING_URL } from "@/lib/api";
+import { useAuthConfig } from "@/lib/query";
+
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * Signing up to a specific coach.
  *
  * The coach's name is shown before anything is asked, because a stranger tapping a link
- * from WhatsApp has to know whose link it is before typing their phone number into it.
+ * from WhatsApp has to know whose link it is before typing their email into it.
  */
 export function JoinCard({
   code,
@@ -30,9 +32,10 @@ export function JoinCard({
   onDone: (outcome: JoinOutcome) => void;
 }) {
   const flow = useJoinFlow(code);
+  const { data: config } = useAuthConfig();
   const [otp, setOtp] = useState("");
 
-  const canSend = isValidMobile(flow.phone, flow.countryCode) && !flow.busy;
+  const canSend = EMAIL.test(flow.email.trim()) && !flow.busy;
 
   async function send() {
     // The no-OTP path signs in and attaches in one go, so it returns the outcome here.
@@ -94,6 +97,22 @@ export function JoinCard({
               </p>
             </header>
 
+            {/* The join code is already remembered (`join-code.ts`) the moment this page
+                loaded, so it survives the round trip off-site to Google and back. The
+                `(app)` layout checks for it on landing and sends a freshly-authenticated
+                session straight back here to finish attaching. */}
+            <GoogleButton
+              enabled={Boolean(config?.google)}
+              href={`${API_BASE}/auth/google/start?app=client`}
+              label="Continue with Google"
+            />
+
+            <div className="flex items-center gap-3">
+              <span className="h-px flex-1 bg-line" />
+              <span className="text-caption text-fg-subtle">or</span>
+              <span className="h-px flex-1 bg-line" />
+            </div>
+
             <div className="flex flex-col gap-2">
               <Label htmlFor="name">Your name</Label>
               <Input
@@ -105,13 +124,18 @@ export function JoinCard({
               />
             </div>
 
-            <PhoneField
-              value={flow.phone}
-              onChange={flow.setPhone}
-              countryCode={flow.countryCode}
-              onCountryChange={flow.setCountryCode}
-              hint="We'll text you a code to verify your number."
-            />
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="join-email">Email</Label>
+              <Input
+                id="join-email"
+                type="email"
+                value={flow.email}
+                onChange={(e) => flow.setEmail(e.target.value)}
+                placeholder="you@example.com"
+                autoComplete="email"
+              />
+              <p className="text-caption text-fg-subtle">We'll email you a code to verify it.</p>
+            </div>
 
             {flow.error ? <p className="text-caption text-danger">{flow.error}</p> : null}
 
@@ -137,11 +161,11 @@ export function JoinCard({
                 }}
                 className="-ml-1 mb-1 flex w-fit cursor-pointer items-center gap-1.5 rounded-control px-1 py-0.5 text-caption text-fg-muted transition-colors hover:text-fg"
               >
-                <ArrowLeft className="size-3.5" /> Change number
+                <ArrowLeft className="size-3.5" /> Change email
               </button>
               <h1 className="text-subheading font-semibold tracking-[-0.02em]">Enter the code</h1>
               <p className="text-body-sm text-fg-muted">
-                Sent to <span className="tabular-nums text-fg">+91 {flow.phone}</span>
+                Sent to <span className="text-fg">{flow.email}</span>
               </p>
             </header>
 

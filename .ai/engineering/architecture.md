@@ -65,16 +65,14 @@ A logged set must never be lost. This is the single most important behaviour in 
 ## Auth
 
 Passwordless-first. Identity lives in `user`; login methods live in `auth_identity`
-rows (`password` / `google` / `apple` / `phone`), so a new provider is a row type rather
-than a migration.
+rows (currently `google`), so a new provider is a row type rather than a migration.
 
-Signup: manual → name + phone → WhatsApp OTP → email (unverified) → done.
-OAuth → email + name from provider → phone → WhatsApp OTP → done.
-Whichever identifier you didn't arrive with, step two collects. Phone is always verified;
-email never is at signup.
+Google OAuth, or email + OTP sent via Resend (ADR 0034). No phone number anywhere in
+auth. Email is always verified at signup, whichever way someone arrives.
 
-**Signup progress is derived, not stored** — `phone_verified_at IS NULL` → step 1,
-`email IS NULL` → step 2. A stored step column drifts the first time someone resumes days later.
+**Signup progress is derived, not stored** — `email IS NULL` is the only remaining step
+a profile can be missing, and it's reachable only via Google when the provider doesn't
+return an address. A stored step column drifts the first time someone resumes days later.
 
 **Sessions are opaque tokens, not JWTs.** Removing a staff member or ending an impersonation
 must kill the session immediately, which a JWT cannot do. httpOnly + Secure + SameSite=Lax,

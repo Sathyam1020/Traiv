@@ -1,13 +1,14 @@
-import {
-  customization,
-  applyExerciseCustomizations,
-} from "../../library/exercise-customizations.js";
-import { enrichDemonstration } from "../../library/exercise-api.js";
-import { activity } from "../messaging/service.js";
 import { newId, schema } from "@traiv/db";
 import { and, asc, desc, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import { db } from "../../db.js";
 import { badRequest, notFound } from "../../errors.js";
+import { enrichDemonstration } from "../../library/exercise-api.js";
+import {
+  applyExerciseCustomizations,
+  customization,
+} from "../../library/exercise-customizations.js";
+import { track } from "../analytics/service.js";
+import { activity } from "../messaging/service.js";
 
 /**
  * The client's own workouts — their copies, verified against the real trainer and
@@ -323,6 +324,26 @@ export async function startSession(clientId: string, templateId: string, workout
     workoutSessionId,
     date: new Date().toISOString().slice(0, 10),
   });
+
+  // Fires only on the branch above that actually opens a new session — resuming an
+  // already-open one (`existing`, just above) is a pause/resume, not a fresh start.
+  // Never allowed to fail the start it's describing, same reasoning as every other site.
+  const [meta] = await db
+    .select({ userId: schema.clients.userId, studioId: schema.clients.studioId })
+    .from(schema.clients)
+    .where(eq(schema.clients.id, clientId))
+    .limit(1);
+  if (meta) {
+    await track({
+      name: "workout_session_started",
+      properties: { template_id: templateId },
+      userId: meta.userId,
+      studioId: meta.studioId,
+      actorRole: "client",
+      sourceApp: "client",
+    }).catch(() => {});
+  }
+
   return { id, startedAt: new Date().toISOString(), sets: [] };
 }
 
@@ -429,7 +450,11 @@ export async function finishSession(
   const sets = await setsFor(trainingSessionId);
   const completed = sets.filter((s) => s.completed);
 
-  return db.transaction(async (tx) => {
+  // Set inside the transaction's real-completion branch, read after it commits — see
+  // the comment below for why tracking happens out here instead of inline.
+  let justCompleted = false;
+
+  const result = await db.transaction(async (tx) => {
     await tx.execute(sql`select id from training_session where id=${trainingSessionId} for update`);
     const [locked] = await tx
       .select()
@@ -464,8 +489,44 @@ export async function finishSession(
       .where(eq(schema.sessions_.id, trainingSessionId))
       .limit(1);
     await activity(tx, clientId, "workout", trainingSessionId);
+    justCompleted = true;
     return row;
   });
+
+  // Outside the transaction, same reasoning as every other instrumentation site: a
+  // tracking failure must never roll back or block the finish it's describing. Only
+  // fires on the branch that actually flipped `completedAt` just now — not on the
+  // early "already finished" returns above, and not on the race where another request
+  // got there first inside the transaction.
+  if (justCompleted && result) {
+    const [meta] = await db
+      .select({
+        templateId: schema.workoutSessions.templateId,
+        userId: schema.clients.userId,
+        studioId: schema.clients.studioId,
+      })
+      .from(schema.sessions_)
+      .innerJoin(
+        schema.workoutSessions,
+        eq(schema.workoutSessions.id, schema.sessions_.workoutSessionId),
+      )
+      .innerJoin(schema.clients, eq(schema.clients.id, schema.sessions_.clientId))
+      .where(eq(schema.sessions_.id, trainingSessionId))
+      .limit(1);
+
+    if (meta) {
+      await track({
+        name: "workout_session_completed",
+        properties: { template_id: meta.templateId, total_seconds: result.totalSeconds ?? null },
+        userId: meta.userId,
+        studioId: meta.studioId,
+        actorRole: "client",
+        sourceApp: "client",
+      }).catch(() => {});
+    }
+  }
+
+  return result;
 }
 
 const sum = (values: (number | null)[]): number | null => {

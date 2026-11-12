@@ -3,32 +3,28 @@ import { eq } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../db.js";
 import { authorizeStudio } from "../../middleware/authorize.js";
-import { requestChallenge, toE164, verifyChallenge } from "../auth/service.js";
+import { requestChallenge, verifyChallenge } from "../auth/service.js";
 import { activateStudio, listStudios, resolveActiveStudio, studioSlug } from "./service.js";
 
-const A = "8600000001";
-const B = "8600000002";
+const A = "studio-test-a@example.com";
+const B = "studio-test-b@example.com";
 
-async function codeFor(phone: string) {
-  const res = await requestChallenge({ phone });
+async function codeFor(email: string) {
+  const res = await requestChallenge({ email });
   if (!res.code) throw new Error("console transport expected in tests");
   return res.code;
 }
 
-async function signUp(phone: string, name: string) {
+async function signUp(email: string, name: string) {
   // One challenge only: a second would supersede this one and drop the pending name.
-  const res = await requestChallenge({ phone, name });
+  const res = await requestChallenge({ email, name });
   if (!res.code) throw new Error("console transport expected in tests");
-  return verifyChallenge({ phone, code: res.code });
+  return verifyChallenge({ email, code: res.code });
 }
 
 async function wipe() {
-  for (const n of [A, B]) {
-    const [u] = await db
-      .select()
-      .from(schema.users)
-      .where(eq(schema.users.phone, toE164(n)))
-      .limit(1);
+  for (const email of [A, B]) {
+    const [u] = await db.select().from(schema.users).where(eq(schema.users.email, email)).limit(1);
     if (u) {
       const ms = await db
         .select()
@@ -40,7 +36,7 @@ async function wipe() {
       await db.delete(schema.authIdentities).where(eq(schema.authIdentities.userId, u.id));
       await db.delete(schema.users).where(eq(schema.users.id, u.id));
     }
-    await db.delete(schema.authChallenges).where(eq(schema.authChallenges.phone, toE164(n)));
+    await db.delete(schema.authChallenges).where(eq(schema.authChallenges.email, email));
   }
 }
 
@@ -102,8 +98,8 @@ describe("signup", () => {
   });
 
   it("names the studio 'My studio' when no name was given", async () => {
-    await requestChallenge({ phone: A });
-    const { user } = await verifyChallenge({ phone: A, code: await codeFor(A) });
+    await requestChallenge({ email: A });
+    const { user } = await verifyChallenge({ email: A, code: await codeFor(A) });
     const mine = await listStudios(user.id);
     expect(mine[0]?.name).toBe("My studio");
   });
@@ -111,8 +107,8 @@ describe("signup", () => {
   // THE SECOND ATTEMPT
   it("signing in again does not create a second studio", async () => {
     const first = await signUp(A, "Sathyam Sahu");
-    await requestChallenge({ phone: A });
-    await verifyChallenge({ phone: A, code: await codeFor(A) });
+    await requestChallenge({ email: A });
+    await verifyChallenge({ email: A, code: await codeFor(A) });
 
     const mine = await listStudios(first.user.id);
     expect(mine).toHaveLength(1);

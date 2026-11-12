@@ -18,6 +18,7 @@ import {
   customization,
   studioExerciseEdits,
 } from "../../library/exercise-customizations.js";
+import { track, userIdForMembership } from "../analytics/service.js";
 import { notifyClient } from "../notifications/service.js";
 import { verifyExerciseUploads } from "./uploads.js";
 
@@ -260,7 +261,34 @@ export async function createTemplate(
     createdBy: membershipId,
   });
   await writeTree(id, input.sessions);
-  return getTemplate(studioId, id);
+  const template = await getTemplate(studioId, id);
+
+  // Never allowed to fail the create it's describing — same reasoning as every other
+  // instrumentation site. `clientId` is this function's own existing distinction
+  // between a reusable library template and one written straight onto a client's own
+  // list, so it also decides which of the two events this row actually represents.
+  const userId = await userIdForMembership(membershipId);
+  await track(
+    clientId === null
+      ? {
+          name: "workout_template_created",
+          properties: { session_count: input.sessions.length },
+          userId,
+          studioId,
+          actorRole: "trainer",
+          sourceApp: "trainer",
+        }
+      : {
+          name: "workout_assigned_to_client",
+          properties: {},
+          userId,
+          studioId,
+          actorRole: "trainer",
+          sourceApp: "trainer",
+        },
+  ).catch(() => {});
+
+  return template;
 }
 
 /**

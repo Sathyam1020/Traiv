@@ -1,5 +1,8 @@
 # 0010 — Auth implementation decisions
-2026-09-12 · Status: accepted · Extends ADR 0005
+2026-09-12 · Status: accepted · Extends ADR 0005 · The phone-specific decisions below —
+"number is registered," the unverified-email-collision resolution, and the `needsPhone`
+consequence — are superseded by ADR 0034. Everything else (HMAC OTP hashing, hand-written
+CORS, Apple dropped, client-side route guarding, separate signin/signup routes) stands.
 
 ## Context
 

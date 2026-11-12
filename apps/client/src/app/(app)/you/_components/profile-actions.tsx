@@ -18,6 +18,7 @@ import { localDay, type StepsData } from "@traiv/ui/lib/steps";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState } from "react";
+import { track } from "@/lib/analytics/track";
 import { type Metric, uploadApi } from "@/lib/api";
 import { http } from "@/lib/api/client";
 import { useCmInches } from "@/lib/length-units";
@@ -409,6 +410,9 @@ export function MeasurementEditor({
         timeZone: timeZone(),
         value,
       });
+      // Never the value itself — only that a measurement of this type was logged. See
+      // `privacy-security.md`'s "Sensitive health data — hard exclusion".
+      void track("measurement_logged", { metric_code: metric.code });
       await qc.invalidateQueries({ queryKey: ["client", "today", studioId] });
       await qc.invalidateQueries({ queryKey: ["measurement-history", studioId] });
       onClose();

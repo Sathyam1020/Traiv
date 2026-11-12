@@ -1,5 +1,11 @@
 # 0016 — Auth hardening after external review
-2026-10-06 · Status: accepted · Amends ADR 0005, ADR 0010
+2026-10-06 · Status: accepted · Amends ADR 0005, ADR 0010 · Phone auth itself is retired
+by ADR 0034, so "the phone credential lives in one place" and "phone recycling" below are
+moot for auth (the `user.phone`/`client.phone` columns they describe still exist, just
+unrelated to sign-in now). Every hardening property that isn't phone-specific —
+atomicity, the resend-doesn't-reset-the-budget rule, the partial-unique-index "one live
+code" pattern, the pepper, federated-identity session revocation — carried forward
+unchanged onto the email-keyed `auth_challenge` rows ADR 0034 introduced.
 
 ## Context
 

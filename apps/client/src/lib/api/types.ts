@@ -3,11 +3,10 @@ export type User = {
   name: string;
   email: string | null;
   phone: string | null;
-  needsPhone: boolean;
   needsProfile: boolean;
 };
 
-export type TransportName = "whatsapp" | "sms" | "console";
+export type TransportName = "email" | "console";
 
 export type AuthConfig = {
   google: boolean;

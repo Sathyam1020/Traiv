@@ -3,6 +3,7 @@ import type { ActivityLevel, DietType, Goal, HealthFlag, PlanInput, Sex } from "
 import { energyTarget } from "@traiv/nutrition";
 import { and, desc, eq } from "drizzle-orm";
 import { db } from "../../db.js";
+import { track } from "../analytics/service.js";
 
 export type WorkActivityLevel = "sedentary" | "light" | "moderate" | "heavy" | "very_heavy";
 
@@ -94,10 +95,10 @@ export async function getIntake(userId: string) {
  * is exactly one such row, held in place by a partial unique index, so stepping back to fix
  * a typo corrects the measurement instead of inventing a second data point.
  */
-export async function saveStep(userId: string, step: number, patch: IntakePatch) {
+export async function saveStep(userId: string, studioId: string, step: number, patch: IntakePatch) {
   const { weightKg, firstName, lastName, avatarUrl, ...fields } = patch;
 
-  return db.transaction(async (tx) => {
+  const row = await db.transaction(async (tx) => {
     const [row] = await tx
       .insert(schema.userIntakes)
       .values({ id: newId(), userId, lastStep: step, ...fields })
@@ -130,6 +131,20 @@ export async function saveStep(userId: string, step: number, patch: IntakePatch)
 
     return row;
   });
+
+  // Outside the transaction, same reasoning as every other instrumentation site. Every
+  // save is a real step completion (including a re-save on going back), unlike the
+  // other four events — there is no "already done" branch to guard against here.
+  await track({
+    name: "onboarding_step_completed",
+    properties: { step_index: step },
+    userId,
+    studioId,
+    actorRole: "client",
+    sourceApp: "client",
+  }).catch(() => {});
+
+  return row;
 }
 
 /** The six answers the calculator cannot work without. */

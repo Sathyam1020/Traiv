@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { SignInCard } from "@/components/auth/signin-card";
 import { useSession } from "@/lib/query";
 
@@ -16,7 +16,9 @@ export default function Page() {
 
   return (
     <main className="flex min-h-dvh items-center justify-center px-5 py-10">
-      <SignInCard mode="signup" onDone={() => router.replace("/dashboard")} />
+      <Suspense>
+        <SignInCard mode="signup" onDone={() => router.replace("/dashboard")} />
+      </Suspense>
     </main>
   );
 }

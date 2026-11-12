@@ -1,9 +1,6 @@
-import { schema } from "@traiv/db";
 import { COUNTRIES, DEFAULT_COUNTRY, parsePhone, phoneProblemMessage } from "@traiv/phone";
-import { eq } from "drizzle-orm";
-import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import { db } from "../../db.js";
-import { requestChallenge, toE164, verifyChallenge } from "./service.js";
+import { describe, expect, it } from "vitest";
+import { toE164 } from "./service.js";
 
 /**
  * The phone rule, which the API and all four apps share.
@@ -74,59 +71,5 @@ describe("phone numbers", () => {
   it("puts the market we serve first", () => {
     expect(COUNTRIES[0]?.code).toBe(DEFAULT_COUNTRY);
     expect(COUNTRIES[0]?.dial).toBe("91");
-  });
-});
-
-/**
- * A coach outside India, through the real service and the real database.
- *
- * The parsing tests above would pass even if the `user_phone_e164` CHECK constraint were
- * still India-only — the row never gets written. This signs somebody up on a UAE number
- * end to end, which is the only way to know the whole path accepts them.
- */
-describe("a coach outside India", () => {
-  const FOREIGN = "+971501234567";
-
-  async function wipe() {
-    const [u] = await db
-      .select()
-      .from(schema.users)
-      .where(eq(schema.users.phone, FOREIGN))
-      .limit(1);
-    if (u) {
-      await db.delete(schema.sessions).where(eq(schema.sessions.userId, u.id));
-      await db.delete(schema.authIdentities).where(eq(schema.authIdentities.userId, u.id));
-      await db.delete(schema.users).where(eq(schema.users.id, u.id));
-    }
-    await db.delete(schema.authChallenges).where(eq(schema.authChallenges.phone, FOREIGN));
-  }
-
-  beforeEach(wipe);
-  afterAll(wipe);
-
-  it("can sign up, and is stored in E.164 like everyone else", async () => {
-    const sent = await requestChallenge({ phone: FOREIGN, name: "Aisha Rahman" });
-    if (!sent.code) throw new Error("console transport expected in tests");
-
-    const { user, isNew } = await verifyChallenge({ phone: FOREIGN, code: sent.code });
-    expect(isNew).toBe(true);
-    expect(user.phone).toBe(FOREIGN);
-    expect(user.name).toBe("Aisha Rahman");
-  });
-
-  it("signs back in as the same person, not a second account", async () => {
-    const first = await requestChallenge({ phone: FOREIGN, name: "Aisha Rahman" });
-    const a = await verifyChallenge({ phone: FOREIGN, code: first.code as string });
-
-    // The server defaults to India, so a bare foreign national number is refused rather
-    // than quietly read as an Indian one — which would create a second, wrong account.
-    expect(() => toE164("50 123 4567")).toThrow();
-
-    // The form sends E.164, so the spacing the person typed makes no difference.
-    const second = await requestChallenge({ phone: "+971 50 123 4567" });
-    const b = await verifyChallenge({ phone: FOREIGN, code: second.code as string });
-
-    expect(b.user.id).toBe(a.user.id);
-    expect(b.isNew).toBe(false);
   });
 });

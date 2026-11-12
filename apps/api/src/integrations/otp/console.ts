@@ -6,9 +6,9 @@ import type { OtpTransport } from "./types.js";
  */
 export const consoleTransport: OtpTransport = {
   name: "console",
-  async send(phone, code) {
+  async send(target, code) {
     console.warn(
-      `\n  ┌─ OTP (console) ─────────────────\n  │  to:   ${phone}\n  │  code: ${code}\n  └─────────────────────────────────\n`,
+      `\n  ┌─ OTP (console) ─────────────────\n  │  to:   ${target}\n  │  code: ${code}\n  └─────────────────────────────────\n`,
     );
   },
 };

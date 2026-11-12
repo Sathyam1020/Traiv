@@ -3,8 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import { db } from "../../db.js";
 import { Agent, signUpOverHttp, startApi, type TestServer } from "../../test-support/http.js";
-import { resetPhones } from "../../test-support/reset.js";
-import { toE164 } from "../auth/service.js";
+import { resetEmails } from "../../test-support/reset.js";
 import { listStudios } from "../studio/service.js";
 
 /**
@@ -15,12 +14,12 @@ import { listStudios } from "../studio/service.js";
  * loses their answers just gives up, and two active targets means the app and the coach
  * read different calories for the same person on the same day.
  *
- * Numbers are in a reserved 840xxxx range so they cannot collide with the other suites.
+ * Addresses are in a reserved namespace so they cannot collide with the other suites.
  */
-const COACH = "8400000001";
-const PERSON = "8400000002";
-const OTHER = "8400000003";
-const COACH_B = "8400000004";
+const COACH = "client-intake-coach@example.com";
+const PERSON = "client-intake-person@example.com";
+const OTHER = "client-intake-other@example.com";
+const COACH_B = "client-intake-coach-b@example.com";
 const ALL = [COACH, PERSON, OTHER, COACH_B];
 
 let api: TestServer;
@@ -31,11 +30,11 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await api.close();
-  await resetPhones(ALL.map(toE164));
+  await resetEmails(ALL);
 });
 
 beforeEach(async () => {
-  await resetPhones(ALL.map(toE164));
+  await resetEmails(ALL);
 });
 
 type Status = "active" | "paused";
