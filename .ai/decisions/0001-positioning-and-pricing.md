@@ -1,5 +1,6 @@
 # 0001 — Product positioning and pricing
-2026-09-11 · Status: accepted
+2026-09-11 · Status: accepted · The "Free and Starter tiers need enforced client limits"
+consequence below is temporarily suspended by ADR 0035 — pricing itself is unchanged.
 
 ## Context
 Every credible competitor bills Indian coaches in USD — FitBudd $79, Spur.fit $59,

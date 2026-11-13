@@ -12,13 +12,19 @@ import { membershipIsLive } from "../studio/service.js";
 const CODE_ALPHABET = "23456789ABCDEFGHJKMNPQRSTVWXYZ";
 const CODE_LENGTH = 8;
 
-/** Free and Starter cap the roster; Pro and Studio do not. Mirrors ADR 0001. */
+/**
+ * Every tier is unlimited for now — caps are reserved, not gone. ADR 0001 called for
+ * enforcing Free/Starter limits once payments exist; until they do, a hinderance-free
+ * signup matters more than protecting a tier nobody is paying to stay under. Restoring
+ * real numbers here (e.g. `free: 2, starter: 8`) is the whole fix when that day comes —
+ * the rest of `joinByCode` already enforces whatever this table says.
+ */
 /** Active and paused hold a seat; waiting, frozen and archived do not. ADR 0013. */
 const SEAT_CONSUMING = ["active", "paused"] as const;
 
 const SEAT_LIMIT: Record<string, number | null> = {
-  free: 2,
-  starter: 8,
+  free: null,
+  starter: null,
   pro: null,
   studio: null,
 };

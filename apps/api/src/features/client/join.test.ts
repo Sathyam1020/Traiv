@@ -177,8 +177,10 @@ describe("scanning the QR", () => {
 });
 
 describe("seat limits", () => {
-  // SCENARIO 7
-  it("refuses once a free studio is full", async () => {
+  // Every tier is unlimited for now (see the comment on `SEAT_LIMIT` in join.ts) —
+  // caps are reserved for when payments exist, not gone. A free studio taking a third
+  // client, past what used to be the two-seat cap, is what proves that.
+  it("a free studio takes more clients than the old cap allowed", async () => {
     const coach = await makeCoach();
     const a = await signUp(CLIENT_A, "Priya Sharma");
     const b = await signUp(CLIENT_B, "Aditya Nair");
@@ -186,51 +188,34 @@ describe("seat limits", () => {
 
     await joinByCode(a.id, coach.joinCode);
     await joinByCode(b.id, coach.joinCode);
-
-    // Free is two clients (ADR 0001).
-    await expect(joinByCode(c.id, coach.joinCode)).rejects.toMatchObject({ status: 403 });
-  });
-
-  it("lets them in once the studio upgrades", async () => {
-    const coach = await makeCoach();
-    const a = await signUp(CLIENT_A, "Priya Sharma");
-    const b = await signUp(CLIENT_B, "Aditya Nair");
-    const c = await signUp(CLIENT_C, "Meera Iyer");
-
-    await joinByCode(a.id, coach.joinCode);
-    await joinByCode(b.id, coach.joinCode);
-    await db
-      .update(schema.studios)
-      .set({ tier: "pro" })
-      .where(eq(schema.studios.id, coach.studioId));
-
     await expect(joinByCode(c.id, coach.joinCode)).resolves.toMatchObject({ status: "joined" });
   });
 
   // SCENARIO 10 — TWO ACTORS
-  it("two people scanning at once cannot both take the last slot", async () => {
+  it("two people scanning at once both get in, as two distinct clients", async () => {
     const coach = await makeCoach();
     const a = await signUp(CLIENT_A, "Priya Sharma");
     const b = await signUp(CLIENT_B, "Aditya Nair");
     const c = await signUp(CLIENT_C, "Meera Iyer");
 
-    await joinByCode(a.id, coach.joinCode); // one of two seats taken
+    await joinByCode(a.id, coach.joinCode);
 
     const results = await Promise.allSettled([
       joinByCode(b.id, coach.joinCode),
       joinByCode(c.id, coach.joinCode),
     ]);
 
+    // With no cap, concurrent joiners never compete for a slot — both succeed, and the
+    // studio row lock that used to guard the seat count still guarantees one row each
+    // rather than a corrupted write under concurrency.
     const ok = results.filter((r) => r.status === "fulfilled");
-    // The seat count is taken inside the transaction with the studio row locked, so the
-    // second joiner sees the first one's insert rather than a stale count.
-    expect(ok).toHaveLength(1);
+    expect(ok).toHaveLength(2);
 
     const rows = await db
       .select()
       .from(schema.clients)
       .where(eq(schema.clients.studioId, coach.studioId));
-    expect(rows).toHaveLength(2);
+    expect(rows).toHaveLength(3);
   });
 });
 

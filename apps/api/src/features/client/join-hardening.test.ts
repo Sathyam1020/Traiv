@@ -68,13 +68,15 @@ describe("joining, under pressure", () => {
   });
 
   // TWO ACTORS
-  it("concurrent joins cannot oversubscribe a free roster", async () => {
+  it("concurrent joins all succeed now that no tier caps the roster (ADR 0035)", async () => {
     const coach = await coachWithStudio();
     const a = await signUp(C1, "Priya Nair");
     const b = await signUp(C2, "Arjun Rao");
     const c = await signUp(C3, "Neha Shah");
 
-    // Free tier seats two. Three people scan at once.
+    // Free tier used to seat two; every tier is unlimited for now (ADR 0035). Three
+    // people scan at once — the studio-row lock still guarantees three clean rows
+    // rather than a corrupted write under concurrency, which is what this still proves.
     const results = await Promise.allSettled([
       joinByCode(a.id, coach.joinCode),
       joinByCode(b.id, coach.joinCode),
@@ -82,34 +84,13 @@ describe("joining, under pressure", () => {
     ]);
 
     const joined = results.filter((r) => r.status === "fulfilled");
-    expect(joined).toHaveLength(2);
+    expect(joined).toHaveLength(3);
 
     const [{ n } = { n: 0 }] = await db
       .select({ n: sql<number>`count(*)::int` })
       .from(schema.clients)
       .where(and(eq(schema.clients.studioId, coach.studioId), isNull(schema.clients.deletedAt)));
-    expect(n).toBe(2);
-  });
-
-  it("an archived client does not hold a seat", async () => {
-    const coach = await coachWithStudio();
-    const a = await signUp(C1, "Priya Nair");
-    const b = await signUp(C2, "Arjun Rao");
-
-    await joinByCode(a.id, coach.joinCode);
-    await joinByCode(b.id, coach.joinCode);
-
-    // Full at two. Archiving one must free their place — counting every undeleted row
-    // meant a coach who ended a relationship could never replace it.
-    const c = await signUp(C3, "Neha Shah");
-    await expect(joinByCode(c.id, coach.joinCode)).rejects.toMatchObject({ status: 403 });
-
-    await db
-      .update(schema.clients)
-      .set({ status: "archived" })
-      .where(and(eq(schema.clients.studioId, coach.studioId), eq(schema.clients.userId, a.id)));
-
-    await expect(joinByCode(c.id, coach.joinCode)).resolves.toMatchObject({ status: "joined" });
+    expect(n).toBe(3);
   });
 
   it("a waiting client does not hold a seat either", async () => {
