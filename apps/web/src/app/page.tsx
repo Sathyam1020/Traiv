@@ -6,9 +6,12 @@ import { ClosingCta, HOME_FAQ, MarketingFaq, PricingCards } from "@/components/m
 import { ProductScene } from "@/components/product-scenes";
 import { JsonLd } from "@/components/seo-schema";
 import { TrialLink } from "@/components/trial-link";
+import { SITE } from "@/content/site";
 import { pageMetadata } from "@/lib/seo";
 export const metadata: Metadata = pageMetadata({
-  title: "Coaching app for personal trainers and gyms",
+  // The layout's `%s · Traiv` template only reaches child segments, never the root page,
+  // so the brand has to be written out here or the homepage is the one title without it.
+  title: { absolute: `Coaching app for personal trainers and gyms · ${SITE.name}` },
   description:
     "Build workout and diet plans, review check-ins and collect client fees in Traiv. Your name and logo in the app. From ₹999/month. Start your 14-day free trial.",
   alternates: { canonical: "/" },

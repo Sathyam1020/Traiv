@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CalorieCalculator } from "@/components/calorie-calculator";
 import { CtaBand } from "@/components/cta-band";
 import { Container, PageHero, Section, SectionHeading } from "@/components/layout";
+import { Breadcrumbs } from "@/components/seo-schema";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -14,6 +15,12 @@ export const metadata: Metadata = pageMetadata({
 export default function CalorieCalculatorPage() {
   return (
     <>
+      <Breadcrumbs
+        items={[
+          { name: "Free tools", path: "/tools" },
+          { name: "Macro calculator", path: "/tools/calorie-calculator" },
+        ]}
+      />
       <PageHero
         title="Calories and macros, with the working shown"
         lede="Mifflin-St Jeor, the same equation a dietitian uses, with the floors that stop anybody being told to eat too little. It prints its own arithmetic so you can check it by hand."

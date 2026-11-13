@@ -14,6 +14,24 @@ const config: NextConfig = {
       { protocol: "https", hostname: "r2-cdn.coachway.io", pathname: "/uploads/**" },
     ],
   },
+  /**
+   * Baseline hardening for a static marketing site. No CSP yet: Next's inline bootstrap
+   * scripts and the JSON-LD blocks need nonces or hashes, which is its own piece of work.
+   * Nothing here embeds the site in a frame or asks for camera, microphone or location.
+   */
+  async headers() {
+    return [
+      {
+        source: "/:path*",
+        headers: [
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+        ],
+      },
+    ];
+  },
   // Both ship TypeScript source rather than a build step, so Next compiles them.
   transpilePackages: ["@traiv/ui", "@traiv/nutrition"],
 

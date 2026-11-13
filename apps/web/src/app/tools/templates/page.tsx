@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CopyButton } from "@/components/copy-button";
 import { CtaBand } from "@/components/cta-band";
 import { Container, PageHero, Section, SectionHeading } from "@/components/layout";
+import { Breadcrumbs } from "@/components/seo-schema";
 import { CHECK_IN_FORM, INTAKE_QUESTIONS, MESSAGE_TEMPLATES } from "@/content/templates";
 import { pageMetadata } from "@/lib/seo";
 
@@ -15,6 +16,12 @@ export const metadata: Metadata = pageMetadata({
 export default function TemplatesPage() {
   return (
     <>
+      <Breadcrumbs
+        items={[
+          { name: "Free tools", path: "/tools" },
+          { name: "Templates", path: "/tools/templates" },
+        ]}
+      />
       <PageHero
         title="Messages you can send tonight"
         lede="Written to be used, not adapted. Square brackets are the only thing you have to change — everything else is sendable as it stands."

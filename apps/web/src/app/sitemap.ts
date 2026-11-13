@@ -39,7 +39,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     at("/tools", 0.6),
     // Tool hrefs include the two guides routes, which are listed separately below.
     ...TOOLS.filter((t) => t.href.startsWith("/tools/")).map((t) => at(t.href, 0.7)),
-    at("/blog", 0.7),
+    // Same condition as the blog index's noindex: listing a noindex page is a contradiction.
+    ...(posts.length > 0 ? [at("/blog", 0.7)] : []),
     ...posts.map((p) => ({ ...at(`/blog/${p.slug}`, 0.6), lastModified: p.publishedAt })),
     at("/coaches", 0.7),
     at("/about", 0.5),

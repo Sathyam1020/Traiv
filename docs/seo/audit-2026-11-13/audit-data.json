@@ -1,0 +1,252 @@
+{
+ "summary": {
+  "health_score": 69,
+  "business_type": "B2B SaaS (coaching software, India-first)",
+  "top_findings": [
+   "No landing pages for dietitians, nutritionists, yoga instructors or physiotherapists",
+   "Feature pages thin with 30-40 char meta descriptions",
+   "Titles/H1s are slogans, not search terms; homepage title lacks brand",
+   "/blog indexable but empty",
+   "Homepage demo images hot-linked from competitor CDN r2-cdn.coachway.io"
+  ],
+  "quick_wins": [
+   "Add brand to homepage title (app/page.tsx)",
+   "Dedicated description per feature page",
+   "noindex /blog while empty",
+   "Security headers in next.config.ts",
+   "Publish /llms.txt"
+  ]
+ },
+ "categories": [
+  {
+   "name": "Technical SEO",
+   "score": 85,
+   "what_works": [
+    "Prerendered SSR",
+    "Correct canonicals",
+    "Content-derived sitemap",
+    "HSTS",
+    "AI crawlers not blocked"
+   ],
+   "findings": [
+    {
+     "title": "Missing security headers",
+     "severity": "Medium",
+     "description": "Only HSTS is set.",
+     "recommendation": "Add headers() in apps/web/next.config.ts"
+    },
+    {
+     "title": "Two-hop apex redirect",
+     "severity": "Low",
+     "description": "http://traiv.fit -> https://traiv.fit -> https://www.traiv.fit",
+     "recommendation": "Single redirect in Vercel"
+    },
+    {
+     "title": "Search Console not verified",
+     "severity": "Info",
+     "description": "No indexation/query data.",
+     "recommendation": "Verify GSC + Bing, submit sitemap"
+    }
+   ]
+  },
+  {
+   "name": "Content Quality",
+   "score": 55,
+   "what_works": [
+    "Ungated free tools",
+    "Sourced comparison pages"
+   ],
+   "findings": [
+    {
+     "title": "No discipline landing pages",
+     "severity": "High",
+     "description": "content/disciplines.ts unused; 4 of 5 target coach types have no page.",
+     "recommendation": "Product decision, then /for/[discipline] template"
+    },
+    {
+     "title": "Thin feature pages",
+     "severity": "High",
+     "description": "190-250 words each.",
+     "recommendation": "Expand with real product detail"
+    },
+    {
+     "title": "Empty blog indexed",
+     "severity": "Medium",
+     "description": "86 words, 'Nothing published yet'.",
+     "recommendation": "noindex until posts exist"
+    },
+    {
+     "title": "About page lacks people",
+     "severity": "Medium",
+     "description": "196 words, no named founder.",
+     "recommendation": "Add founder/E-E-A-T"
+    }
+   ]
+  },
+  {
+   "name": "On-Page SEO",
+   "score": 60,
+   "what_works": [
+    "Unique titles/descriptions",
+    "One H1 per page"
+   ],
+   "findings": [
+    {
+     "title": "Stub feature meta descriptions",
+     "severity": "High",
+     "description": "blurb used as description (30-40 chars).",
+     "recommendation": "Dedicated description field"
+    },
+    {
+     "title": "Non-descriptive feature titles",
+     "severity": "High",
+     "description": "'Today', 'Chat', 'Shared resources'.",
+     "recommendation": "Search-intent titles"
+    },
+    {
+     "title": "Homepage title missing brand",
+     "severity": "Medium",
+     "description": "Root page not covered by layout title.template.",
+     "recommendation": "title.absolute with brand"
+    },
+    {
+     "title": "Templated compare descriptions",
+     "severity": "Medium",
+     "description": "Same sentence for all 5.",
+     "recommendation": "Include price contrast"
+    }
+   ]
+  },
+  {
+   "name": "Schema / Structured Data",
+   "score": 75,
+   "what_works": [
+    "Organization, WebSite, SoftwareApplication, FAQPage, BreadcrumbList all valid"
+   ],
+   "findings": [
+    {
+     "title": "Organization.sameAs empty",
+     "severity": "Medium",
+     "description": "No entity links.",
+     "recommendation": "Add once profiles exist"
+    },
+    {
+     "title": "No tool/WebApplication schema",
+     "severity": "Low",
+     "description": "Calculators unmarked.",
+     "recommendation": "Add WebApplication"
+    }
+   ]
+  },
+  {
+   "name": "Performance (CWV)",
+   "score": 90,
+   "what_works": [
+    "LCP 1.56-1.96s throttled mobile",
+    "CLS 0"
+   ],
+   "findings": [
+    {
+     "title": "~250KB JS per page",
+     "severity": "Low",
+     "description": "Main INP risk on low-end Android.",
+     "recommendation": "Audit motion usage above fold"
+    }
+   ]
+  },
+  {
+   "name": "AI Search Readiness",
+   "score": 60,
+   "what_works": [
+    "Server-rendered",
+    "FAQ answers",
+    "AI bots get 200"
+   ],
+   "findings": [
+    {
+     "title": "No llms.txt",
+     "severity": "Medium",
+     "description": "404.",
+     "recommendation": "Publish /llms.txt"
+    },
+    {
+     "title": "Weak entity/authorship signals",
+     "severity": "Medium",
+     "description": "No author, sameAs, dated content.",
+     "recommendation": "Founder page, blog, sameAs"
+    }
+   ]
+  },
+  {
+   "name": "Images",
+   "score": 70,
+   "what_works": [
+    "next/image with sizes, lazy loading, dimensions"
+   ],
+   "findings": [
+    {
+     "title": "Competitor-CDN hot-linking",
+     "severity": "Medium",
+     "description": "Recipe images from r2-cdn.coachway.io.",
+     "recommendation": "Self-host owned images"
+    },
+    {
+     "title": "GitHub raw hot-linking",
+     "severity": "Low",
+     "description": "Exercise images from raw.githubusercontent.com.",
+     "recommendation": "Self-host or cache"
+    }
+   ]
+  }
+ ],
+ "action_plan": {
+  "phases": [
+   {
+    "name": "Phase 1: Critical Fixes",
+    "timeframe": "Week 1",
+    "items": [
+     "Verify GSC/Bing",
+     "Feature page titles+descriptions",
+     "Homepage title brand",
+     "Decide discipline pages"
+    ]
+   },
+   {
+    "name": "Phase 2: High-Impact Improvements",
+    "timeframe": "Weeks 2-3",
+    "items": [
+     "Discipline landing pages",
+     "noindex empty blog",
+     "Self-host recipe images",
+     "Security headers",
+     "llms.txt",
+     "Compare descriptions"
+    ]
+   },
+   {
+    "name": "Phase 3: Content & Authority",
+    "timeframe": "Month 2",
+    "items": [
+     "Expand feature pages",
+     "Founder/about",
+     "First blog posts tied to tools",
+     "Partner backlinks",
+     "sameAs"
+    ]
+   },
+   {
+    "name": "Phase 4: Monitoring & Iteration",
+    "timeframe": "Ongoing",
+    "items": [
+     "Monthly /seo audit",
+     "audit:seo in CI",
+     "Re-prioritise from GSC data"
+    ]
+   }
+  ]
+ },
+ "artifacts": {
+  "findings_dir": "findings/",
+  "screenshots_dir": "screenshots/"
+ }
+}

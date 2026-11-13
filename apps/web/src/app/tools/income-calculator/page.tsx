@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CtaBand } from "@/components/cta-band";
 import { IncomeCalculator } from "@/components/income-calculator";
 import { Container, PageHero, Section, SectionHeading } from "@/components/layout";
+import { Breadcrumbs } from "@/components/seo-schema";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -14,6 +15,12 @@ export const metadata: Metadata = pageMetadata({
 export default function IncomeCalculatorPage() {
   return (
     <>
+      <Breadcrumbs
+        items={[
+          { name: "Free tools", path: "/tools" },
+          { name: "Income calculator", path: "/tools/income-calculator" },
+        ]}
+      />
       <PageHero
         title="What you earn, and what the software takes"
         lede="Move the two sliders. The table underneath is what each platform costs at that client count — the number that stops being a rounding error somewhere around your twentieth client."

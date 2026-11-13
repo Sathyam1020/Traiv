@@ -194,6 +194,22 @@ All 13 phases closed and committed (`a134656`, `748c330` on `main`, pushed to `o
 
 **Owner follow-up, not yet done:** Search Console/Bing setup (external account access); Organization schema's `sameAs` (LinkedIn/Twitter/Instagram links) and formal legal/contact fields are deliberately empty — no real profiles/entity exist yet to cite, and nothing was invented. Give the real URLs once they exist and it's a small code change in `structured-data.tsx`. Blog is empty in production (no posts published yet, not a bug — `/blog` correctly shows its empty state).
 
+## Public website SEO follow-up — 2026-11-13, branch `seo/code-only-fixes`, not committed
+
+Re-audit of production with Claude SEO v2.6.0: score 69/100, report and action plan in
+`docs/seo/audit-2026-11-13/`. Code-only fixes applied in `apps/web`:
+homepage `<title>` now carries the brand (root page sits outside the layout's
+`title.template`; `pageMetadata` now reads `title.absolute`); `/blog` is `noindex` and out
+of the sitemap while `getPosts()` returns nothing — this also triggers if the API is down
+at revalidation, lifting on the next good one; baseline security headers in
+`next.config.ts` (no CSP yet — needs nonces/hashes for Next's inline scripts and JSON-LD);
+`/llms.txt` built from the same content files and indexability predicates as the sitemap;
+visible + `BreadcrumbList` breadcrumbs on the four `/tools/*` pages. Verified on a local
+production build: typecheck, `audit:seo` 32/32, `audit:responsive 360 1280` clean, 360px
+screenshot. Still open and needing product decisions: discipline landing pages
+(`content/disciplines.ts` is unused), feature page titles/descriptions, replacing the
+`r2-cdn.coachway.io` recipe images, founder content on `/about`.
+
 **Updated:** 2026-11-01
 **Phase:** nutrition A–F implemented; founder functional/UI acceptance pending
 

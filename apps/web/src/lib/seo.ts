@@ -5,7 +5,12 @@ export const isPreview = process.env.VERCEL_ENV === "preview";
 
 /** Next metadata objects are shallow merged: set complete social fields per route. */
 export function pageMetadata(input: Metadata): Metadata {
-  const title = typeof input.title === "string" ? input.title : SITE.tagline;
+  const title =
+    typeof input.title === "string"
+      ? input.title
+      : input.title && "absolute" in input.title
+        ? input.title.absolute
+        : SITE.tagline;
   const description = input.description ?? SITE.description;
   const canonical = input.alternates?.canonical;
   const url = typeof canonical === "string" ? new URL(canonical, SITE.url).href : SITE.url;

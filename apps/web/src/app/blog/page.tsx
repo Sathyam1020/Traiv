@@ -6,12 +6,21 @@ import { getPosts } from "@/lib/api";
 import { formatDate } from "@/lib/format-date";
 import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = pageMetadata({
-  title: "Blog",
-  description:
-    "What we are learning building coaching software — pricing, retention, nutrition, and what coaches here actually need.",
-  alternates: { canonical: "/blog" },
-});
+/**
+ * Noindex while there is nothing to read. An index entry for a page that only says
+ * "nothing published yet" is a thin page in Google's eyes; it lifts by itself on the first
+ * revalidation after a post goes live. `getPosts` is the same cached fetch the page uses.
+ */
+export async function generateMetadata(): Promise<Metadata> {
+  const posts = await getPosts();
+  return pageMetadata({
+    title: "Blog",
+    description:
+      "What we are learning building coaching software — pricing, retention, nutrition, and what coaches here actually need.",
+    alternates: { canonical: "/blog" },
+    ...(posts.length === 0 ? { robots: { index: false, follow: true } } : {}),
+  });
+}
 
 /**
  * Written in the admin app, not in this repo.

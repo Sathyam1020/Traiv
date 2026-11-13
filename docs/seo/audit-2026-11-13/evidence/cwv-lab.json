@@ -1,0 +1,52 @@
+{
+ "https://www.traiv.fit/": {
+  "lcp_ms": 1964,
+  "lcp_el": "H1 ",
+  "cls": 0,
+  "fcp_ms": 1964,
+  "ttfb_ms": 283,
+  "js_kb": 250,
+  "total_kb": 397,
+  "requests": 23
+ },
+ "https://www.traiv.fit/features": {
+  "lcp_ms": 1848,
+  "lcp_el": "H2 ",
+  "cls": 0,
+  "fcp_ms": 1848,
+  "ttfb_ms": 256,
+  "js_kb": 250,
+  "total_kb": 394,
+  "requests": 23
+ },
+ "https://www.traiv.fit/pricing": {
+  "lcp_ms": 1560,
+  "lcp_el": "P page-lede",
+  "cls": 0,
+  "fcp_ms": 1560,
+  "ttfb_ms": 268,
+  "js_kb": 250,
+  "total_kb": 376,
+  "requests": 21
+ },
+ "https://www.traiv.fit/tools/calorie-calculator": {
+  "lcp_ms": 1868,
+  "lcp_el": "P mt-5 max-w-[38rem] text-[1.0625rem] leading-relaxed text-fg-",
+  "cls": 0,
+  "fcp_ms": 1868,
+  "ttfb_ms": 282,
+  "js_kb": 277,
+  "total_kb": 387,
+  "requests": 23
+ },
+ "https://www.traiv.fit/features/nutrition": {
+  "lcp_ms": 1856,
+  "lcp_el": "P mt-5 max-w-[38rem] text-[1.0625rem] leading-relaxed text-fg-",
+  "cls": 0,
+  "fcp_ms": 1856,
+  "ttfb_ms": 292,
+  "js_kb": 250,
+  "total_kb": 448,
+  "requests": 27
+ }
+}

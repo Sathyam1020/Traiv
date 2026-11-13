@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CtaBand } from "@/components/cta-band";
 import { Container, PageHero, Section, SectionHeading } from "@/components/layout";
 import { RateCalculator } from "@/components/rate-calculator";
+import { Breadcrumbs } from "@/components/seo-schema";
 import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
@@ -14,6 +15,12 @@ export const metadata: Metadata = pageMetadata({
 export default function RateCalculatorPage() {
   return (
     <>
+      <Breadcrumbs
+        items={[
+          { name: "Free tools", path: "/tools" },
+          { name: "What to charge", path: "/tools/pricing-calculator" },
+        ]}
+      />
       <PageHero
         title="What to charge, worked backwards from your own week"
         lede="Not what the coach down the road charges. What your hours and your income actually require — which is the only version of this number you can hold a line on when somebody asks for a discount."
