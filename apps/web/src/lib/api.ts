@@ -107,6 +107,28 @@ export async function getPosts(): Promise<PostCard[]> {
   }
 }
 
+/**
+ * Slugs to prerender at build time, asked fresh from the API every build.
+ *
+ * Not `getPosts`, whose response sits in Next's fetch cache: a build with the API down
+ * would read the cached list, try to prerender each post, fail to fetch the post itself,
+ * and take the whole build down with it. Uncached, an unreachable API means nothing is
+ * prerendered and every post renders on its first request instead (`dynamicParams` is on).
+ */
+export async function getPostSlugsForBuild(): Promise<string[]> {
+  try {
+    const res = await fetch(`${API_BASE}/m/blog`, {
+      cache: "no-store",
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return [];
+    const body = (await res.json()) as { posts: PostCard[] };
+    return body.posts.map((p) => p.slug);
+  } catch {
+    return [];
+  }
+}
+
 export async function getPost(slug: string): Promise<FullPost | null> {
   const res = await fetch(`${API_BASE}/m/blog/${encodeURIComponent(slug)}`, {
     next: { revalidate: 60 },

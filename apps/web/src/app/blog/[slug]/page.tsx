@@ -6,7 +6,7 @@ import { Container, PageHero, Section } from "@/components/layout";
 import { PostBody } from "@/components/post-body";
 import { Breadcrumbs, JsonLd } from "@/components/seo-schema";
 import { SITE } from "@/content/site";
-import { getPost, getPosts } from "@/lib/api";
+import { getPost, getPostSlugsForBuild, getPosts } from "@/lib/api";
 import { formatDate } from "@/lib/format-date";
 import { pageMetadata } from "@/lib/seo";
 
@@ -22,8 +22,8 @@ export const revalidate = 60;
  * writing posts outside the repo.
  */
 export async function generateStaticParams() {
-  const posts = await getPosts();
-  return posts.map((p) => ({ slug: p.slug }));
+  const slugs = await getPostSlugsForBuild();
+  return slugs.map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
