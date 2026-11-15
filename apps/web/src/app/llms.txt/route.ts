@@ -1,7 +1,7 @@
 import { COMPETITORS, comparisonIsIndexable } from "@/content/competitors";
 import { FEATURES, featureIsIndexable } from "@/content/features";
 import { SITE, TIERS } from "@/content/site";
-import { TOOLS } from "@/content/tools";
+import { GROUP_LABEL, LIVE_TOOLS, STANDING_LEGACY } from "@/content/tools/registry";
 
 export const dynamic = "force-static";
 
@@ -37,13 +37,17 @@ export function GET() {
     "",
     "## Free tools",
     "",
-    ...TOOLS.filter((t) => t.href.startsWith("/tools/")).map((t) => link(t.name, t.href, t.blurb)),
+    link("All free tools", "/tools", "calculators for coaches and their clients, no signup"),
+    ...LIVE_TOOLS.map((t) =>
+      link(t.name, `/tools/${t.slug}`, `${GROUP_LABEL[t.group]}. ${t.copy.description}`),
+    ),
+    ...STANDING_LEGACY.map((t) => link(t.name, `/tools/${t.slug}`, t.blurb)),
     "",
     "## Optional",
     "",
     link("For gyms", "/gyms"),
     link("About", "/about"),
-    link("Book a demo", "/demo"),
+    `- [Book a demo](${SITE.demoUrl}): 15-minute call, booked through Cal.com`,
     "",
   ].join("\n");
 

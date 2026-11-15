@@ -487,6 +487,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@traiv/calculators':
+        specifier: workspace:*
+        version: link:../../packages/calculators
       '@traiv/nutrition':
         specifier: workspace:*
         version: link:../../packages/nutrition
@@ -533,6 +536,19 @@ importers:
       tw-animate-css:
         specifier: 'catalog:'
         version: 1.4.0
+      typescript:
+        specifier: 'catalog:'
+        version: 7.0.2
+
+  packages/calculators:
+    dependencies:
+      '@traiv/nutrition':
+        specifier: workspace:*
+        version: link:../nutrition
+    devDependencies:
+      '@types/node':
+        specifier: 'catalog:'
+        version: 24.13.4
       typescript:
         specifier: 'catalog:'
         version: 7.0.2

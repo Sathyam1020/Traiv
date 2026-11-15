@@ -22,19 +22,37 @@ export type Tool = {
  */
 export const TOOLS: readonly Tool[] = [
   {
-    href: "/tools/calorie-calculator",
-    name: "Macro calculator",
-    blurb: "Calories and macros for Indian food, free, no signup",
+    href: "/tools",
+    name: "All free tools",
+    blurb: "Every calculator, grouped by what it works out",
     icon: Calculator,
   },
   {
-    href: "/tools/income-calculator",
+    href: "/tools/tdee-calculator",
+    name: "TDEE calculator",
+    blurb: "Maintenance, cut and bulk calories",
+    icon: Calculator,
+  },
+  {
+    href: "/tools/recipe-macro-calculator",
+    name: "Recipe macro calculator",
+    blurb: "Macros per serving from your own labels",
+    icon: Calculator,
+  },
+  {
+    href: "/tools/macro-calculator",
+    name: "Macro calculator",
+    blurb: "Daily calories and protein, carbs and fat in grams",
+    icon: Calculator,
+  },
+  {
+    href: "/tools/personal-trainer-income-calculator",
     name: "Income calculator",
     blurb: "What you would earn at your rate and client count",
     icon: IndianRupee,
   },
   {
-    href: "/tools/pricing-calculator",
+    href: "/tools/coaching-rate-calculator",
     name: "What to charge",
     blurb: "A defensible number for your own coaching",
     icon: TrendingUp,

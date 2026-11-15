@@ -13,7 +13,22 @@ export const SITE = {
     signin: "https://app.traiv.fit/signin",
     affiliate: "https://refer.traiv.fit",
   },
+  /**
+   * Demo booking (ADR 0036). Every "Book a demo" button reads this, and hides itself when
+   * it is empty, so removing the link here removes every button rather than leaving them
+   * pointing at nothing. `/demo` redirects here from `next.config.ts`.
+   */
+  demoUrl: "https://cal.com/sathyamsahu",
 } as const;
+
+/**
+ * The named author on free-tool pages. Deliberately null for now (ADR 0036).
+ *
+ * When this is filled in, every tool page renders a byline under its intro and adds
+ * `author` to its Article schema, with no other change needed. Agents: if the founder
+ * supplies an author, set it here, and add a team page at `url` if one doesn't exist yet.
+ */
+export const TOOL_AUTHOR: { name: string; url: string; credential?: string } | null = null;
 
 export type Tier = {
   name: string;
@@ -111,9 +126,9 @@ export const FOOTER = [
   {
     heading: "Free tools",
     links: [
-      { href: "/tools/calorie-calculator", label: "Macro calculator" },
-      { href: "/tools/income-calculator", label: "Income calculator" },
-      { href: "/tools/pricing-calculator", label: "What to charge" },
+      { href: "/tools/macro-calculator", label: "Macro calculator" },
+      { href: "/tools/personal-trainer-income-calculator", label: "Income calculator" },
+      { href: "/tools/coaching-rate-calculator", label: "What to charge" },
       { href: "/tools/templates", label: "Templates" },
       { href: "/blog", label: "Writing" },
     ],

@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { COMPETITORS, comparisonIsIndexable } from "@/content/competitors";
 import { FEATURES, featureIsIndexable } from "@/content/features";
 import { SITE } from "@/content/site";
-import { TOOLS } from "@/content/tools";
+import { LIVE_TOOLS, STANDING_LEGACY } from "@/content/tools/registry";
 import { getPosts } from "@/lib/api";
 import { isPreview } from "@/lib/seo";
 
@@ -37,8 +37,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     at("/compare", 0.8),
     ...COMPETITORS.filter(comparisonIsIndexable).map((c) => at(`/compare/${c.slug}`, 0.8)),
     at("/tools", 0.6),
-    // Tool hrefs include the two guides routes, which are listed separately below.
-    ...TOOLS.filter((t) => t.href.startsWith("/tools/")).map((t) => at(t.href, 0.7)),
+    // Live tools from the registry, plus the older tool pages not yet replaced by one.
+    ...LIVE_TOOLS.map((t) => at(`/tools/${t.slug}`, 0.7)),
+    ...STANDING_LEGACY.map((t) => at(`/tools/${t.slug}`, 0.7)),
     // Same condition as the blog index's noindex: listing a noindex page is a contradiction.
     ...(posts.length > 0 ? [at("/blog", 0.7)] : []),
     ...posts.map((p) => ({ ...at(`/blog/${p.slug}`, 0.6), lastModified: p.publishedAt })),
@@ -46,7 +47,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     at("/about", 0.5),
     at("/partnership", 0.4),
     at("/affiliate", 0.4),
-    at("/demo", 0.5),
   ];
   return [...new Map(entries.map((entry) => [entry.url, entry])).values()];
 }

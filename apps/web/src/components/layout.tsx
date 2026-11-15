@@ -46,8 +46,8 @@ export function Section({
 /**
  * Every page opens the same way: one h1, one paragraph, optional controls.
  *
- * No eyebrow label above the heading. The nav already says where you are, and a small
- * uppercase word over every headline is one of the clearest marks of a generated page.
+ * Free-tool pages use their own header with a small label above the h1
+ * ("Free tool · Nutrition"), matching the researched layout (ADR 0036).
  */
 export function PageHero({
   title,

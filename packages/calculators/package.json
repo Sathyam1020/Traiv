@@ -1,0 +1,33 @@
+{
+  "name": "@traiv/calculators",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "exports": {
+    "./units": "./src/units.ts",
+    "./energy": "./src/energy.ts",
+    "./recipe": "./src/recipe.ts",
+    "./money": "./src/money.ts",
+    "./macros": "./src/macros.ts",
+    "./goals": "./src/goals.ts",
+    "./intake": "./src/intake.ts",
+    "./business": "./src/business.ts",
+    "./timeline": "./src/timeline.ts",
+    "./activity": "./src/activity.ts",
+    "./schedule": "./src/schedule.ts"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@traiv/nutrition": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "typescript": "catalog:"
+  }
+}

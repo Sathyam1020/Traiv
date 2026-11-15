@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { SITE } from "./src/content/site";
 
 const config: NextConfig = {
   reactStrictMode: true,
@@ -33,7 +34,7 @@ const config: NextConfig = {
     ];
   },
   // Both ship TypeScript source rather than a build step, so Next compiles them.
-  transpilePackages: ["@traiv/ui", "@traiv/nutrition"],
+  transpilePackages: ["@traiv/ui", "@traiv/nutrition", "@traiv/calculators"],
 
   /**
    * `/guides` and `/blog` were two names for one thing — a reader could not tell which
@@ -52,6 +53,25 @@ const config: NextConfig = {
       { source: "/guides/templates", destination: "/tools/templates", permanent: true },
       { source: "/guides/:slug", destination: "/blog/:slug", permanent: true },
       { source: "/guides", destination: "/blog", permanent: true },
+      // Free-tool library (ADR 0036): each older tool page redirects once its replacement is live.
+      {
+        source: "/tools/calorie-calculator",
+        destination: "/tools/macro-calculator",
+        permanent: true,
+      },
+      {
+        source: "/tools/income-calculator",
+        destination: "/tools/personal-trainer-income-calculator",
+        permanent: true,
+      },
+      {
+        source: "/tools/pricing-calculator",
+        destination: "/tools/coaching-rate-calculator",
+        permanent: true,
+      },
+      // Demo booking lives on Cal.com (ADR 0036). Temporary, because the booking URL is
+      // config and may change; a permanent redirect would be cached by browsers.
+      ...(SITE.demoUrl ? [{ source: "/demo", destination: SITE.demoUrl, permanent: false }] : []),
     ];
   },
 };

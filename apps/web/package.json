@@ -11,6 +11,7 @@
     "audit:seo": "node scripts/seo-audit.mjs"
   },
   "dependencies": {
+    "@traiv/calculators": "workspace:*",
     "@traiv/nutrition": "workspace:*",
     "@traiv/phone": "workspace:*",
     "@traiv/ui": "workspace:*",

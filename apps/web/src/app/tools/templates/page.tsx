@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import { CopyButton } from "@/components/copy-button";
-import { CtaBand } from "@/components/cta-band";
-import { Container, PageHero, Section, SectionHeading } from "@/components/layout";
+import { Container, Section, SectionHeading } from "@/components/layout";
 import { Breadcrumbs } from "@/components/seo-schema";
 import { CHECK_IN_FORM, INTAKE_QUESTIONS, MESSAGE_TEMPLATES } from "@/content/templates";
 import { pageMetadata } from "@/lib/seo";
+import { DemoLink, ToolTrialLink } from "../_components/links";
 
 export const metadata: Metadata = pageMetadata({
   title: "Templates for coaches",
@@ -19,14 +19,21 @@ export default function TemplatesPage() {
       <Breadcrumbs
         items={[
           { name: "Free tools", path: "/tools" },
-          { name: "Templates", path: "/tools/templates" },
+          { name: "Templates for coaches", path: "/tools/templates" },
         ]}
       />
-      <PageHero
-        title="Messages you can send tonight"
-        lede="Written to be used, not adapted. Square brackets are the only thing you have to change — everything else is sendable as it stands."
-      />
-
+      <header className="border-b border-line">
+        <Container width="wide" className="pt-6 pb-10 sm:pt-10 sm:pb-14">
+          <p className="text-caption font-medium text-fg-subtle">Free tool · Coaching business</p>
+          <h1 className="mt-3 max-w-[44rem] font-display text-display font-medium text-balance">
+            Messages you can send tonight
+          </h1>
+          <p className="mt-5 max-w-[42rem] text-body leading-relaxed text-fg-muted">
+            Written to be used, not adapted. Square brackets are the only thing you have to change —
+            everything else is sendable as it stands.
+          </p>
+        </Container>
+      </header>
       <Section>
         <Container>
           <SectionHeading
@@ -54,7 +61,6 @@ export default function TemplatesPage() {
           </div>
         </Container>
       </Section>
-
       <Section tone="sunken">
         <Container>
           <SectionHeading
@@ -81,7 +87,6 @@ export default function TemplatesPage() {
           </p>
         </Container>
       </Section>
-
       <Section>
         <Container>
           <SectionHeading
@@ -104,12 +109,34 @@ export default function TemplatesPage() {
           </ol>
         </Container>
       </Section>
-
-      <CtaBand
-        source="guides-templates-close"
-        title="Stop retyping these every week"
-        secondary={{ href: "/blog", label: "Read the writing" }}
-      />
+      <section className="border-t border-line bg-surface">
+        <Container className="flex flex-col items-start gap-5 py-16 sm:py-24">
+          <h2 className="max-w-[40rem] font-display text-display font-medium text-balance">
+            Stop retyping these every week
+          </h2>
+          <p className="max-w-[38rem] text-body leading-relaxed text-fg-muted">
+            Traiv is coaching software for personal trainers: workout plans, diet plans, check-ins
+            and the client app, under your name.
+          </p>
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
+            <ToolTrialLink
+              slug="templates"
+              group="business"
+              placement="band"
+              className="inline-flex min-h-11 items-center gap-2 rounded-control bg-brand px-5 py-2.5 text-body-sm font-medium text-brand-fg transition-colors hover:bg-brand-hover"
+            >
+              Start your 14-day free trial
+            </ToolTrialLink>
+            <DemoLink
+              slug="templates"
+              group="business"
+              placement="band"
+              className="inline-flex min-h-11 items-center gap-1.5 text-body-sm font-medium underline underline-offset-4"
+            />
+          </div>
+          <small className="text-caption text-fg-subtle">14 days free. Cancel any time.</small>
+        </Container>
+      </section>{" "}
     </>
   );
 }
