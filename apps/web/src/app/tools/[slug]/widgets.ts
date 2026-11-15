@@ -5,6 +5,19 @@ import {
   StepsWidget,
   SweatRateWidget,
 } from "../_components/widgets/activity";
+import {
+  BmiWidget,
+  BodyFatWidget,
+  FfmiWidget,
+  IdealWeightWidget,
+  LeanBodyMassWidget,
+  MuscleMassWidget,
+  NavyBodyFatWidget,
+  RecompWidget,
+  WaistToHeightWidget,
+  WaistToHipWidget,
+  WeightLossPercentWidget,
+} from "../_components/widgets/body";
 import { IncomeWidget, RateWidget } from "../_components/widgets/business";
 import { BmrWidget, MaintenanceWidget } from "../_components/widgets/energy";
 import { BulkingWidget, DeficitWidget, SurplusWidget } from "../_components/widgets/goals";
@@ -67,6 +80,17 @@ export const WIDGETS: Record<LiveSlug, ComponentType> = {
   "weekly-training-volume-calculator": VolumeWidget,
   "workout-plan-builder": PlanBuilderWidget,
   "injury-exercise-swap": InjurySwapWidget,
+  "bmi-calculator": BmiWidget,
+  "body-fat-calculator": BodyFatWidget,
+  "navy-body-fat-calculator": NavyBodyFatWidget,
+  "ffmi-calculator": FfmiWidget,
+  "ideal-weight-calculator": IdealWeightWidget,
+  "lean-body-mass-calculator": LeanBodyMassWidget,
+  "muscle-mass-calculator": MuscleMassWidget,
+  "waist-to-height-ratio-calculator": WaistToHeightWidget,
+  "waist-to-hip-ratio-calculator": WaistToHipWidget,
+  "weight-loss-percentage-calculator": WeightLossPercentWidget,
+  "body-recomposition-calculator": RecompWidget,
 
   "tdee-calculator": TdeeWidget,
   "recipe-macro-calculator": RecipeMacroWidget,

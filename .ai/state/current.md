@@ -841,3 +841,20 @@ Phase 2 is uncommitted. Screenshot capture was declined; visual screenshots were
 inspected. The environment blocks Turbopack worker port binding; webpack was used to
 verify the production build. Full evidence and limitations:
 `features/free-tools/handover/PHASE-2-VERIFICATION.md`.
+
+### Free tools Phase 3 (body composition) — 16 November 2026
+
+Phase 2 committed as `9b25612`. Phase 3 adds 11 tools, 60 live plus templates:
+BMI, body fat, US Navy body fat (optional weight gives fat and lean mass), FFMI (raw and
+normalised), ideal weight (Devine, Robinson, Miller, Hamwi plus the healthy BMI range), lean
+body mass (by body fat or Boer), skeletal muscle mass (Lee 2000 with the ethnicity term set
+to zero; the copy says so), waist-to-height, waist-to-hip (WHO 2008 limits), weight-loss
+percentage (optional goal and timeframe, warns above 1% a week) and body recomposition
+(Katch-McArdle, 10% deficit, 2.2 g/kg lean protein).
+Engine: `packages/calculators/src/body.ts`, 77 calculator tests pass. Widgets:
+`apps/web/src/app/tools/_components/widgets/body.tsx`, with defaults from the research.
+Medical-adjacent pages carry disclaimers. Verified: typecheck, production build, all 11
+rendered pages at or above the reference length with matching FAQ counts and section flags,
+360px audit clean, keyboard 0/0 on every page, 8-gram overlap reviewed (remaining matches are
+form labels, formulas and standard question wording). Copy scripts:
+`features/free-tools/handover/scripts/phase3_*.py`. Next: Phase 4 (cardio).

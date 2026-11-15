@@ -1,5 +1,8 @@
 import { copy as phase2Copy1 } from "./copy/bench-press-calculator";
+import { copy as bmiCopy } from "./copy/bmi-calculator";
 import { copy as bmr } from "./copy/bmr-calculator";
+import { copy as bodyFatCopy } from "./copy/body-fat-calculator";
+import { copy as recompCopy } from "./copy/body-recomposition-calculator";
 import { copy as bulking } from "./copy/bulking-calorie-calculator";
 import { copy as calorieCycling } from "./copy/calorie-cycling-calculator";
 import { copy as deficit } from "./copy/calorie-deficit-calculator";
@@ -13,15 +16,20 @@ import { copy as cutLength } from "./copy/cut-length-calculator";
 import { copy as cycle } from "./copy/cycle-phase-calculator";
 import { copy as phase2Copy3 } from "./copy/deadlift-calculator";
 import { copy as phase2Copy6 } from "./copy/dots-calculator";
+import { copy as ffmiCopy } from "./copy/ffmi-calculator";
 import { copy as fiber } from "./copy/fiber-intake-calculator";
 import { copy as goalDate } from "./copy/goal-weight-date-calculator";
+import { copy as idealCopy } from "./copy/ideal-weight-calculator";
 import { copy as phase2Copy18 } from "./copy/injury-exercise-swap";
 import { copy as fasting } from "./copy/intermittent-fasting-calculator";
 import { copy as phase2Copy8 } from "./copy/ipf-gl-points-calculator";
 import { copy as keto } from "./copy/keto-macro-calculator";
+import { copy as lbmCopy } from "./copy/lean-body-mass-calculator";
 import { copy as macro } from "./copy/macro-calculator";
 import { copy as macroSplit } from "./copy/macro-split-by-body-type-calculator";
 import { copy as maintenance } from "./copy/maintenance-calorie-calculator";
+import { copy as muscleCopy } from "./copy/muscle-mass-calculator";
+import { copy as navyCopy } from "./copy/navy-body-fat-calculator";
 import { copy as phase2Copy0 } from "./copy/one-rep-max-calculator";
 import { copy as phase2Copy4 } from "./copy/overhead-press-calculator";
 import { copy as trainerIncome } from "./copy/personal-trainer-income-calculator";
@@ -40,9 +48,12 @@ import { copy as phase2Copy15 } from "./copy/strength-standards-calculator";
 import { copy as sweat } from "./copy/sweat-rate-calculator";
 import { copy as tdee } from "./copy/tdee-calculator";
 import { copy as phase2Copy12 } from "./copy/tempo-calculator";
+import { copy as whtrCopy } from "./copy/waist-to-height-ratio-calculator";
+import { copy as whrCopy } from "./copy/waist-to-hip-ratio-calculator";
 import { copy as phase2Copy13 } from "./copy/warm-up-set-calculator";
 import { copy as water } from "./copy/water-intake-calculator";
 import { copy as phase2Copy16 } from "./copy/weekly-training-volume-calculator";
+import { copy as wlpCopy } from "./copy/weight-loss-percentage-calculator";
 import { copy as phases } from "./copy/weight-loss-phase-calculator";
 import { copy as phase2Copy5 } from "./copy/wilks-calculator";
 import { copy as phase2Copy7 } from "./copy/wilks-dots-calculator";
@@ -77,6 +88,17 @@ export const COPY = {
   "weekly-training-volume-calculator": phase2Copy16,
   "workout-plan-builder": phase2Copy17,
   "injury-exercise-swap": phase2Copy18,
+  "bmi-calculator": bmiCopy,
+  "body-fat-calculator": bodyFatCopy,
+  "navy-body-fat-calculator": navyCopy,
+  "ffmi-calculator": ffmiCopy,
+  "ideal-weight-calculator": idealCopy,
+  "lean-body-mass-calculator": lbmCopy,
+  "muscle-mass-calculator": muscleCopy,
+  "waist-to-height-ratio-calculator": whtrCopy,
+  "waist-to-hip-ratio-calculator": whrCopy,
+  "weight-loss-percentage-calculator": wlpCopy,
+  "body-recomposition-calculator": recompCopy,
 
   "tdee-calculator": tdee,
   "recipe-macro-calculator": recipeMacro,

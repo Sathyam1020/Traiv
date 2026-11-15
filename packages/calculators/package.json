@@ -19,7 +19,8 @@
     "./activity": "./src/activity.ts",
     "./schedule": "./src/schedule.ts",
     "./strength": "./src/strength.ts",
-    "./programs": "./src/programs.ts"
+    "./programs": "./src/programs.ts",
+    "./body": "./src/body.ts"
   },
   "scripts": {
     "test": "node --test test/*.test.ts",

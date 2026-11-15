@@ -60,3 +60,5 @@ Reference pages for length and structure comparison are re-downloaded on demand 
 the repository; they are never application content.
 Phase 2 passed its gates on 16 November 2026: 19 tools live, each at or above the researched
 length with matching FAQ counts and section flags.
+Phase 3 passed its gates on 16 November 2026: 11 body composition tools, 60 live in total. The skeletal muscle
+calculator uses Lee et al. (2000) with the ethnicity term set to zero, and the page says so.
