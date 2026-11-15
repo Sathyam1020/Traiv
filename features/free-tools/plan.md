@@ -1,6 +1,6 @@
 # Free tools: Coachway parity plan
 
-2026-11-15 · Branch `feat/free-tools-expansion` · Status: **Phases 0 and 1 complete (2026-11-15): 30 tools live. Next: Phase 2 (strength, 19 tools).**
+2026-11-15 · Branch `feat/free-tools-expansion` · Status: **Phases 0–2 implemented (2026-11-15): 49 tools live plus templates. Phase 2 uncommitted; verification details in handover/PHASE-2-VERIFICATION.md. Next: Phase 3.**
 
 Research files, kept next to this one:
 - `research/inventory.md`: all 109 tools by category, with every input, default, option,

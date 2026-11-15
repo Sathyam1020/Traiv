@@ -26,6 +26,26 @@ const BASE = process.env.WEB_ORIGIN ?? "http://localhost:3004";
 
 /** Every route the site has. A page missing from here is a page nobody is checking. */
 const ROUTES = [
+  "/tools/one-rep-max-calculator",
+  "/tools/bench-press-calculator",
+  "/tools/squat-calculator",
+  "/tools/deadlift-calculator",
+  "/tools/overhead-press-calculator",
+  "/tools/wilks-calculator",
+  "/tools/dots-calculator",
+  "/tools/wilks-dots-calculator",
+  "/tools/ipf-gl-points-calculator",
+  "/tools/sinclair-calculator",
+  "/tools/rpe-calculator",
+  "/tools/rir-calculator",
+  "/tools/tempo-calculator",
+  "/tools/warm-up-set-calculator",
+  "/tools/plate-loading-calculator",
+  "/tools/strength-standards-calculator",
+  "/tools/weekly-training-volume-calculator",
+  "/tools/workout-plan-builder",
+  "/tools/injury-exercise-swap",
+
   "/",
   "/pricing",
   "/features",

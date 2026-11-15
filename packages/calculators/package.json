@@ -17,7 +17,9 @@
     "./business": "./src/business.ts",
     "./timeline": "./src/timeline.ts",
     "./activity": "./src/activity.ts",
-    "./schedule": "./src/schedule.ts"
+    "./schedule": "./src/schedule.ts",
+    "./strength": "./src/strength.ts",
+    "./programs": "./src/programs.ts"
   },
   "scripts": {
     "test": "node --test test/*.test.ts",

@@ -144,7 +144,7 @@ export function ToolPage({
       </div>
 
       <Section tone="sunken">
-        <Container width="prose">
+        <Container width="wide">
           <section id="short-answer" aria-labelledby="short-answer-heading">
             <p className="text-caption font-medium text-fg-subtle">Short answer</p>
             <h2
@@ -161,7 +161,7 @@ export function ToolPage({
       </Section>
 
       <Section>
-        <Container width="prose" className="flex flex-col gap-16">
+        <Container width="wide" className="flex flex-col gap-16">
           {copy.sections.map((s) => (
             <section key={s.heading}>
               <h2 className="font-display text-heading font-medium text-balance">{s.heading}</h2>
@@ -185,7 +185,7 @@ export function ToolPage({
       </Section>
 
       <Section tone="sunken">
-        <Container width="prose">
+        <Container width="wide">
           <h2 className="font-display text-heading font-medium text-balance">
             {copy.pitch.heading}
           </h2>
@@ -336,7 +336,7 @@ function AiResearchLinks({ slug, name }: { slug: string; name: string }) {
   ];
   return (
     <Section>
-      <Container width="prose">
+      <Container width="wide">
         <h2 className="text-body font-semibold">Researching with AI?</h2>
         <p className="mt-2 text-body-sm text-fg-muted">
           Ask an assistant about this page directly.

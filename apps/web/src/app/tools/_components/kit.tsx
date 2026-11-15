@@ -122,7 +122,9 @@ export function Stats({ items }: { items: { label: string; value: string; note?:
       {items.map((c) => (
         <li key={c.label} className="min-w-0 rounded-control border border-line bg-surface p-4">
           <p className="text-caption font-medium text-fg-subtle">{c.label}</p>
-          <p className="mt-1 font-display text-lead font-medium break-words tabular-nums">{c.value}</p>
+          <p className="mt-1 font-display text-lead font-medium break-words tabular-nums">
+            {c.value}
+          </p>
           {c.note ? <p className="text-caption text-fg-muted">{c.note}</p> : null}
         </li>
       ))}

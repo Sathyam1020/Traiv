@@ -1,3 +1,4 @@
+import { copy as phase2Copy1 } from "./copy/bench-press-calculator";
 import { copy as bmr } from "./copy/bmr-calculator";
 import { copy as bulking } from "./copy/bulking-calorie-calculator";
 import { copy as calorieCycling } from "./copy/calorie-cycling-calculator";
@@ -10,24 +11,42 @@ import { copy as coachingRate } from "./copy/coaching-rate-calculator";
 import { copy as creatine } from "./copy/creatine-dosage-calculator";
 import { copy as cutLength } from "./copy/cut-length-calculator";
 import { copy as cycle } from "./copy/cycle-phase-calculator";
+import { copy as phase2Copy3 } from "./copy/deadlift-calculator";
+import { copy as phase2Copy6 } from "./copy/dots-calculator";
 import { copy as fiber } from "./copy/fiber-intake-calculator";
 import { copy as goalDate } from "./copy/goal-weight-date-calculator";
+import { copy as phase2Copy18 } from "./copy/injury-exercise-swap";
 import { copy as fasting } from "./copy/intermittent-fasting-calculator";
+import { copy as phase2Copy8 } from "./copy/ipf-gl-points-calculator";
 import { copy as keto } from "./copy/keto-macro-calculator";
 import { copy as macro } from "./copy/macro-calculator";
 import { copy as macroSplit } from "./copy/macro-split-by-body-type-calculator";
 import { copy as maintenance } from "./copy/maintenance-calorie-calculator";
+import { copy as phase2Copy0 } from "./copy/one-rep-max-calculator";
+import { copy as phase2Copy4 } from "./copy/overhead-press-calculator";
 import { copy as trainerIncome } from "./copy/personal-trainer-income-calculator";
+import { copy as phase2Copy14 } from "./copy/plate-loading-calculator";
 import { copy as protein } from "./copy/protein-calculator";
 import { copy as proteinPerMeal } from "./copy/protein-per-meal-calculator";
 import { copy as recipeMacro } from "./copy/recipe-macro-calculator";
 import { copy as refeed } from "./copy/refeed-day-calculator";
 import { copy as reverseDiet } from "./copy/reverse-diet-calculator";
+import { copy as phase2Copy11 } from "./copy/rir-calculator";
+import { copy as phase2Copy10 } from "./copy/rpe-calculator";
+import { copy as phase2Copy9 } from "./copy/sinclair-calculator";
+import { copy as phase2Copy2 } from "./copy/squat-calculator";
 import { copy as steps } from "./copy/steps-to-calories-calculator";
+import { copy as phase2Copy15 } from "./copy/strength-standards-calculator";
 import { copy as sweat } from "./copy/sweat-rate-calculator";
 import { copy as tdee } from "./copy/tdee-calculator";
+import { copy as phase2Copy12 } from "./copy/tempo-calculator";
+import { copy as phase2Copy13 } from "./copy/warm-up-set-calculator";
 import { copy as water } from "./copy/water-intake-calculator";
+import { copy as phase2Copy16 } from "./copy/weekly-training-volume-calculator";
 import { copy as phases } from "./copy/weight-loss-phase-calculator";
+import { copy as phase2Copy5 } from "./copy/wilks-calculator";
+import { copy as phase2Copy7 } from "./copy/wilks-dots-calculator";
+import { copy as phase2Copy17 } from "./copy/workout-plan-builder";
 import { TOOL_ENTRIES } from "./registry-data";
 import type { LiveTool, ToolCopy, ToolEntry, ToolGroup } from "./types";
 
@@ -39,6 +58,26 @@ import type { LiveTool, ToolCopy, ToolEntry, ToolGroup } from "./types";
  * a link from another page, so nothing points at a tool that doesn't exist yet.
  */
 export const COPY = {
+  "one-rep-max-calculator": phase2Copy0,
+  "bench-press-calculator": phase2Copy1,
+  "squat-calculator": phase2Copy2,
+  "deadlift-calculator": phase2Copy3,
+  "overhead-press-calculator": phase2Copy4,
+  "wilks-calculator": phase2Copy5,
+  "dots-calculator": phase2Copy6,
+  "wilks-dots-calculator": phase2Copy7,
+  "ipf-gl-points-calculator": phase2Copy8,
+  "sinclair-calculator": phase2Copy9,
+  "rpe-calculator": phase2Copy10,
+  "rir-calculator": phase2Copy11,
+  "tempo-calculator": phase2Copy12,
+  "warm-up-set-calculator": phase2Copy13,
+  "plate-loading-calculator": phase2Copy14,
+  "strength-standards-calculator": phase2Copy15,
+  "weekly-training-volume-calculator": phase2Copy16,
+  "workout-plan-builder": phase2Copy17,
+  "injury-exercise-swap": phase2Copy18,
+
   "tdee-calculator": tdee,
   "recipe-macro-calculator": recipeMacro,
   "bmr-calculator": bmr,

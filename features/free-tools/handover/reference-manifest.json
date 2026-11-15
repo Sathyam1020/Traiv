@@ -1,0 +1,660 @@
+{
+  "checked": "2026-11-15",
+  "count": 109,
+  "pages": [
+    {
+      "slug": "ad-spend-breakeven-calculator",
+      "url": "https://coachway.io/tools/ad-spend-breakeven-calculator/",
+      "bytes": 176072,
+      "sha256": "a24ddd0da70223aaef35d7a829794e2c8e281908a971bcade6612f0ef2f19a42"
+    },
+    {
+      "slug": "ai-writing-checker",
+      "url": "https://coachway.io/tools/ai-writing-checker/",
+      "bytes": 189066,
+      "sha256": "af5955deb43c7347360bb44773bf2f04ae480813a08df07efa38e9656652b151"
+    },
+    {
+      "slug": "assistant-coach-roi-calculator",
+      "url": "https://coachway.io/tools/assistant-coach-roi-calculator/",
+      "bytes": 164204,
+      "sha256": "f7a0c174dc20b048253cbd7cd3444d6c9d5f817a2e5028559e1e96f8758f2837"
+    },
+    {
+      "slug": "beep-test-calculator",
+      "url": "https://coachway.io/tools/beep-test-calculator/",
+      "bytes": 225810,
+      "sha256": "0b5a475afeaec206bb20e4f36c2df60dbd1da6c3445a5b05c1e65fc56393a7cc"
+    },
+    {
+      "slug": "bench-press-calculator",
+      "url": "https://coachway.io/tools/bench-press-calculator/",
+      "bytes": 186063,
+      "sha256": "246ea1be9898f7cfa3e6f86e76777b5f636921caf0370b5d7b9faee1113e0930"
+    },
+    {
+      "slug": "bmi-calculator",
+      "url": "https://coachway.io/tools/bmi-calculator/",
+      "bytes": 183458,
+      "sha256": "c4d2ab52d41c82b46956b3ef5710bf1bdf98d903933737d36714ad1347061001"
+    },
+    {
+      "slug": "bmr-calculator",
+      "url": "https://coachway.io/tools/bmr-calculator/",
+      "bytes": 185786,
+      "sha256": "3e5f6c2bbc0e533f13ba628e18b4fc765b8557012c1ed789c74639b45438f07f"
+    },
+    {
+      "slug": "body-fat-calculator",
+      "url": "https://coachway.io/tools/body-fat-calculator/",
+      "bytes": 187880,
+      "sha256": "c2040e57372aee534ae8640b8d47e3f8c7614279a8278aedcaf8d8a41440bcea"
+    },
+    {
+      "slug": "body-recomposition-calculator",
+      "url": "https://coachway.io/tools/body-recomposition-calculator/",
+      "bytes": 192160,
+      "sha256": "8e70a9d3440206fc620f2761ef76fcedb2a261fa83ed843acd891f9d88cd6000"
+    },
+    {
+      "slug": "bulking-calorie-calculator",
+      "url": "https://coachway.io/tools/bulking-calorie-calculator/",
+      "bytes": 205331,
+      "sha256": "e8e6c13fb0565ef1c6795e8f6dc8984266f7ff9cea76ce84bd1341a481ef31a4"
+    },
+    {
+      "slug": "calorie-cycling-calculator",
+      "url": "https://coachway.io/tools/calorie-cycling-calculator/",
+      "bytes": 196664,
+      "sha256": "f8c4ff0d4ee385bd6b8c01fc167d43b624327db2be2e570e081a8ec375ea1ad2"
+    },
+    {
+      "slug": "calorie-deficit-calculator",
+      "url": "https://coachway.io/tools/calorie-deficit-calculator/",
+      "bytes": 222786,
+      "sha256": "3c34447205136e8ac6c72a9e8fece6f34140d53aa8502be2150f62db891eda5b"
+    },
+    {
+      "slug": "calorie-surplus-calculator",
+      "url": "https://coachway.io/tools/calorie-surplus-calculator/",
+      "bytes": 200817,
+      "sha256": "24f8eb98b6515cf42b64c734ef6674d91bc169f5924e25face08449b86eb0c2b"
+    },
+    {
+      "slug": "calories-burned-calculator",
+      "url": "https://coachway.io/tools/calories-burned-calculator/",
+      "bytes": 183760,
+      "sha256": "fc9521b74f76c4d6852f48db124c68574a8850704de8e4d5b6f07e9513681abf"
+    },
+    {
+      "slug": "calories-per-meal-calculator",
+      "url": "https://coachway.io/tools/calories-per-meal-calculator/",
+      "bytes": 191348,
+      "sha256": "d56134450a42aa5ce6929935a3f9d5affd6440fc193c6e1109806eba602887ac"
+    },
+    {
+      "slug": "carb-cycling-calculator",
+      "url": "https://coachway.io/tools/carb-cycling-calculator/",
+      "bytes": 189705,
+      "sha256": "3da8b05a79cd4fac0548a2f7458a67598c19dddc32eb17939e85f94cb78e0f08"
+    },
+    {
+      "slug": "client-capacity-calculator",
+      "url": "https://coachway.io/tools/client-capacity-calculator/",
+      "bytes": 190307,
+      "sha256": "32c95d0c293a7f12b95bb22c4c1b6684c1891dcd899f6e113145159ab644ee02"
+    },
+    {
+      "slug": "client-check-in-builder",
+      "url": "https://coachway.io/tools/client-check-in-builder/",
+      "bytes": 162832,
+      "sha256": "cbf96b5d0a74c28a63871238a6adf5739e285d53124f62ff83c2105cf21de238"
+    },
+    {
+      "slug": "client-check-in-reader",
+      "url": "https://coachway.io/tools/client-check-in-reader/",
+      "bytes": 172229,
+      "sha256": "500cc983e47dbc1b074481ebc192d02760920d9282934a58da7a0f2a6f583d77"
+    },
+    {
+      "slug": "client-churn-rate-calculator",
+      "url": "https://coachway.io/tools/client-churn-rate-calculator/",
+      "bytes": 184657,
+      "sha256": "e334345a663c7608405f1c7ae77959ec0253585ee8076394d2599e057dd9e96c"
+    },
+    {
+      "slug": "client-churn-risk-reader",
+      "url": "https://coachway.io/tools/client-churn-risk-reader/",
+      "bytes": 172450,
+      "sha256": "aa26f78162f6acb37daeccddebe2f080cc60982002f89122aa5a1556beb75d66"
+    },
+    {
+      "slug": "client-ltv-calculator",
+      "url": "https://coachway.io/tools/client-ltv-calculator/",
+      "bytes": 182927,
+      "sha256": "6816e78981f9f93bcfae8e06d2ba4aed19602d9ffd03174d64e3362efdfd5586"
+    },
+    {
+      "slug": "client-onboarding-builder",
+      "url": "https://coachway.io/tools/client-onboarding-builder/",
+      "bytes": 163208,
+      "sha256": "55605f44d45726d8a891d245c87c16c795babe781c2a752d7fca110e24f013a9"
+    },
+    {
+      "slug": "coaching-business-health-check",
+      "url": "https://coachway.io/tools/coaching-business-health-check/",
+      "bytes": 160078,
+      "sha256": "b26183460b06bbdf50cc140ea2ca8413ec64c57eb06c2edeb102214d531f0236"
+    },
+    {
+      "slug": "coaching-offer-builder",
+      "url": "https://coachway.io/tools/coaching-offer-builder/",
+      "bytes": 160359,
+      "sha256": "9304d68a69324b371d56ff4a07c353ee16b362f61fdafd15afca7fc400fbace6"
+    },
+    {
+      "slug": "coaching-package-pricing-calculator",
+      "url": "https://coachway.io/tools/coaching-package-pricing-calculator/",
+      "bytes": 199044,
+      "sha256": "ef6089f5e03c7e30b68bf4e0e81166fb5915f84f5d771fc8710bdd65dcfac5f3"
+    },
+    {
+      "slug": "coaching-platform-cost-calculator",
+      "url": "https://coachway.io/tools/coaching-platform-cost-calculator/",
+      "bytes": 184861,
+      "sha256": "06059209070998cf1370d38b64ded39a95249e4f36d8239ec9181c7cbaa84a3e"
+    },
+    {
+      "slug": "coaching-platform-fit-finder",
+      "url": "https://coachway.io/tools/coaching-platform-fit-finder/",
+      "bytes": 191869,
+      "sha256": "ed7e8be85742830a17478d0c9d427f28bbb74581553abb2af411cc931ed4af21"
+    },
+    {
+      "slug": "coaching-profit-calculator",
+      "url": "https://coachway.io/tools/coaching-profit-calculator/",
+      "bytes": 191868,
+      "sha256": "f5160e2347404321ef7580a9397300a61ad441e02d1273cdad48e537c0495982"
+    },
+    {
+      "slug": "coaching-prompt-generator",
+      "url": "https://coachway.io/tools/coaching-prompt-generator/",
+      "bytes": 213509,
+      "sha256": "325fe395bbc8e5e0dbc0e44e50eb264d4e703181a8e987f108fabd9208e19398"
+    },
+    {
+      "slug": "coaching-rate-calculator",
+      "url": "https://coachway.io/tools/coaching-rate-calculator/",
+      "bytes": 195953,
+      "sha256": "3e83fe97695bed14a31afcc0e7414e0faf10ca72e2d0f71bae0926e027f382f2"
+    },
+    {
+      "slug": "coaching-revenue-projector",
+      "url": "https://coachway.io/tools/coaching-revenue-projector/",
+      "bytes": 182275,
+      "sha256": "a611d4037abaa3e56583bfb1596de8ded6c39894dba43b31359a83b5d216b773"
+    },
+    {
+      "slug": "coaching-tool-stack-cost-calculator",
+      "url": "https://coachway.io/tools/coaching-tool-stack-cost-calculator/",
+      "bytes": 191188,
+      "sha256": "da04b3f8699955194bf7012103fed6f3b0967d061e2d88ecf25503e502aa1837"
+    },
+    {
+      "slug": "cooper-test-calculator",
+      "url": "https://coachway.io/tools/cooper-test-calculator/",
+      "bytes": 226747,
+      "sha256": "a6414c37d867efd380f059cc7af64401fe5e3aa6f9d202b3abf98b175db0d377"
+    },
+    {
+      "slug": "creatine-dosage-calculator",
+      "url": "https://coachway.io/tools/creatine-dosage-calculator/",
+      "bytes": 201163,
+      "sha256": "a44b41739162e98b3ac4c0929530a96145fd6e88b02e42d01cef76e9fe9ee4fd"
+    },
+    {
+      "slug": "customer-acquisition-cost-calculator",
+      "url": "https://coachway.io/tools/customer-acquisition-cost-calculator/",
+      "bytes": 186498,
+      "sha256": "77c3e42c48050d73fbd5ac754133e03b6a335136adf67cfb6f430098791301f2"
+    },
+    {
+      "slug": "cut-length-calculator",
+      "url": "https://coachway.io/tools/cut-length-calculator/",
+      "bytes": 185726,
+      "sha256": "fd9fd48196346d881d33d69b3dd8097ba1862a1813f1f7d80f2d388e0293a31a"
+    },
+    {
+      "slug": "cycle-phase-calculator",
+      "url": "https://coachway.io/tools/cycle-phase-calculator/",
+      "bytes": 176430,
+      "sha256": "627ed0b5aafebb39bab66a9882e2bc5477962eb907b4d486d8592b77ed005fa0"
+    },
+    {
+      "slug": "deadlift-calculator",
+      "url": "https://coachway.io/tools/deadlift-calculator/",
+      "bytes": 194724,
+      "sha256": "009890bb6b1f07a9ee6d0f7faf559601e1252ac3fae4f4a656205074448298ab"
+    },
+    {
+      "slug": "difficult-client-responder",
+      "url": "https://coachway.io/tools/difficult-client-responder/",
+      "bytes": 166173,
+      "sha256": "9d9c666d5ac34a5e0d8aa7096f8e20881a3faf11c36b49e87dd55bc932602b1f"
+    },
+    {
+      "slug": "discovery-call-calculator",
+      "url": "https://coachway.io/tools/discovery-call-calculator/",
+      "bytes": 181534,
+      "sha256": "52c08f4eb521e93ca2ec2ae5a0309eb8f71c9cd4d8ce6e0e6ab3e70539d6d430"
+    },
+    {
+      "slug": "dots-calculator",
+      "url": "https://coachway.io/tools/dots-calculator/",
+      "bytes": 208563,
+      "sha256": "926d8ec8f6c40ed982a8102e15c0eba5eb95b9a9d0620deb09545806ec70ef55"
+    },
+    {
+      "slug": "email-list-value-calculator",
+      "url": "https://coachway.io/tools/email-list-value-calculator/",
+      "bytes": 182658,
+      "sha256": "c62f85677ccac1ed610679faf9902abd0a4436c3bc0168391da75dc5d22dd895"
+    },
+    {
+      "slug": "ffmi-calculator",
+      "url": "https://coachway.io/tools/ffmi-calculator/",
+      "bytes": 195449,
+      "sha256": "c1c9f7175da7177b2a3b61e79924fe118c9725e225fe9c255ce01b436643ffeb"
+    },
+    {
+      "slug": "fiber-intake-calculator",
+      "url": "https://coachway.io/tools/fiber-intake-calculator/",
+      "bytes": 191734,
+      "sha256": "9316c70927b5af744929b4ca841dbd8611be119432fda133f0c23199623f2d56"
+    },
+    {
+      "slug": "free-trial-conversion-calculator",
+      "url": "https://coachway.io/tools/free-trial-conversion-calculator/",
+      "bytes": 177142,
+      "sha256": "25c03c8131d87e5f97c46c59dfe9483b11a90cf3c059f8ec6c3e480f34d8f585"
+    },
+    {
+      "slug": "glp1-client-coaching-planner",
+      "url": "https://coachway.io/tools/glp1-client-coaching-planner/",
+      "bytes": 162027,
+      "sha256": "b10a99a399132d101ce09118dbf59f509f71c5986aaea9d37bb583a7863759bb"
+    },
+    {
+      "slug": "goal-weight-date-calculator",
+      "url": "https://coachway.io/tools/goal-weight-date-calculator/",
+      "bytes": 213347,
+      "sha256": "76447564cf0c3f50eb8a005697ce609fd70fa50213c14aa25f28379551c8419d"
+    },
+    {
+      "slug": "group-vs-1on1-coaching-calculator",
+      "url": "https://coachway.io/tools/group-vs-1on1-coaching-calculator/",
+      "bytes": 185769,
+      "sha256": "7c1ce3976218ff61edf865ab6be1c85c2033482c1fde875e129b08cb841fb262"
+    },
+    {
+      "slug": "heart-rate-zone-calculator",
+      "url": "https://coachway.io/tools/heart-rate-zone-calculator/",
+      "bytes": 186529,
+      "sha256": "28dcb9948fb4cd61cb933374a4d0c4bc6fd91e9ce31693aa74127f1729ba736c"
+    },
+    {
+      "slug": "ideal-weight-calculator",
+      "url": "https://coachway.io/tools/ideal-weight-calculator/",
+      "bytes": 175207,
+      "sha256": "9a09ed64770c31b02e11e6cc81ed548b8cff6daca3d2519d994eb91d68fdd210"
+    },
+    {
+      "slug": "injury-exercise-swap",
+      "url": "https://coachway.io/tools/injury-exercise-swap/",
+      "bytes": 176619,
+      "sha256": "02a4e98952dfdb8826ecd1f6af9428629aa850fcf6c7f1a43aa86e22c7f4ce80"
+    },
+    {
+      "slug": "instagram-caption-generator",
+      "url": "https://coachway.io/tools/instagram-caption-generator/",
+      "bytes": 200134,
+      "sha256": "21ef74f0404c7b8b2afef58ff7819b61ad25c524d4416cb302c5496187bf0738"
+    },
+    {
+      "slug": "instagram-hook-generator",
+      "url": "https://coachway.io/tools/instagram-hook-generator/",
+      "bytes": 247422,
+      "sha256": "d5f01d78b77d9b4d543e67d1900b743954f16b38e71d80d85eaf007e7be67401"
+    },
+    {
+      "slug": "intermittent-fasting-calculator",
+      "url": "https://coachway.io/tools/intermittent-fasting-calculator/",
+      "bytes": 191225,
+      "sha256": "cd40387dd51b9fdb1c53ccaaab33e517e938f99133aba75210a8649e31ea139e"
+    },
+    {
+      "slug": "interval-walking-calculator",
+      "url": "https://coachway.io/tools/interval-walking-calculator/",
+      "bytes": 174502,
+      "sha256": "355a8a14857a3b939407144bc3810703532ba6f444acecce2261edc15b5dc9ac"
+    },
+    {
+      "slug": "ipf-gl-points-calculator",
+      "url": "https://coachway.io/tools/ipf-gl-points-calculator/",
+      "bytes": 217909,
+      "sha256": "783ba1445d4f9c127fc61e40acb21e23b3f8cbf0b0f89d05c0473d3563400248"
+    },
+    {
+      "slug": "keto-macro-calculator",
+      "url": "https://coachway.io/tools/keto-macro-calculator/",
+      "bytes": 184769,
+      "sha256": "6ad3884e1eea7ee3c5fc371c25e8ea4d18111daa7dc85465759a1a34e16f5e9e"
+    },
+    {
+      "slug": "lean-body-mass-calculator",
+      "url": "https://coachway.io/tools/lean-body-mass-calculator/",
+      "bytes": 197916,
+      "sha256": "5df730b6f623c168ddc3f907ad745a61caeda7446e5053afcb35189471dd962d"
+    },
+    {
+      "slug": "lift-progression-reader",
+      "url": "https://coachway.io/tools/lift-progression-reader/",
+      "bytes": 169100,
+      "sha256": "14a3c96164f9a79018d8f49af233ff7c79c724756c4112ed8d90a6b3866291d4"
+    },
+    {
+      "slug": "macro-calculator",
+      "url": "https://coachway.io/tools/macro-calculator/",
+      "bytes": 197841,
+      "sha256": "037c26e1cd303e707c7e9330d5a54d32fc6783e3986ec1b73cbd4220109c6be7"
+    },
+    {
+      "slug": "macro-split-by-body-type-calculator",
+      "url": "https://coachway.io/tools/macro-split-by-body-type-calculator/",
+      "bytes": 195856,
+      "sha256": "ec0321645239001f9091585c16546ef72f3ed2415f6f4e1ead8c52bd8435b5a6"
+    },
+    {
+      "slug": "maintenance-calorie-calculator",
+      "url": "https://coachway.io/tools/maintenance-calorie-calculator/",
+      "bytes": 190213,
+      "sha256": "c9d04397acf41b5d8416962cfff4396a06154dba6857da79b74ac860a71dce0b"
+    },
+    {
+      "slug": "max-heart-rate-calculator",
+      "url": "https://coachway.io/tools/max-heart-rate-calculator/",
+      "bytes": 199145,
+      "sha256": "c3abcba97e8b132aeabb7ae815b702ef37d9f0bc1dcfd01b8a364af0e63165ca"
+    },
+    {
+      "slug": "muscle-mass-calculator",
+      "url": "https://coachway.io/tools/muscle-mass-calculator/",
+      "bytes": 209108,
+      "sha256": "1c297785777af4c7d866c55987a8df38ebaf97b0c528633c3f95d8e9a53e7df7"
+    },
+    {
+      "slug": "navy-body-fat-calculator",
+      "url": "https://coachway.io/tools/navy-body-fat-calculator/",
+      "bytes": 208286,
+      "sha256": "649c995920fb994ae9e33a15e7bfa4013e2b19877912fe3c67c3e109007a5110"
+    },
+    {
+      "slug": "no-show-cost-calculator",
+      "url": "https://coachway.io/tools/no-show-cost-calculator/",
+      "bytes": 184528,
+      "sha256": "e65601f9a73ebc630910b9172341887a646aff7e1ea0c784f29974f94045f52e"
+    },
+    {
+      "slug": "one-rep-max-calculator",
+      "url": "https://coachway.io/tools/one-rep-max-calculator/",
+      "bytes": 212422,
+      "sha256": "e0c65ab9d224bb769d2d0e23f33cd0b0ab1e9145a8e32182f366ad7b01ee4c35"
+    },
+    {
+      "slug": "overhead-press-calculator",
+      "url": "https://coachway.io/tools/overhead-press-calculator/",
+      "bytes": 179018,
+      "sha256": "85ad494dfa952ec223552f268863d3c6bba01446276ba33ffb25bb79eff23d0a"
+    },
+    {
+      "slug": "personal-trainer-bio-generator",
+      "url": "https://coachway.io/tools/personal-trainer-bio-generator/",
+      "bytes": 185036,
+      "sha256": "82a3aad8c52ae689828a1618136c44e49caa5115784a8bd876e31e44926cdc06"
+    },
+    {
+      "slug": "personal-trainer-income-calculator",
+      "url": "https://coachway.io/tools/personal-trainer-income-calculator/",
+      "bytes": 212174,
+      "sha256": "1d38bf657cdc285847fbe7f6757ac81c55414433d36f17ab38d1f8f01a9990e0"
+    },
+    {
+      "slug": "personal-training-business-name-generator",
+      "url": "https://coachway.io/tools/personal-training-business-name-generator/",
+      "bytes": 188284,
+      "sha256": "db8024a5cc4ff7ace60cb71a8ef495293fde4d7a0993c6ba46d1c3f9af1d9d7e"
+    },
+    {
+      "slug": "plate-loading-calculator",
+      "url": "https://coachway.io/tools/plate-loading-calculator/",
+      "bytes": 222121,
+      "sha256": "6614a0755fb19e2ae54fb49ac8c8d54b50df9fb6d2651ec3a530b4551cea9f7b"
+    },
+    {
+      "slug": "price-increase-calculator",
+      "url": "https://coachway.io/tools/price-increase-calculator/",
+      "bytes": 185515,
+      "sha256": "7ffa71e56ff8971fa40a224445977bf1eb56d435c34a72d203d89ee5a6d39850"
+    },
+    {
+      "slug": "protein-calculator",
+      "url": "https://coachway.io/tools/protein-calculator/",
+      "bytes": 186254,
+      "sha256": "97eb51d5a877f98df61f6643f282744e43aa9660186b758a576d2a25706ec1cf"
+    },
+    {
+      "slug": "protein-per-meal-calculator",
+      "url": "https://coachway.io/tools/protein-per-meal-calculator/",
+      "bytes": 191648,
+      "sha256": "0a750649719f0350f4fda68c8fd5af503d1fead9af8bb3932846d9db392b421d"
+    },
+    {
+      "slug": "race-time-predictor",
+      "url": "https://coachway.io/tools/race-time-predictor/",
+      "bytes": 202055,
+      "sha256": "6ea7ae2daac46a76e0fa152f48bdd3b48a99ba556fab4353cde1c81b42c4d886"
+    },
+    {
+      "slug": "recipe-macro-calculator",
+      "url": "https://coachway.io/tools/recipe-macro-calculator/",
+      "bytes": 233445,
+      "sha256": "9b5b0fc9736c815214b632e7b74854672f57a8acab8bfc818010706a17e5928c"
+    },
+    {
+      "slug": "reel-script-generator",
+      "url": "https://coachway.io/tools/reel-script-generator/",
+      "bytes": 193856,
+      "sha256": "799e6b2914d2ef0ac14f1304a5d6f49e82a55387f509ea2fccac387e1b9aa75b"
+    },
+    {
+      "slug": "refeed-day-calculator",
+      "url": "https://coachway.io/tools/refeed-day-calculator/",
+      "bytes": 196284,
+      "sha256": "975165eaf949f9cf590421f32709af83f9a4f8d0ca81f4db6fc58bc617a44add"
+    },
+    {
+      "slug": "referral-value-calculator",
+      "url": "https://coachway.io/tools/referral-value-calculator/",
+      "bytes": 183618,
+      "sha256": "80dad22597ede334021599c2086a375ae326e2488633c0b1c0130ddc83abc6c0"
+    },
+    {
+      "slug": "reverse-diet-calculator",
+      "url": "https://coachway.io/tools/reverse-diet-calculator/",
+      "bytes": 182962,
+      "sha256": "1eba449fafabe96467dad76741ff970bdd60c8372e9526dbf9c44a17dc1b0bb5"
+    },
+    {
+      "slug": "rir-calculator",
+      "url": "https://coachway.io/tools/rir-calculator/",
+      "bytes": 192743,
+      "sha256": "d3a2a34487656a25a4d774de5d7c998b1d7da14894e7931b92d0f2ac8df8a7c7"
+    },
+    {
+      "slug": "rpe-calculator",
+      "url": "https://coachway.io/tools/rpe-calculator/",
+      "bytes": 180450,
+      "sha256": "d4110a3081c39ac6e30c5c1b4489c1e0278966f06c8e042a0364230f75db4fd9"
+    },
+    {
+      "slug": "rucking-calorie-calculator",
+      "url": "https://coachway.io/tools/rucking-calorie-calculator/",
+      "bytes": 180761,
+      "sha256": "7aaf7c31b6f1b098a57d75b39f7f205c2d75bef2413d9a22c1dee86c53805821"
+    },
+    {
+      "slug": "running-pace-calculator",
+      "url": "https://coachway.io/tools/running-pace-calculator/",
+      "bytes": 195625,
+      "sha256": "094532b5cb7035ac418236f73d495f7ce1170f183b29a42edd71a3aa81f91953"
+    },
+    {
+      "slug": "sales-objection-handler",
+      "url": "https://coachway.io/tools/sales-objection-handler/",
+      "bytes": 164641,
+      "sha256": "73325b0ec406219b065f1635b86517b742bad7ddcf703964bcee67a1efdfa52a"
+    },
+    {
+      "slug": "scope-of-practice-check",
+      "url": "https://coachway.io/tools/scope-of-practice-check/",
+      "bytes": 170083,
+      "sha256": "2288768ee50ee72ac347c3bd62cf992600c4736f21a309f82b3ac7651bb7b7c1"
+    },
+    {
+      "slug": "sinclair-calculator",
+      "url": "https://coachway.io/tools/sinclair-calculator/",
+      "bytes": 194603,
+      "sha256": "24edd5db86ffad4774b82bc240a28c19e5a23bb6ca1804d4327a076e1962177d"
+    },
+    {
+      "slug": "squat-calculator",
+      "url": "https://coachway.io/tools/squat-calculator/",
+      "bytes": 185946,
+      "sha256": "170d37291aece06095da98daf55e95d31f9451b4aa73229a889d3a11a1d2c46d"
+    },
+    {
+      "slug": "steps-to-calories-calculator",
+      "url": "https://coachway.io/tools/steps-to-calories-calculator/",
+      "bytes": 208362,
+      "sha256": "4116f11be60cb4d6444225a457c41be309c8c4ec824f9d2e9fb2f110a0305b3f"
+    },
+    {
+      "slug": "strength-standards-calculator",
+      "url": "https://coachway.io/tools/strength-standards-calculator/",
+      "bytes": 210137,
+      "sha256": "894d2d0a5c2e0535dc438c79d162fda5dacee3cef06591d9d4596ac95d428cbf"
+    },
+    {
+      "slug": "sweat-rate-calculator",
+      "url": "https://coachway.io/tools/sweat-rate-calculator/",
+      "bytes": 174139,
+      "sha256": "03170916957b623549a4c5098b48c57b71f8ed166237ca43279b89bcf58b1592"
+    },
+    {
+      "slug": "tdee-calculator",
+      "url": "https://coachway.io/tools/tdee-calculator/",
+      "bytes": 196204,
+      "sha256": "573474de2af1a5bea62ba4d282ecd97bcc0fcf2139a30e1eeb54e6ae9eb28f88"
+    },
+    {
+      "slug": "tempo-calculator",
+      "url": "https://coachway.io/tools/tempo-calculator/",
+      "bytes": 174999,
+      "sha256": "8ec724add11e2fa9e3ab5d08850035e1792adf75ccf9273b7157b15f26c1b7c4"
+    },
+    {
+      "slug": "vo2-max-calculator",
+      "url": "https://coachway.io/tools/vo2-max-calculator/",
+      "bytes": 223927,
+      "sha256": "023b775db605e44f0e11ad9e456b9eeb890be65dfdcea9c5c7e09ec2c0d5dce5"
+    },
+    {
+      "slug": "waist-to-height-ratio-calculator",
+      "url": "https://coachway.io/tools/waist-to-height-ratio-calculator/",
+      "bytes": 181209,
+      "sha256": "9b443448d48e04d6af30999f530a4fb1d8564c768fd3da6f5c0c4b7aad3ff9ca"
+    },
+    {
+      "slug": "waist-to-hip-ratio-calculator",
+      "url": "https://coachway.io/tools/waist-to-hip-ratio-calculator/",
+      "bytes": 180828,
+      "sha256": "380e8fccfff8f3bf21f95931ee6fd8896f0952c0658479d578785cff47a5bc29"
+    },
+    {
+      "slug": "warm-up-set-calculator",
+      "url": "https://coachway.io/tools/warm-up-set-calculator/",
+      "bytes": 191884,
+      "sha256": "9e79a7912810a464a7a9c9ce8243612ae07fbc964450d85fddb471e3e3dffff3"
+    },
+    {
+      "slug": "water-intake-calculator",
+      "url": "https://coachway.io/tools/water-intake-calculator/",
+      "bytes": 185658,
+      "sha256": "73274b68ad1f9df37172fa513f6c68186a2816c3608936036f399198738703ed"
+    },
+    {
+      "slug": "weekly-training-volume-calculator",
+      "url": "https://coachway.io/tools/weekly-training-volume-calculator/",
+      "bytes": 193961,
+      "sha256": "1112e50f0141f16cc8c8f0a8c9afd71410957418fb5e00441bb7525a8c2cf7f1"
+    },
+    {
+      "slug": "weight-loss-percentage-calculator",
+      "url": "https://coachway.io/tools/weight-loss-percentage-calculator/",
+      "bytes": 211077,
+      "sha256": "e6a7ef3416c1a667eaf7bf4d74bfdeac78f84a8783b36f2103cc6e7c27b13a99"
+    },
+    {
+      "slug": "weight-loss-phase-calculator",
+      "url": "https://coachway.io/tools/weight-loss-phase-calculator/",
+      "bytes": 206127,
+      "sha256": "72c41026adf29956f964e86ec6a0f1ee1b4b83a7e0db2d5d1484b1bf9aba712e"
+    },
+    {
+      "slug": "weight-trend-reader",
+      "url": "https://coachway.io/tools/weight-trend-reader/",
+      "bytes": 170671,
+      "sha256": "8c16e1d9347f54aa7ff9588994a818455ced949c7816d88c5b6013fc15764a16"
+    },
+    {
+      "slug": "wilks-calculator",
+      "url": "https://coachway.io/tools/wilks-calculator/",
+      "bytes": 187301,
+      "sha256": "b7e6f9579fb90e8d5f03fda020f50b48b3eb5bd5477d07431fad30cbe3eb6a11"
+    },
+    {
+      "slug": "wilks-dots-calculator",
+      "url": "https://coachway.io/tools/wilks-dots-calculator/",
+      "bytes": 198446,
+      "sha256": "49fba359aac3cfa16c574ec57953f44da2230422931fd2a9ef7bb8a5e67b6a4f"
+    },
+    {
+      "slug": "workout-plan-builder",
+      "url": "https://coachway.io/tools/workout-plan-builder/",
+      "bytes": 175829,
+      "sha256": "63607d3905e3fc925ab556b589adca04e94141a28e84edf76da7e8b14e757ccc"
+    },
+    {
+      "slug": "workout-timer",
+      "url": "https://coachway.io/tools/workout-timer/",
+      "bytes": 182783,
+      "sha256": "3400fcda559ae658aec37473ce2032bb700ea446e50296c29c9e95c6db7e4181"
+    },
+    {
+      "slug": "zone-2-heart-rate-calculator",
+      "url": "https://coachway.io/tools/zone-2-heart-rate-calculator/",
+      "bytes": 183939,
+      "sha256": "8fab24e5c52d7c244de461fed8e2d58e73647027b0a5e927be4c6485fb8a8322"
+    }
+  ]
+}

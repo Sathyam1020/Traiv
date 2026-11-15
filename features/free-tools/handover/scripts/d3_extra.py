@@ -1,0 +1,146 @@
+"""Extra original sections for the effort, tempo, warm-up and plate pages."""
+
+
+def _s(h, *blocks):
+    return (h, list(blocks))
+
+
+EXTRA = {}
+
+EXTRA["rpe-calculator"] = [
+    _s("A worked example: estimating your max from a set",
+       "You bench 80 kg for 6 reps and rate it RPE 8.5, meaning you probably had one or two reps left. Six reps at RPE 8.5 behaves like seven and a half reps at RPE 10, which the chart places at 79.85 percent of your one-rep max. Dividing 80 kg by 0.7985 gives an estimated max of roughly 100.2 kg. You did not need to test a heavy single to get a useful number, and you can update it every week from your normal training sets."),
+    _s("A worked example: choosing a load",
+       "Your programme asks for three sets of five at RPE 8 on the squat, and your estimated max is 140 kg. Five reps at RPE 8 is about 81 percent, so 140 × 0.81 = 113.4 kg, rounded to 112.5 kg. Load that for your first set. If it feels like RPE 7, add 2.5 to 5 kg for the next set; if it feels like RPE 9, drop 2.5 to 5 kg. This combination of a calculated start and a feel-based adjustment is how most lifters use RPE in practice."),
+    _s("RPE for different exercises",
+       "RPE is easiest to rate on compound lifts with clear feedback from bar speed, such as squats, bench presses and deadlifts. It is harder on isolation exercises, where burning sensations can make a set feel harder than it really is, and on exercises with a lot of balance demand, where technique fails before the muscles do. Many coaches use precise RPE targets for main lifts and simpler instructions, such as 'one or two reps short of failure', for accessories."),
+    _s("RPE and fatigue over a session",
+       "As a session goes on, the same weight tends to feel harder. A set of five at 100 kg might be RPE 7 on the first set and RPE 8.5 by the fourth. Many programmes use this deliberately: a top set at a target RPE, followed by back-off sets at a lower weight, keeps the effort manageable across the session. If the RPE of your sets climbs much faster than usual, it is a sign of accumulated fatigue, and reducing the number of sets that day can be wise."),
+    _s("RPE over a training block",
+       "A common structure is to start a training block at moderate RPEs, such as 6 to 7, and gradually increase the target over three to five weeks to 8 or 9, before a lighter week. This builds fitness and strength steadily while managing fatigue. Tracking the weight you lift at each RPE across the block shows whether you are getting stronger: lifting more at the same RPE, or the same weight at a lower RPE, are both clear signs of progress."),
+    _s("When RPE is not the right tool",
+       "RPE relies on honest, accurate self-assessment. It works less well for complete beginners who have never trained near failure, for people who tend to push too hard regardless of the target, and for exercises where approaching failure is risky. In those cases, fixed weights and reps with conservative progression may be safer, with RPE introduced gradually once the lifter has more experience."),
+    _s("RPE and conditioning",
+       "The original Borg scale and its simplified 1 to 10 versions are also used to rate whole sessions or conditioning work, where they describe overall breathlessness and effort rather than reps in reserve. Some coaches multiply a session RPE by its duration in minutes to estimate training load, a method called session RPE. This calculator uses the strength-training version tied to reps in reserve, which is a different scale even though it uses the same name."),
+    _s("Building the habit",
+       "Rate every working set as you finish it, while the feeling is fresh, and write it down alongside the weight and reps. After a few weeks, compare your ratings with your actual performance on later sets or tests. Most lifters find their accuracy improves quickly once they start paying attention. Over time, a log of weights and RPEs becomes one of the most useful records you have, because it shows not just what you lifted but how hard it was."),
+]
+
+EXTRA["rir-calculator"] = [
+    _s("A worked example",
+       "You do 10 reps of Romanian deadlifts with 70 kg and feel you could have managed three more. That is 3 RIR, or RPE 7. Ten reps at RPE 7 is about 66 percent of your one-rep max, giving an estimated max of about 105.4 kg. Next week, aiming for 10 reps at 2 RIR, you might add 2.5 to 5 kg, since the same reps at a slightly harder effort means a slightly heavier load."),
+    _s("RIR and muscle growth research",
+       "Several studies have compared training to failure with stopping one or more reps short. When the total amount of work is similar, the results for muscle growth are generally similar too, as long as sets are taken reasonably close to failure. Some analyses suggest that growth may begin to fall off once sets end more than about four or five reps from failure. This supports a practical target of zero to three reps in reserve for most muscle-building work.",
+       "Training to failure more often may slightly help experienced lifters on some exercises, but it also produces more fatigue, which can reduce the quality of later sets and sessions. Saving true failure for the last set of an exercise, and for safe movements, is a sensible compromise."),
+    _s("Using RIR to manage fatigue",
+       "Reps in reserve helps manage fatigue across a week of training. If your main lifts are prescribed at 2 to 3 RIR, you leave enough in the tank to recover by the next session. As a programme progresses, gradually reducing RIR, for example from 3 to 2 to 1 over several weeks, increases the training stimulus while fatigue builds in a controlled way. A lighter week, with sets at 4 RIR or more, then lets fatigue clear before the next block."),
+    _s("Common mistakes with RIR",
+       ("ul", [
+           "**Underestimating reps left,** especially on isolation exercises and in high-rep sets.",
+           "**Counting reps with broken form** as reps in reserve. A rep that changes technique marks the limit.",
+           "**Using the same RIR for every exercise** regardless of risk. Heavy squats and deadlifts usually deserve a bigger margin than curls.",
+           "**Forgetting fatigue across sets.** Later sets at the same weight usually have fewer reps in reserve.",
+       ])),
+    _s("RIR for beginners",
+       "New lifters often struggle to judge reps in reserve because they have never trained close to failure. A good way to learn is to take a safe exercise, such as a machine press or leg press, to genuine failure once in a while, then compare how the last few reps felt with earlier sets. Within a few weeks, most beginners develop a reasonable sense of how many reps they have left. Until then, coaches often program conservatively and adjust as the client's ratings become more reliable."),
+    _s("RIR and rep ranges",
+       "The same RIR means different things in different rep ranges. Two reps in reserve on a set of three is close to a maximal effort; two reps in reserve on a set of fifteen leaves the lifter tired and burning but further from their maximal strength. For heavy, low-rep strength work, slightly larger margins, such as two to three reps, help keep technique sharp. For moderate and high-rep work, smaller margins are usually fine."),
+    _s("Combining RIR with progressive overload",
+       "Progressive overload means gradually increasing the demand on your muscles over time, usually by adding weight or reps. RIR provides a simple rule for when to progress. If a target such as eight reps at 2 RIR starts to feel like 3 or 4 RIR, the weight has become relatively lighter and it is time to add a little. If it starts to feel like 0 or 1 RIR, hold the weight and work on adding reps. This keeps progress steady without guesswork."),
+    _s("RIR for different populations",
+       "For older adults and people returning from injury, larger reps-in-reserve targets of three or four are often a safer starting point, while still providing enough stimulus to build strength. For experienced lifters chasing muscle growth, targets of zero to two are common. For athletes in season, larger margins help manage fatigue alongside sport training. Adjusting the target to the person and their situation is part of what makes RIR so useful."),
+    _s("Recording RIR in a training log",
+       "Writing your reps in reserve next to each set, such as '100 kg × 5 @ 2 RIR', turns a simple log into a much richer record. You can see when the same weight starts to feel easier, which is a sign of progress, and when sets feel harder than usual, which may signal fatigue or a need for more recovery. Over months, this record makes it easy to plan training blocks and set realistic goals."),
+]
+
+EXTRA["tempo-calculator"] = [
+    _s("A worked example",
+       "A programme prescribes 4 sets of 6 Romanian deadlifts at a tempo of 3-1-1-1. Each rep takes 3 + 1 + 1 + 1 = 6 seconds. Each set of six takes 36 seconds, and four sets total 144 seconds, about two and a half minutes of time under tension. If you normally do these at a quicker pace with more weight, expect to use around 10 to 20 percent less load at this tempo."),
+    _s("Tempo on common exercises",
+       ("table", ["Exercise", "Typical tempo", "Purpose"], [
+           ["Back squat", "3-1-X-0", "Control on the way down, power on the way up"],
+           ["Bench press", "2-1-X-0", "Pause on the chest builds strength from the bottom"],
+           ["Romanian deadlift", "3-0-1-1", "Slow stretch on the hamstrings, squeeze at the top"],
+           ["Pull-up", "X-1-3-0 (concentric first)", "Strong pull, controlled lowering"],
+           ["Biceps curl", "2-0-1-1", "Controlled reps without swinging"],
+           ["Split squat", "3-1-1-0", "Balance and control"],
+       ]),
+       "These are examples, not rules. Many lifters use normal, controlled reps for most work and save specific tempos for a few key lifts."),
+    _s("Eccentric training",
+       "The eccentric, or lowering, phase is where muscles can handle the most load and where much of the mechanical tension that drives growth occurs. Slow eccentrics, around three to five seconds, can increase muscle damage and soreness, especially when they are new. Some research suggests eccentric-focused training is particularly good for tendon health and for building strength at long muscle lengths. Introduce slow eccentrics gradually, with lighter loads, and expect more soreness for the first week or two."),
+    _s("Pauses and the stretch reflex",
+       "When a muscle is stretched quickly and then contracts, it can produce more force thanks to the stretch reflex and the elastic energy stored in muscles and tendons. That bounce makes lifting easier. A pause at the bottom of a squat or bench press removes much of that benefit, making the lift harder from the bottom and building strength in that position. Paused lifts are popular among powerlifters for exactly this reason, especially the paused bench press, which is required in competition."),
+    _s("Explosive concentrics",
+       "Lifting the weight as fast as possible, the X in a tempo, increases the number of muscle fibres recruited and helps develop power. Even when the bar moves slowly because it is heavy, the intention to move it fast matters. Many strength coaches recommend explosive intent on all concentric reps, combined with controlled lowering, as a simple default for most lifts."),
+    _s("Tempo for beginners",
+       "Beginners often benefit from slightly slower, controlled reps, around two to three seconds on the way down, because it helps them learn positions and avoid bouncing out of the bottom. As technique becomes consistent, they can move toward normal speeds with explosive intent on the way up. Tempo work is also helpful when returning from injury, because slower reps with lighter loads let the lifter build confidence and control."),
+    _s("Time under tension and hypertrophy",
+       "A common recommendation is to aim for 40 to 60 seconds of time under tension per set for muscle growth. Research does not strongly support a specific number. What seems to matter most is taking sets reasonably close to failure and doing enough total hard sets per week. Time under tension is better seen as a by-product of choosing a sensible weight and rep range than as a target in its own right. Still, tracking it can be useful when comparing programmes or checking that sets are neither too short nor too long."),
+    _s("Using a metronome",
+       "Counting seconds accurately is harder than it sounds, especially when a set gets tough. A metronome app set to 60 beats per minute gives one beat per second, making tempos easy to follow. Some lifters prefer to count aloud, and others use a training partner to count for them. Filming a set and timing it afterwards is a good way to check how accurately you are following the prescribed tempo."),
+    _s("Total session time under tension",
+       "Adding up time under tension across a whole session gives a rough picture of total work. A session with five exercises, each three sets of eight at a 3-0-1-0 tempo, adds up to about 8 minutes of time under tension. Sessions focused on heavy strength work will have less, while high-volume bodybuilding sessions can have much more. This is one more way to compare sessions, alongside total sets and the weights used."),
+]
+
+EXTRA["warm-up-set-calculator"] = [
+    _s("A worked example in kilograms",
+       "Your working weight for the deadlift is 140 kg for sets of three. The full ramp gives the 20 kg bar for 10 reps, then 55 kg × 5, 85 kg × 3, 105 kg × 2 and 120 kg × 1, with each percentage rounded to a loadable weight. Many lifters replace the empty-bar set with a light pull at around 60 kg, because the bar alone sits too close to the floor for a normal deadlift start. With rests of 45 to 90 seconds, the whole warm-up takes around eight to ten minutes, and you start your work sets with the movement grooved and the muscles ready."),
+    _s("Warm-ups for different lifts",
+       ("ul", [
+           "**Squats and deadlifts:** use the full ramp, especially for the first lift of the day. These lifts involve large muscles and big ranges of motion.",
+           "**Bench press and overhead press:** the full ramp suits heavy sessions; add a few light shoulder exercises beforehand, such as band pull-aparts or external rotations.",
+           "**Accessory lifts:** one or two light sets are usually enough after the main lifts.",
+           "**Olympic lifts:** often need more sets with an empty bar or technique work before loading.",
+       ])),
+    _s("Warming up for heavy singles",
+       "If you are working up to a heavy single or testing a max, add a couple of extra steps above 85 percent: for example a single at 90 percent and sometimes one at 95 percent before your top attempt. Rest longer between these heavy warm-up singles, around two to three minutes, so you arrive at your top set fresh. Keep reps at one for everything above about 80 percent."),
+    _s("Warming up when time is short",
+       "If time is tight, shorten the general warm-up rather than the specific one, and use the quick ramp. Three good warm-up sets are better than rushing straight into heavy work. If you are really short on time, consider reducing the number of working sets instead of cutting the warm-up, because a poor warm-up increases the chance of a bad session or a strain."),
+    _s("Warming up as you age",
+       "Many lifters find they need a longer warm-up as they get older, with more general movement and an extra light set or two. Joints and tissues often take longer to feel ready, and a thorough warm-up helps heavy sets feel smoother. If you find your first working set always feels rough, add another warm-up step at around 70 percent."),
+    _s("Cold environments",
+       "In a cold gym or garage, muscles and joints take longer to warm up. Wear extra layers for the first part of the session, extend the general warm-up, and consider adding an extra light set to the ramp. Feeling warm and loose before your first heavy set is a better guide than following a fixed number of sets."),
+    _s("Warm-up sets and your training log",
+       "Most lifters do not log warm-up sets, which is fine. But noting how the heaviest warm-up felt can be useful: if your 85 percent single feels unusually heavy, it is a sign to keep the working sets conservative that day. Over time, this simple check helps you adjust training to how you actually feel, rather than following the plan blindly."),
+    _s("Mobility and activation drills",
+       "Before heavy lifting, a few targeted drills can help: hip circles and goblet squats before squatting, glute bridges before deadlifts, band pull-aparts and light presses before benching. Keep these short and easy; they are meant to wake up the right muscles and improve range of motion, not to tire you out. Five minutes is usually plenty."),
+    _s("Common warm-up mistakes",
+       ("ul", [
+           "**Skipping the warm-up entirely** and starting with working weight.",
+           "**Doing too many reps** on heavier warm-up sets, causing fatigue.",
+           "**Jumping too fast** from very light to very heavy weights.",
+           "**Long static stretching** right before heavy lifting.",
+           "**Resting too long** between warm-ups, letting the body cool down.",
+       ])),
+]
+
+EXTRA["plate-loading-calculator"] = [
+    _s("Worked examples",
+       ("table", ["Target", "Bar", "Each side"], [
+           ["60 kg", "20 kg", "20 kg"],
+           ["82.5 kg", "20 kg", "25 + 5 + 1.25 kg"],
+           ["140 kg", "20 kg", "25 + 25 + 10 kg"],
+           ["135 lb", "45 lb", "45 lb"],
+           ["185 lb", "45 lb", "45 + 25 lb"],
+           ["315 lb", "45 lb", "45 + 45 + 45 lb"],
+       ]),
+       "Loading the heaviest plates first keeps the number of plates on the bar low, which makes the bar easier to load and unload, and keeps the weight closer to the centre of the sleeve."),
+    _s("Why fewer, heavier plates is better",
+       "Using the largest plates possible reduces how much of the sleeve the plates take up, leaving room for collars and more plates if needed. It also makes loading faster and reduces the chance of mistakes. A 20 kg plate is easier to handle than four 5 kg plates, and the bar is more stable with fewer plates on it."),
+    _s("Loading for deadlifts",
+       "For deadlifts, the bar's height off the floor depends on the plate diameter. Standard full-size plates, usually 20 kg and 25 kg or 45 lb, set the bar at the standard starting height of about 22.5 cm (8.9 in) to the bar's centre. If you need a lighter weight without full-size plates, the bar sits lower, which changes the lift. Bumper plates, which come in full-size diameter even at lighter weights, or blocks under smaller plates, keep the starting height consistent."),
+    _s("Loading at home",
+       "Home gyms often have a limited selection of plates. Before buying, think about which jumps you need. A set with pairs of 20, 10, 5, 2.5 and 1.25 kg plates can make almost any weight in 2.5 kg steps up to around 100 kg on a 20 kg bar. For heavier lifting, more 20 kg or 25 kg plates are needed. Ticking only the plates you own in the calculator shows the weights you can actually load."),
+    _s("Plate tolerances",
+       "Plates are not always exactly the weight printed on them. Inexpensive cast-iron plates can vary by several percent, while calibrated competition plates are accurate to within a few grams. For most training this does not matter, but if you are tracking small increases, or comparing lifts across gyms, it can make a difference. Weighing your plates once on a bathroom or kitchen scale gives you a better idea of what you are really lifting."),
+    _s("Loading different bars",
+       "Specialty bars change the maths. A trap bar might weigh 25 kg, a safety squat bar 30 kg, a cambered bar 25 kg, and an EZ curl bar around 10 kg. Fixed-weight barbells and smith machines are different again; smith machine bars are often counterbalanced, so their effective weight is much less than a free bar. Check the weight of the bar you are using before calculating plates, and record it in your training log so lifts on different bars are not confused."),
+    _s("Percentages and plates together",
+       "When a programme calls for 75 percent of a 160 kg max, the exact figure is 120 kg, which loads easily as two 25 kg plates on each side of a 20 kg bar. Other percentages land on awkward numbers, such as 78 percent giving 124.8 kg. Round to the nearest loadable weight, usually 125 kg, and keep the rounding consistent so your training stays on track."),
+    _s("Safety when loading and unloading",
+       "Load and unload plates evenly, alternating sides, especially when the bar is on a rack. Removing all the plates from one side at once can flip the bar off the hooks. Lift plates with a straight back and bent knees, using the handles if they have them. Use collars on every lift, and check the bar is level before starting. Returning plates to the rack after use keeps the gym safe for everyone."),
+    _s("Using the calculator during a session",
+       "Keep the calculator open on your phone between sets, especially for sessions with many different weights, such as warm-up ramps, top sets and back-off sets. Planning plate changes in advance, adding small plates rather than stripping the bar each time, keeps rest periods on track and avoids loading mistakes when you are tired."),
+    _s("Converting between units",
+       "If your programme is written in kilograms but your gym has pound plates, or the other way round, convert the target weight first, then use the calculator in the gym's unit. One kilogram is 2.2046 pounds. For example, a 100 kg target is about 220 lb. On a 45 lb bar that needs 87.5 lb per side, which loads as 45 + 35 + 5 + 2.5 lb with a typical pound plate set. The calculator works this out automatically if you tick the plates you have."),
+]

@@ -21,13 +21,53 @@ import {
   WaterWidget,
 } from "../_components/widgets/intake";
 import { KetoWidget, MacroSplitWidget, MacroWidget } from "../_components/widgets/macros";
+import { InjurySwapWidget, PlanBuilderWidget } from "../_components/widgets/programs";
 import { RecipeMacroWidget } from "../_components/widgets/recipe-macro";
 import { CyclePhaseWidget, FastingWidget } from "../_components/widgets/schedule";
+import {
+  BenchWidget,
+  DeadliftWidget,
+  DotsWidget,
+  IpfGlWidget,
+  OhpWidget,
+  OneRepMaxWidget,
+  PlateLoadingWidget,
+  RirWidget,
+  RpeWidget,
+  SinclairWidget,
+  SquatWidget,
+  StandardsWidget,
+  TempoWidget,
+  VolumeWidget,
+  WarmupWidget,
+  WilksDotsWidget,
+  WilksWidget,
+} from "../_components/widgets/strength";
 import { TdeeWidget } from "../_components/widgets/tdee";
 import { CutLengthWidget, GoalDateWidget, PhasesWidget } from "../_components/widgets/timeline";
 
 /** Every tool with copy has a widget, or this file stops compiling. */
 export const WIDGETS: Record<LiveSlug, ComponentType> = {
+  "one-rep-max-calculator": OneRepMaxWidget,
+  "bench-press-calculator": BenchWidget,
+  "squat-calculator": SquatWidget,
+  "deadlift-calculator": DeadliftWidget,
+  "overhead-press-calculator": OhpWidget,
+  "wilks-calculator": WilksWidget,
+  "dots-calculator": DotsWidget,
+  "wilks-dots-calculator": WilksDotsWidget,
+  "ipf-gl-points-calculator": IpfGlWidget,
+  "sinclair-calculator": SinclairWidget,
+  "rpe-calculator": RpeWidget,
+  "rir-calculator": RirWidget,
+  "tempo-calculator": TempoWidget,
+  "warm-up-set-calculator": WarmupWidget,
+  "plate-loading-calculator": PlateLoadingWidget,
+  "strength-standards-calculator": StandardsWidget,
+  "weekly-training-volume-calculator": VolumeWidget,
+  "workout-plan-builder": PlanBuilderWidget,
+  "injury-exercise-swap": InjurySwapWidget,
+
   "tdee-calculator": TdeeWidget,
   "recipe-macro-calculator": RecipeMacroWidget,
   "bmr-calculator": BmrWidget,

@@ -805,3 +805,39 @@ the consent box.
 
 **Still to do before launch:** nobody has actually been sent the announcement the form
 promises — that needs a mailer and a job, and `waitlist.notifiedAt` exists for it.
+
+
+### Free tools Phase 2 continuation — 15 November 2026
+
+In progress, uncommitted. All 109 Coachway reference HTML pages downloaded to
+`/tmp/traiv-phase2/pages/` (109 nonempty files). Founder approved Wilks 2020
+and sourced Strength Level bodyweight-ratio standards; engine and widget labels
+updated. Calculator scenarios: 65 passing; web typecheck passes. Injury swap now
+withholds loaded suggestions for painful/cannot-load selections, removes fixed
+recovery schedules, and never falls back to unavailable equipment. Two regression
+scenarios cover these cases.
+
+Still required: finish nine copy pages, complete Wilks 2020 editorial/example
+review, register all 19 routes/widgets, production build, current rendered reference
+comparison, 360px/keyboard checks and screenshots. Phase 2 is not complete.
+
+
+Tool-page layout correction: short answer, article sections and coaching CTA now use
+the same wide Container as the hero and calculator, removing the centred narrow
+column below the calculator on every tool page.
+
+
+### Free tools Phase 2 implementation and verification — 15 November 2026
+
+All 19 Phase 2 tools now have original copy, widgets, route registration and static
+metadata: 49 live tools plus templates in total. Wilks 2020 and sourced strength
+standards follow the founder clarification. IPF GL supports individual-lift totals.
+Results remain consistent on unit changes. Error, referral and empty-equipment states
+are present. 67 calculator scenarios and web typecheck pass; webpack production
+build passes; all 19 reference-length/FAQ/flag comparisons pass. The 360px audit is
+clean and all 19 keyboard checks pass. Browser interaction scenarios pass.
+
+Phase 2 is uncommitted. Screenshot capture was declined; visual screenshots were not
+inspected. The environment blocks Turbopack worker port binding; webpack was used to
+verify the production build. Full evidence and limitations:
+`features/free-tools/handover/PHASE-2-VERIFICATION.md`.

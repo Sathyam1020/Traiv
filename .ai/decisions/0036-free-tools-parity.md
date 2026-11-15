@@ -45,3 +45,18 @@ not product surface area.
 ## What would change this
 If the tools draw traffic that doesn't convert after six months of Search Console and
 signup data, fold the weakest pages into stronger ones instead of keeping 110 thin pages.
+
+
+## Phase 2 founder clarification — 15 November 2026
+
+The founder explicitly selected Wilks 2020 (Wilks-2) instead of original Wilks,
+and sourced strength standards instead of invented thresholds. Wilks coefficients
+come from the IPF March 2020 formula evaluation, Appendix 1. Strength standards
+use Strength Level's published aggregate bodyweight ratios, checked 15 November
+2026, for squat, bench press, deadlift and shoulder press. These describe that
+lifting community, not general-population percentiles or age-adjusted standards.
+
+Reference pages for length and structure comparison are re-downloaded on demand and kept outside
+the repository; they are never application content.
+Phase 2 passed its gates on 16 November 2026: 19 tools live, each at or above the researched
+length with matching FAQ counts and section flags.
