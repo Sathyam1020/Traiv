@@ -62,3 +62,6 @@ Phase 2 passed its gates on 16 November 2026: 19 tools live, each at or above th
 length with matching FAQ counts and section flags.
 Phase 3 passed its gates on 16 November 2026: 11 body composition tools, 60 live in total. The skeletal muscle
 calculator uses Lee et al. (2000) with the ethnicity term set to zero, and the page says so.
+Phase 4 passed its gates on 16 November 2026: 11 heart rate and cardio tools, 71 live in total. VO2 max ratings use
+the widely reproduced Cooper Institute–based general-population norm table, and Cooper test ratings use Cooper's
+published 12-minute distance norms.

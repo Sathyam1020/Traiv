@@ -19,6 +19,19 @@ import {
   WeightLossPercentWidget,
 } from "../_components/widgets/body";
 import { IncomeWidget, RateWidget } from "../_components/widgets/business";
+import {
+  BeepTestWidget,
+  CooperTestWidget,
+  HeartRateZoneWidget,
+  IntervalWalkingWidget,
+  MaxHeartRateWidget,
+  RacePredictorWidget,
+  RuckingWidget,
+  RunningPaceWidget,
+  Vo2MaxWidget,
+  WorkoutTimerWidget,
+  Zone2Widget,
+} from "../_components/widgets/cardio";
 import { BmrWidget, MaintenanceWidget } from "../_components/widgets/energy";
 import { BulkingWidget, DeficitWidget, SurplusWidget } from "../_components/widgets/goals";
 import {
@@ -91,6 +104,17 @@ export const WIDGETS: Record<LiveSlug, ComponentType> = {
   "waist-to-hip-ratio-calculator": WaistToHipWidget,
   "weight-loss-percentage-calculator": WeightLossPercentWidget,
   "body-recomposition-calculator": RecompWidget,
+  "heart-rate-zone-calculator": HeartRateZoneWidget,
+  "max-heart-rate-calculator": MaxHeartRateWidget,
+  "zone-2-heart-rate-calculator": Zone2Widget,
+  "interval-walking-calculator": IntervalWalkingWidget,
+  "beep-test-calculator": BeepTestWidget,
+  "cooper-test-calculator": CooperTestWidget,
+  "vo2-max-calculator": Vo2MaxWidget,
+  "race-time-predictor": RacePredictorWidget,
+  "running-pace-calculator": RunningPaceWidget,
+  "rucking-calorie-calculator": RuckingWidget,
+  "workout-timer": WorkoutTimerWidget,
 
   "tdee-calculator": TdeeWidget,
   "recipe-macro-calculator": RecipeMacroWidget,

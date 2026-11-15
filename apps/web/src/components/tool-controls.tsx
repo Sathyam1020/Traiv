@@ -109,7 +109,10 @@ export function NumberField({
       <Input
         id={id}
         type="number"
-        inputMode="numeric"
+        // Decimal keypad and no step constraint: weights, distances and paces take decimals,
+        // and the browser's default step of 1 would otherwise block the form from submitting.
+        inputMode="decimal"
+        step="any"
         value={value}
         min={min}
         max={max}

@@ -20,7 +20,8 @@
     "./schedule": "./src/schedule.ts",
     "./strength": "./src/strength.ts",
     "./programs": "./src/programs.ts",
-    "./body": "./src/body.ts"
+    "./body": "./src/body.ts",
+    "./cardio": "./src/cardio.ts"
   },
   "scripts": {
     "test": "node --test test/*.test.ts",

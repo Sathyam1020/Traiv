@@ -858,3 +858,23 @@ rendered pages at or above the reference length with matching FAQ counts and sec
 360px audit clean, keyboard 0/0 on every page, 8-gram overlap reviewed (remaining matches are
 form labels, formulas and standard question wording). Copy scripts:
 `features/free-tools/handover/scripts/phase3_*.py`. Next: Phase 4 (cardio).
+
+### Free tools Phase 4 (heart rate and cardio) — 16 November 2026
+
+Phase 3 committed as `8e4160b`. Phase 4 adds 11 tools, 71 live plus templates: heart rate
+zones (Tanaka max, % of max or Karvonen), max heart rate (Fox, Tanaka, Gellish, reserve), zone 2
+(%HRmax, Karvonen, MAF), interval walking (Compendium METs, Japanese 3-3 × 5 or custom), beep test
+(Ramsbottom, level and shuttle table, age and sex rating), Cooper test (Cooper norms), VO2 max
+(Cooper, 1.5-mile, Uth resting heart rate), race time predictor (Riegel 1.06), running pace,
+rucking (Pandolf with terrain factors) and a working workout timer (EMOM, AMRAP, Tabata, custom;
+beeps, space bar, fullscreen, screen wake lock).
+Engine: `packages/calculators/src/cardio.ts`, 89 calculator tests pass. Widgets:
+`apps/web/src/app/tools/_components/widgets/cardio.tsx` (`Table` is now exported from
+`widgets/strength.tsx` for reuse).
+Fix found by the Phase 4 browser scenarios: `NumberField` (`components/tool-controls.tsx`) had the
+browser's default step of 1, so any decimal (42.195 km, 80.5 kg) silently blocked submit-based
+forms in Phases 1, 3 and 4. It now uses `step="any"` and a decimal keypad. Phase 2 scenarios still pass.
+Verified: typecheck, production build, all 11 pages at or above reference length with matching
+FAQ counts and section flags, 360px audit clean, keyboard 0/0 on every page, browser scenarios
+(`features/free-tools/handover/scripts/phase4-scenarios.mjs`) pass, 8-gram overlap reviewed.
+Next: Phase 5 (business).

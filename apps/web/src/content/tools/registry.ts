@@ -1,3 +1,4 @@
+import { copy as beepCopy } from "./copy/beep-test-calculator";
 import { copy as phase2Copy1 } from "./copy/bench-press-calculator";
 import { copy as bmiCopy } from "./copy/bmi-calculator";
 import { copy as bmr } from "./copy/bmr-calculator";
@@ -11,6 +12,7 @@ import { copy as burned } from "./copy/calories-burned-calculator";
 import { copy as caloriesPerMeal } from "./copy/calories-per-meal-calculator";
 import { copy as carbCycling } from "./copy/carb-cycling-calculator";
 import { copy as coachingRate } from "./copy/coaching-rate-calculator";
+import { copy as cooperCopy } from "./copy/cooper-test-calculator";
 import { copy as creatine } from "./copy/creatine-dosage-calculator";
 import { copy as cutLength } from "./copy/cut-length-calculator";
 import { copy as cycle } from "./copy/cycle-phase-calculator";
@@ -19,15 +21,18 @@ import { copy as phase2Copy6 } from "./copy/dots-calculator";
 import { copy as ffmiCopy } from "./copy/ffmi-calculator";
 import { copy as fiber } from "./copy/fiber-intake-calculator";
 import { copy as goalDate } from "./copy/goal-weight-date-calculator";
+import { copy as hrZoneCopy } from "./copy/heart-rate-zone-calculator";
 import { copy as idealCopy } from "./copy/ideal-weight-calculator";
 import { copy as phase2Copy18 } from "./copy/injury-exercise-swap";
 import { copy as fasting } from "./copy/intermittent-fasting-calculator";
+import { copy as intervalWalkCopy } from "./copy/interval-walking-calculator";
 import { copy as phase2Copy8 } from "./copy/ipf-gl-points-calculator";
 import { copy as keto } from "./copy/keto-macro-calculator";
 import { copy as lbmCopy } from "./copy/lean-body-mass-calculator";
 import { copy as macro } from "./copy/macro-calculator";
 import { copy as macroSplit } from "./copy/macro-split-by-body-type-calculator";
 import { copy as maintenance } from "./copy/maintenance-calorie-calculator";
+import { copy as maxHrCopy } from "./copy/max-heart-rate-calculator";
 import { copy as muscleCopy } from "./copy/muscle-mass-calculator";
 import { copy as navyCopy } from "./copy/navy-body-fat-calculator";
 import { copy as phase2Copy0 } from "./copy/one-rep-max-calculator";
@@ -36,11 +41,14 @@ import { copy as trainerIncome } from "./copy/personal-trainer-income-calculator
 import { copy as phase2Copy14 } from "./copy/plate-loading-calculator";
 import { copy as protein } from "./copy/protein-calculator";
 import { copy as proteinPerMeal } from "./copy/protein-per-meal-calculator";
+import { copy as raceCopy } from "./copy/race-time-predictor";
 import { copy as recipeMacro } from "./copy/recipe-macro-calculator";
 import { copy as refeed } from "./copy/refeed-day-calculator";
 import { copy as reverseDiet } from "./copy/reverse-diet-calculator";
 import { copy as phase2Copy11 } from "./copy/rir-calculator";
 import { copy as phase2Copy10 } from "./copy/rpe-calculator";
+import { copy as ruckCopy } from "./copy/rucking-calorie-calculator";
+import { copy as paceCopy } from "./copy/running-pace-calculator";
 import { copy as phase2Copy9 } from "./copy/sinclair-calculator";
 import { copy as phase2Copy2 } from "./copy/squat-calculator";
 import { copy as steps } from "./copy/steps-to-calories-calculator";
@@ -48,6 +56,7 @@ import { copy as phase2Copy15 } from "./copy/strength-standards-calculator";
 import { copy as sweat } from "./copy/sweat-rate-calculator";
 import { copy as tdee } from "./copy/tdee-calculator";
 import { copy as phase2Copy12 } from "./copy/tempo-calculator";
+import { copy as vo2Copy } from "./copy/vo2-max-calculator";
 import { copy as whtrCopy } from "./copy/waist-to-height-ratio-calculator";
 import { copy as whrCopy } from "./copy/waist-to-hip-ratio-calculator";
 import { copy as phase2Copy13 } from "./copy/warm-up-set-calculator";
@@ -58,6 +67,8 @@ import { copy as phases } from "./copy/weight-loss-phase-calculator";
 import { copy as phase2Copy5 } from "./copy/wilks-calculator";
 import { copy as phase2Copy7 } from "./copy/wilks-dots-calculator";
 import { copy as phase2Copy17 } from "./copy/workout-plan-builder";
+import { copy as timerCopy } from "./copy/workout-timer";
+import { copy as zone2Copy } from "./copy/zone-2-heart-rate-calculator";
 import { TOOL_ENTRIES } from "./registry-data";
 import type { LiveTool, ToolCopy, ToolEntry, ToolGroup } from "./types";
 
@@ -99,6 +110,17 @@ export const COPY = {
   "waist-to-hip-ratio-calculator": whrCopy,
   "weight-loss-percentage-calculator": wlpCopy,
   "body-recomposition-calculator": recompCopy,
+  "heart-rate-zone-calculator": hrZoneCopy,
+  "max-heart-rate-calculator": maxHrCopy,
+  "zone-2-heart-rate-calculator": zone2Copy,
+  "interval-walking-calculator": intervalWalkCopy,
+  "beep-test-calculator": beepCopy,
+  "cooper-test-calculator": cooperCopy,
+  "vo2-max-calculator": vo2Copy,
+  "race-time-predictor": raceCopy,
+  "running-pace-calculator": paceCopy,
+  "rucking-calorie-calculator": ruckCopy,
+  "workout-timer": timerCopy,
 
   "tdee-calculator": tdee,
   "recipe-macro-calculator": recipeMacro,

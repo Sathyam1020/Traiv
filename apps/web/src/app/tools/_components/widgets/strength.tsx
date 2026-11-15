@@ -51,7 +51,7 @@ const SEX_OPTS = [
   { value: "female" as const, label: "Female" },
 ];
 
-function Table({ head, rows }: { head: string[]; rows: (string | number)[][] }) {
+export function Table({ head, rows }: { head: string[]; rows: (string | number)[][] }) {
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-body-sm tabular-nums">

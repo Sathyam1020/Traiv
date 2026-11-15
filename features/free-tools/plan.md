@@ -1,6 +1,6 @@
 # Free tools: Coachway parity plan
 
-2026-11-16 · Branch `feat/free-tools-expansion` · Status: **Phases 0–3 implemented: 60 tools live plus templates (Phase 3, body composition, 11 tools, 16 November 2026). Next: Phase 4 (cardio).**
+2026-11-16 · Branch `feat/free-tools-expansion` · Status: **Phases 0–4 implemented: 71 tools live plus templates (Phase 4, heart rate and cardio, 11 tools, 16 November 2026). Next: Phase 5 (business).**
 
 Research files, kept next to this one:
 - `research/inventory.md`: all 109 tools by category, with every input, default, option,
