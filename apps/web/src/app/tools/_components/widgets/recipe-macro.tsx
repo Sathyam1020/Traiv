@@ -220,7 +220,7 @@ export function RecipeMacroWidget() {
       <section
         aria-live="polite"
         aria-label="Recipe totals"
-        className="dark rounded-surface border border-line bg-canvas p-5 text-fg sm:p-7"
+        className="rounded-surface border border-line bg-sunken p-5 sm:p-7"
       >
         <div className="flex flex-wrap items-start justify-between gap-3">
           <p className="text-caption font-medium text-fg-subtle">Recipe totals</p>

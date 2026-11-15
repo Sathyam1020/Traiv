@@ -81,7 +81,7 @@ export function ResultPanel({
     <section
       aria-live="polite"
       aria-label={label}
-      className="dark flex min-w-0 flex-col gap-5 rounded-surface border border-line bg-canvas p-5 text-fg sm:p-7"
+      className="flex min-w-0 flex-col gap-5 rounded-surface border border-line bg-sunken p-5 sm:p-7"
     >
       {children}
     </section>

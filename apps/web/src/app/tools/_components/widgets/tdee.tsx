@@ -182,7 +182,7 @@ function TdeeResult({ result }: { result: ReturnType<typeof energy> }) {
     <section
       aria-live="polite"
       aria-label="Your result"
-      className="flex flex-col gap-5 dark rounded-surface border border-line bg-canvas p-5 text-fg sm:p-7"
+      className="flex flex-col gap-5 rounded-surface border border-line bg-sunken p-5 sm:p-7"
     >
       {result.ok ? (
         <Values v={result.value} />

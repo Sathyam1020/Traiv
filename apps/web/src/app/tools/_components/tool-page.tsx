@@ -45,9 +45,8 @@ export function ToolPage({
       />
       <ToolSchema tool={tool} updated={updated} />
 
-      {/* Hero band in the dark theme tokens, with the tool card overlapping its lower edge. */}
-      <header className="dark bg-canvas text-fg">
-        <Container width="wide" className="pt-6 pb-24 sm:pt-10 sm:pb-32">
+      <header className="border-b border-line">
+        <Container width="wide" className="pt-6 pb-10 sm:pt-10 sm:pb-14">
           <p className="text-caption font-medium text-fg-subtle">{copy.eyebrow}</p>
           <h1 className="mt-3 max-w-[44rem] font-display text-display font-medium text-balance">
             {copy.h1}
@@ -106,7 +105,7 @@ export function ToolPage({
         </Container>
       </header>
 
-      <div className="relative -mt-16 pb-16 sm:-mt-24 sm:pb-24">
+      <div className="py-16 sm:py-24">
         <Container width="wide">
           <Widget />
           <div className="mt-4 rounded-surface border border-line bg-surface p-5 sm:p-6">
