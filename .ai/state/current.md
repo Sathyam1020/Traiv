@@ -925,3 +925,15 @@ in `apps/web/src/content/tools/generators.ts`; widgets are in
 (founder decision: defaults exactly). Verified: typecheck, build, all 11 pages at or above reference length
 with matching FAQ counts and flags, 360px clean, keyboard 0/0, browser scenarios
 (`handover/scripts/phase5c-scenarios.mjs`), 8-gram overlap reviewed. Next: 5d platform tools.
+
+### Free tools Phase 5d (platform tools) — 16 November 2026: all 109 tools live
+
+Phase 5c committed as `80da86f`. Phase 5d adds the coaching platform cost calculator (18 platforms,
+EUR/USD/INR filter, branding filter, dated vendor sources), the tool stack cost calculator (compares with
+Traiv by default, as the reference compares with itself) and the platform fit finder (rule-based, honest:
+suggests Practice Better, Everfit, Hevy Coach, Kahunas or PT Distinction where they fit better).
+All prices are in `apps/web/src/content/tools/platforms.ts`, read off vendor pages on 2026-11-16. Rows whose
+page couldn't be read, hid prices in script, contradicted itself or was quote-only show "Check vendor price":
+My PT Hub, Paperbell, FitSW, Trainerize, Exercise.com and Virtuagym.
+Verified: build, all 3 pages above reference length with matching FAQ counts and flags, 360px clean, keyboard
+0/0, browser scenarios (`handover/scripts/phase5d-scenarios.mjs`). Next: Phase 6 (verification and SEO pass).

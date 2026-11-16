@@ -65,3 +65,8 @@ calculator uses Lee et al. (2000) with the ethnicity term set to zero, and the p
 Phase 4 passed its gates on 16 November 2026: 11 heart rate and cardio tools, 71 live in total. VO2 max ratings use
 the widely reproduced Cooper Institute–based general-population norm table, and Cooper test ratings use Cooper's
 published 12-minute distance norms.
+Phase 5 (business, 38 tools) passed its gates on 16 November 2026; all 109 tools are live. The tool stack
+calculator compares with Traiv by default, as the reference compares with itself. Its default tool prices are
+vendor USD list prices converted once to rupees at 93.97 INR per USD (x-rates.com, 16 November 2026), shown as
+an editable starting point. This is the only conversion anywhere: the currency switch still changes formatting
+only and never converts what a coach types.

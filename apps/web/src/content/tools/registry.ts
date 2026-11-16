@@ -24,10 +24,13 @@ import { copy as p5ClientOnboardingBuilder } from "./copy/client-onboarding-buil
 import { copy as p5CoachingBusinessHealthCheck } from "./copy/coaching-business-health-check";
 import { copy as p5CoachingOfferBuilder } from "./copy/coaching-offer-builder";
 import { copy as p5CoachingPackagePricingCalculator } from "./copy/coaching-package-pricing-calculator";
+import { copy as p5CoachingPlatformCostCalculator } from "./copy/coaching-platform-cost-calculator";
+import { copy as p5CoachingPlatformFitFinder } from "./copy/coaching-platform-fit-finder";
 import { copy as p5CoachingProfitCalculator } from "./copy/coaching-profit-calculator";
 import { copy as p5CoachingPromptGenerator } from "./copy/coaching-prompt-generator";
 import { copy as coachingRate } from "./copy/coaching-rate-calculator";
 import { copy as p5CoachingRevenueProjector } from "./copy/coaching-revenue-projector";
+import { copy as p5CoachingToolStackCostCalculator } from "./copy/coaching-tool-stack-cost-calculator";
 import { copy as cooperCopy } from "./copy/cooper-test-calculator";
 import { copy as creatine } from "./copy/creatine-dosage-calculator";
 import { copy as p5CustomerAcquisitionCostCalculator } from "./copy/customer-acquisition-cost-calculator";
@@ -191,6 +194,9 @@ export const COPY = {
   "personal-trainer-bio-generator": p5PersonalTrainerBioGenerator,
   "personal-training-business-name-generator": p5PersonalTrainingBusinessNameGenerator,
   "reel-script-generator": p5ReelScriptGenerator,
+  "coaching-platform-cost-calculator": p5CoachingPlatformCostCalculator,
+  "coaching-tool-stack-cost-calculator": p5CoachingToolStackCostCalculator,
+  "coaching-platform-fit-finder": p5CoachingPlatformFitFinder,
 
   "tdee-calculator": tdee,
   "recipe-macro-calculator": recipeMacro,

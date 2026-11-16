@@ -102,6 +102,9 @@ const ROUTES = [
   "/tools/personal-trainer-bio-generator",
   "/tools/personal-training-business-name-generator",
   "/tools/reel-script-generator",
+  "/tools/coaching-platform-cost-calculator",
+  "/tools/coaching-tool-stack-cost-calculator",
+  "/tools/coaching-platform-fit-finder",
 
   "/",
   "/pricing",

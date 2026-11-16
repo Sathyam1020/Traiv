@@ -78,6 +78,11 @@ import {
   RevenueProjectorWidget,
   TrialConversionWidget,
 } from "../_components/widgets/metrics";
+import {
+  FitFinderWidget,
+  PlatformCostWidget,
+  ToolStackWidget,
+} from "../_components/widgets/platforms";
 import { InjurySwapWidget, PlanBuilderWidget } from "../_components/widgets/programs";
 import {
   BusinessHealthWidget,
@@ -191,6 +196,9 @@ export const WIDGETS: Record<LiveSlug, ComponentType> = {
   "personal-trainer-bio-generator": BioGeneratorWidget,
   "personal-training-business-name-generator": BusinessNameWidget,
   "reel-script-generator": ReelScriptWidget,
+  "coaching-platform-cost-calculator": PlatformCostWidget,
+  "coaching-tool-stack-cost-calculator": ToolStackWidget,
+  "coaching-platform-fit-finder": FitFinderWidget,
 
   "tdee-calculator": TdeeWidget,
   "recipe-macro-calculator": RecipeMacroWidget,
