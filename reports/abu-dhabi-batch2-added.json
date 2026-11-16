@@ -1,0 +1,196 @@
+{
+  "checked": "2026-11-13",
+  "target": 50,
+  "status": "Added 7 researched leads and 3 needs-confirmation prospects to existing Google Sheet; requested 50 additional qualified leads not reached.",
+  "leads": [
+    {
+      "name": "Jamie Simmonds — QHP",
+      "type": "Coach / coaching business",
+      "url": "https://www.q-hp.com/individual-programming",
+      "locationSource": "https://linktr.ee/JamieSimmonds",
+      "location": "Own Linktree identifies Abu Dhabi base.",
+      "online": "Online trainer; bespoke programming with coach feedback and adjustments.",
+      "email": "info@q-hp.com",
+      "contact": "https://www.q-hp.com/contact",
+      "software": "Fitr",
+      "evidence": "Own website + own Linktree",
+      "notes": "Batch 2. QHP team email; personalised service subject to application and availability."
+    },
+    {
+      "name": "BYLDUP",
+      "type": "Coaching business",
+      "url": "https://byldup.ae/coaching",
+      "locationSource": "https://byldup.ae/trainers",
+      "location": "Team page identifies multiple coaches based in Abu Dhabi; also operates in Dubai.",
+      "online": "Remote programming, check-ins and support.",
+      "phone": "+971 54 287 3294",
+      "email": "contact@byldup.ae",
+      "contact": "https://byldup.ae/contact",
+      "evidence": "Own website",
+      "notes": "Batch 2. Counted once as a business, not separately for each staff member."
+    },
+    {
+      "name": "Raed Djaballah",
+      "type": "Fitness coach",
+      "url": "https://expert.mantra.fit/list/fitness/63275/raed-djaballah",
+      "location": "Individual profile explicitly lists Abu Dhabi city, UAE.",
+      "online": "Individual profile explicitly offers online sessions.",
+      "contact": "https://expert.mantra.fit/list/fitness/63275/raed-djaballah",
+      "evidence": "Individual coaching-platform profile",
+      "software": "MantraFit",
+      "notes": "Batch 2. Message Raed route; account may be needed. Cached profile last-seen date February 2025; current availability requires confirmation."
+    },
+    {
+      "name": "Magical Yoga Studio",
+      "type": "Yoga coaching business",
+      "url": "https://magicalyogastudio.com/online-live-on-zoom/",
+      "locationSource": "https://magicalyogastudio.com/",
+      "location": "Own site lists Al Danah, Abu Dhabi studio address.",
+      "online": "Dedicated Online Live on Zoom service page.",
+      "phone": "+971 58 535 6009",
+      "email": "info@magicalyogastudio.com",
+      "contact": "https://magicalyogastudio.com/",
+      "evidence": "Own website",
+      "software": "Zoom",
+      "notes": "Batch 2. Studio counted once; no individual staff duplicates."
+    },
+    {
+      "name": "Nidah",
+      "type": "Fitness / conditioning coach",
+      "url": "https://www.superprof.co.uk/qualified-physiotherapist-with-years-experience-have-also-worked-with-olympian-athletes-and-certified-world.html",
+      "location": "Individual Superprof profile lists Abu Dhabi.",
+      "online": "Online personal training, strength and conditioning; prenatal/postnatal exercise.",
+      "contact": "https://www.superprof.co.uk/qualified-physiotherapist-with-years-experience-have-also-worked-with-olympian-athletes-and-certified-world.html",
+      "evidence": "Marketplace profile",
+      "software": "Superprof",
+      "notes": "Batch 2. Contact button; account / Student Pass may be required. Full surname not published. Physiotherapy credentials self-reported."
+    },
+    {
+      "name": "Zaina Siobhan Soboh",
+      "type": "Fitness coach",
+      "url": "https://expert.mantra.fit/fitness/united-arab-emirates/abu-dhabi/specialization/pcos",
+      "locationSource": "https://ae.linkedin.com/in/zaina-soboh",
+      "location": "Trainer listing and LinkedIn both identify Abu Dhabi.",
+      "online": "MantraFit explicitly offers online strength and core-recovery coaching.",
+      "contact": "https://ae.linkedin.com/in/zaina-soboh",
+      "evidence": "Marketplace listing + LinkedIn",
+      "software": "MantraFit",
+      "notes": "Batch 2. LinkedIn contact may need account/InMail. LinkedIn also covers event operations; ask about current fitness client intake."
+    },
+    {
+      "name": "Katy Conroy",
+      "type": "Independent coach",
+      "url": "https://katyconroycoaching.com/",
+      "location": "Own coaching site offers an in-person intro session in Abu Dhabi, online for clients elsewhere.",
+      "online": "Personalised online gym/cardio programmes, nutrition guidance and weekly check-ins.",
+      "contact": "https://katyconroycoaching.com/",
+      "evidence": "Own website (search-indexed)",
+      "software": "Coaching app advertised; vendor unknown",
+      "notes": "Batch 2. Get in touch form on homepage. Location is operational evidence from local intro sessions; residential base not independently confirmed. Direct page fetch returned 403."
+    }
+  ],
+  "candidates": [
+    {
+      "name": "Coach Nasser Al Wara",
+      "contact": "https://www.instagram.com/coach_nasser8/",
+      "source": "https://influencers.club/crossfit-coaches-email-list/",
+      "status": "Secondary source reproduces explicit Abu Dhabi and online bio. Own Instagram fetch failed."
+    },
+    {
+      "name": "Mohamed Abd El Salam",
+      "contact": "https://www.instagram.com/mohamed.abd.el.salam/",
+      "source": "https://influencers.club/private-trainers-email-list/",
+      "status": "Secondary source reproduces explicit Abu Dhabi and online profile title. Own Instagram fetch failed."
+    },
+    {
+      "name": "Coach Ali",
+      "contact": "https://www.instagram.com/coach.ali_fitness/",
+      "source": "https://influencers.club/strength-trainers-email-list/",
+      "status": "Secondary location Abu Dhabi; online bio. Own Instagram fetch failed."
+    },
+    {
+      "name": "Zaina Siobhan Soboh",
+      "contact": "https://ae.linkedin.com/in/zaina-soboh",
+      "source": "https://expert.mantra.fit/fitness/united-arab-emirates/abu-dhabi/abu-dhabi",
+      "status": "Explicit AD and online on directory; LinkedIn corroborates city but focused on event operations."
+    },
+    {
+      "name": "Anand Krishnan; Sathya; Aya Arrami; Sarah; Jane Braos; Hakan Coban; Laura Joya; Imen Hasnaoui",
+      "source": "https://expert.mantra.fit/fitness/united-arab-emirates/abu-dhabi/abu-dhabi",
+      "status": "Need individual contact links. Search-indexed pages list online and city, live page omits profile cards. Curl Cloudflare blocked; do not bypass. Hakan alternative listing Istanbul conflicts."
+    },
+    {
+      "name": "JFJ Yoga Studio — Mayank",
+      "source": "https://playdar.ae/academies/jfj-yoga-studio-abu-dhabi",
+      "phone": "+971 55 967 4773",
+      "status": "Directory explicit online classes and MBZ City base; verify own website."
+    },
+    {
+      "name": "Click A Yoga Fitness Club",
+      "source": "https://gymzone.ae/directory/click-a-yoga-fitness-club-abu-dhabi",
+      "phone": "+971 56 566 6054",
+      "status": "Directory explicit online and Al Danah base; verify own website."
+    },
+    {
+      "name": "Magical Yoga Studio",
+      "source": "https://magicalyogastudio.com/",
+      "phone": "+971 58 535 6009",
+      "email": "info@magicalyogastudio.com",
+      "status": "Own AD street address, Zoom testimonials; verify current online offer."
+    },
+    {
+      "name": "The Macro Edit",
+      "source": "https://www.findglocal.com/AE/Abu-Dhabi/955192277682524/The-Macro-Edit",
+      "contact": "https://www.instagram.com/the_macro_edit/",
+      "status": "AD nutrition 1:1 coaching; online not yet explicit."
+    },
+    {
+      "name": "Dani Vulinovich — Athlete In Me",
+      "source": "https://www.findglocal.com/AE/Abu-Dhabi/1493567-23/genre/2707/Health%2B%26%2BWellness%2BWebsites/2",
+      "status": "AD fitness explicit; need online and contact."
+    },
+    {
+      "name": "Russel Keith",
+      "source": "https://www.superprof.com/passionate-fitness-coach-helping-beginners-build-strength-discipline-and-healthy-sustainable-habits-step-step.html",
+      "status": "Online explicit; location Madinat Zayed conflicts with AD city wording; hold."
+    }
+  ],
+  "pending": [
+    {
+      "name": "Aya Arrami",
+      "type": "Fitness coach",
+      "url": "https://expert.mantra.fit/fitness/united-arab-emirates/abu-dhabi/abu-dhabi",
+      "locationSource": "https://ae.linkedin.com/in/aya-arrami-760aa4244",
+      "location": "MantraFit lists Abu Dhabi city; LinkedIn also lists Abu Dhabi.",
+      "online": "MantraFit trainer listing offers in-person and online sessions.",
+      "contact": "https://ae.linkedin.com/in/aya-arrami-760aa4244",
+      "evidence": "Marketplace listing + LinkedIn",
+      "software": "MantraFit",
+      "notes": "Batch 2. LinkedIn contact may need account/InMail. Fabrika sports service affiliation. Different education from BYLDUP Aya (Sfax vs Kef); identities not merged. Possible identity overlap with BYLDUP Aya remains unresolved; do not count as a distinct qualified buyer yet."
+    },
+    {
+      "name": "Click A Yoga Fitness Club",
+      "type": "Yoga coaching business",
+      "url": "https://gymzone.ae/directory/click-a-yoga-fitness-club-abu-dhabi",
+      "locationSource": "https://clickayoga.com/about/",
+      "location": "Own website lists Salam Street, Abu Dhabi.",
+      "online": "Gymzone explicitly lists online personalised yoga sessions.",
+      "phone": "+971 56 566 6054",
+      "email": "info@clickayoga.com",
+      "contact": "https://clickayoga.com/about/",
+      "evidence": "Directory service listing + own contact page",
+      "notes": "Batch 2. Online offering comes from directory; own site emphasises home visits. Confirm online availability in first contact."
+    },
+    {
+      "name": "Mayank — JFJ Yoga Studio",
+      "type": "Yoga coach / studio",
+      "url": "https://playdar.ae/academies/jfj-yoga-studio-abu-dhabi",
+      "location": "Directory lists Shabiya 09, Mohamed Bin Zayed City, Abu Dhabi.",
+      "online": "Directory explicitly lists online yoga classes.",
+      "phone": "+971 55 967 4773",
+      "contact": "Phone",
+      "evidence": "Local academy directory",
+      "notes": "Batch 2. Phone and online offer from Playdar; other directories show different studio numbers. Confirm current Mayank contact and online intake."
+    }
+  ]
+}

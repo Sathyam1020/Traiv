@@ -1,0 +1,3 @@
+# Lead intelligence — 2026-11-11
+
+Keep lead research outside product databases in a Node 24 SQLite package. Every accepted fact carries source, observation date and confirmation status. Candidate discovery cannot imply qualification; unknown signals receive no score. Preserve branch identities and existing sales inputs by stable Lead ID. Export separate unverified trainers and explicit Verification labels. Google Sheets is the live sales workspace, while local exports are snapshots; manual Sheet edits are not imported into SQLite. Do not send outreach automatically. See package README for the initial execution scope and remaining operational limits.

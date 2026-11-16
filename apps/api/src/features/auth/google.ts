@@ -3,6 +3,7 @@ import { and, eq, isNull } from "drizzle-orm";
 import { db } from "../../db.js";
 import { env } from "../../env.js";
 import { badRequest } from "../../errors.js";
+import { logger } from "../../lib/logger.js";
 import { track } from "../analytics/service.js";
 import { createDefaultStudio, resolveActiveStudio } from "../studio/service.js";
 import { issueSession } from "./service.js";
@@ -46,7 +47,16 @@ async function fetchProfile(code: string): Promise<Profile> {
       grant_type: "authorization_code",
     }),
   });
-  if (!tokenRes.ok) throw badRequest("google_token", "Google sign-in failed. Try again.");
+  if (!tokenRes.ok) {
+    // Google's body names the cause (invalid_client = wrong/rotated secret, invalid_grant =
+    // code expired or already used, redirect_uri_mismatch). It holds no credentials.
+    logger.error("google token exchange failed", {
+      status: tokenRes.status,
+      body: (await tokenRes.text()).slice(0, 500),
+      redirectUri: env.GOOGLE_REDIRECT_URI,
+    });
+    throw badRequest("google_token", "Google sign-in failed. Try again.");
+  }
 
   const { access_token } = (await tokenRes.json()) as { access_token?: string };
   if (!access_token) throw badRequest("google_token", "Google sign-in failed. Try again.");
