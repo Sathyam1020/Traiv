@@ -23,7 +23,8 @@
     "./body": "./src/body.ts",
     "./cardio": "./src/cardio.ts",
     "./metrics": "./src/metrics.ts",
-    "./readers": "./src/readers.ts"
+    "./readers": "./src/readers.ts",
+    "./writing": "./src/writing.ts"
   },
   "scripts": {
     "test": "node --test test/*.test.ts",

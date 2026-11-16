@@ -910,3 +910,18 @@ Founder confirmed: Traiv check-ins capture progress photos, so copy may say so.
 Verified: typecheck, build, all 8 pages at or above reference length with matching FAQ counts and flags,
 360px clean, keyboard 0/0, browser scenarios (`handover/scripts/phase5b-scenarios.mjs`), 8-gram
 overlap reviewed (intros, titles, notes rewritten). Next: 5c generators, 5d platform tools.
+
+### Free tools Phase 5c (business generators) — 16 November 2026
+
+Phase 5b committed as `3239078`. Phase 5c adds 11 generators, 106 live plus templates: AI writing checker
+(15 tells, 0–10 score, highlights, rewrite prompt), check-in builder, onboarding builder, offer builder,
+coaching prompt generator (full brief, two versions, outline first), GLP-1 client coaching planner,
+Instagram caption generator (8 structures, under 150 words), hook generator (40 hooks, 10 patterns,
+per-hook score sheet), personal trainer bio generator (8 layouts, ≤150 characters), business name
+generator (seeded, up to 12 ideas, ICANN domain lookup link) and reel script generator (6 timed scripts).
+Writing rules are in `packages/calculators/src/writing.ts` (108 calculator tests pass); every template is
+in `apps/web/src/content/tools/generators.ts`; widgets are in
+`apps/web/src/app/tools/_components/widgets/generators.tsx`. Default inputs are the reference sample values
+(founder decision: defaults exactly). Verified: typecheck, build, all 11 pages at or above reference length
+with matching FAQ counts and flags, 360px clean, keyboard 0/0, browser scenarios
+(`handover/scripts/phase5c-scenarios.mjs`), 8-gram overlap reviewed. Next: 5d platform tools.

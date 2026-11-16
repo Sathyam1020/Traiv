@@ -33,6 +33,19 @@ import {
   Zone2Widget,
 } from "../_components/widgets/cardio";
 import { BmrWidget, MaintenanceWidget } from "../_components/widgets/energy";
+import {
+  BioGeneratorWidget,
+  BusinessNameWidget,
+  CaptionGeneratorWidget,
+  CheckinBuilderWidget,
+  Glp1PlannerWidget,
+  HookGeneratorWidget,
+  OfferBuilderWidget,
+  OnboardingBuilderWidget,
+  PromptGeneratorWidget,
+  ReelScriptWidget,
+  WritingCheckerWidget,
+} from "../_components/widgets/generators";
 import { BulkingWidget, DeficitWidget, SurplusWidget } from "../_components/widgets/goals";
 import {
   CalorieCyclingWidget,
@@ -167,6 +180,17 @@ export const WIDGETS: Record<LiveSlug, ComponentType> = {
   "sales-objection-handler": ObjectionWidget,
   "scope-of-practice-check": ScopeWidget,
   "weight-trend-reader": WeightTrendWidget,
+  "ai-writing-checker": WritingCheckerWidget,
+  "client-check-in-builder": CheckinBuilderWidget,
+  "client-onboarding-builder": OnboardingBuilderWidget,
+  "coaching-offer-builder": OfferBuilderWidget,
+  "coaching-prompt-generator": PromptGeneratorWidget,
+  "glp1-client-coaching-planner": Glp1PlannerWidget,
+  "instagram-caption-generator": CaptionGeneratorWidget,
+  "instagram-hook-generator": HookGeneratorWidget,
+  "personal-trainer-bio-generator": BioGeneratorWidget,
+  "personal-training-business-name-generator": BusinessNameWidget,
+  "reel-script-generator": ReelScriptWidget,
 
   "tdee-calculator": TdeeWidget,
   "recipe-macro-calculator": RecipeMacroWidget,

@@ -1,6 +1,6 @@
 # Free tools: Coachway parity plan
 
-2026-11-16 · Branch `feat/free-tools-expansion` · Status: **Phases 0–4, 5a and 5b implemented: 95 tools live plus templates. Next: Phase 5c (generators), 5d (platform-cost tools).**
+2026-11-16 · Branch `feat/free-tools-expansion` · Status: **Phases 0–4 and 5a–5c implemented: 106 tools live plus templates. Next: Phase 5d (platform cost, tool stack, fit finder).**
 
 Research files, kept next to this one:
 - `research/inventory.md`: all 109 tools by category, with every input, default, option,

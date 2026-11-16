@@ -1,4 +1,5 @@
 import { copy as p5AdSpendBreakevenCalculator } from "./copy/ad-spend-breakeven-calculator";
+import { copy as p5AiWritingChecker } from "./copy/ai-writing-checker";
 import { copy as p5AssistantCoachRoiCalculator } from "./copy/assistant-coach-roi-calculator";
 import { copy as beepCopy } from "./copy/beep-test-calculator";
 import { copy as phase2Copy1 } from "./copy/bench-press-calculator";
@@ -14,13 +15,17 @@ import { copy as burned } from "./copy/calories-burned-calculator";
 import { copy as caloriesPerMeal } from "./copy/calories-per-meal-calculator";
 import { copy as carbCycling } from "./copy/carb-cycling-calculator";
 import { copy as p5ClientCapacityCalculator } from "./copy/client-capacity-calculator";
+import { copy as p5ClientCheckInBuilder } from "./copy/client-check-in-builder";
 import { copy as p5ClientCheckInReader } from "./copy/client-check-in-reader";
 import { copy as p5ClientChurnRateCalculator } from "./copy/client-churn-rate-calculator";
 import { copy as p5ClientChurnRiskReader } from "./copy/client-churn-risk-reader";
 import { copy as p5ClientLtvCalculator } from "./copy/client-ltv-calculator";
+import { copy as p5ClientOnboardingBuilder } from "./copy/client-onboarding-builder";
 import { copy as p5CoachingBusinessHealthCheck } from "./copy/coaching-business-health-check";
+import { copy as p5CoachingOfferBuilder } from "./copy/coaching-offer-builder";
 import { copy as p5CoachingPackagePricingCalculator } from "./copy/coaching-package-pricing-calculator";
 import { copy as p5CoachingProfitCalculator } from "./copy/coaching-profit-calculator";
+import { copy as p5CoachingPromptGenerator } from "./copy/coaching-prompt-generator";
 import { copy as coachingRate } from "./copy/coaching-rate-calculator";
 import { copy as p5CoachingRevenueProjector } from "./copy/coaching-revenue-projector";
 import { copy as cooperCopy } from "./copy/cooper-test-calculator";
@@ -36,11 +41,14 @@ import { copy as p5EmailListValueCalculator } from "./copy/email-list-value-calc
 import { copy as ffmiCopy } from "./copy/ffmi-calculator";
 import { copy as fiber } from "./copy/fiber-intake-calculator";
 import { copy as p5FreeTrialConversionCalculator } from "./copy/free-trial-conversion-calculator";
+import { copy as p5Glp1ClientCoachingPlanner } from "./copy/glp1-client-coaching-planner";
 import { copy as goalDate } from "./copy/goal-weight-date-calculator";
 import { copy as p5GroupVs1on1CoachingCalculator } from "./copy/group-vs-1on1-coaching-calculator";
 import { copy as hrZoneCopy } from "./copy/heart-rate-zone-calculator";
 import { copy as idealCopy } from "./copy/ideal-weight-calculator";
 import { copy as phase2Copy18 } from "./copy/injury-exercise-swap";
+import { copy as p5InstagramCaptionGenerator } from "./copy/instagram-caption-generator";
+import { copy as p5InstagramHookGenerator } from "./copy/instagram-hook-generator";
 import { copy as fasting } from "./copy/intermittent-fasting-calculator";
 import { copy as intervalWalkCopy } from "./copy/interval-walking-calculator";
 import { copy as phase2Copy8 } from "./copy/ipf-gl-points-calculator";
@@ -56,13 +64,16 @@ import { copy as navyCopy } from "./copy/navy-body-fat-calculator";
 import { copy as p5NoShowCostCalculator } from "./copy/no-show-cost-calculator";
 import { copy as phase2Copy0 } from "./copy/one-rep-max-calculator";
 import { copy as phase2Copy4 } from "./copy/overhead-press-calculator";
+import { copy as p5PersonalTrainerBioGenerator } from "./copy/personal-trainer-bio-generator";
 import { copy as trainerIncome } from "./copy/personal-trainer-income-calculator";
+import { copy as p5PersonalTrainingBusinessNameGenerator } from "./copy/personal-training-business-name-generator";
 import { copy as phase2Copy14 } from "./copy/plate-loading-calculator";
 import { copy as p5PriceIncreaseCalculator } from "./copy/price-increase-calculator";
 import { copy as protein } from "./copy/protein-calculator";
 import { copy as proteinPerMeal } from "./copy/protein-per-meal-calculator";
 import { copy as raceCopy } from "./copy/race-time-predictor";
 import { copy as recipeMacro } from "./copy/recipe-macro-calculator";
+import { copy as p5ReelScriptGenerator } from "./copy/reel-script-generator";
 import { copy as refeed } from "./copy/refeed-day-calculator";
 import { copy as p5ReferralValueCalculator } from "./copy/referral-value-calculator";
 import { copy as reverseDiet } from "./copy/reverse-diet-calculator";
@@ -169,6 +180,17 @@ export const COPY = {
   "sales-objection-handler": p5SalesObjectionHandler,
   "scope-of-practice-check": p5ScopeOfPracticeCheck,
   "weight-trend-reader": p5WeightTrendReader,
+  "ai-writing-checker": p5AiWritingChecker,
+  "client-check-in-builder": p5ClientCheckInBuilder,
+  "client-onboarding-builder": p5ClientOnboardingBuilder,
+  "coaching-offer-builder": p5CoachingOfferBuilder,
+  "coaching-prompt-generator": p5CoachingPromptGenerator,
+  "glp1-client-coaching-planner": p5Glp1ClientCoachingPlanner,
+  "instagram-caption-generator": p5InstagramCaptionGenerator,
+  "instagram-hook-generator": p5InstagramHookGenerator,
+  "personal-trainer-bio-generator": p5PersonalTrainerBioGenerator,
+  "personal-training-business-name-generator": p5PersonalTrainingBusinessNameGenerator,
+  "reel-script-generator": p5ReelScriptGenerator,
 
   "tdee-calculator": tdee,
   "recipe-macro-calculator": recipeMacro,
