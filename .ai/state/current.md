@@ -894,3 +894,19 @@ including the 12-month projection of €150,404); 99 calculator tests pass. Widg
 Verified: typecheck, build, all 16 pages at or above reference length with matching FAQ counts and
 flags, 360px audit clean, keyboard 0/0, browser scenarios (`handover/scripts/phase5a-scenarios.mjs`),
 8-gram overlap reviewed (field hints and notes reworded). Next: 5b readers, 5c generators, 5d platform tools.
+
+### Free tools Phase 5b (business readers) — 16 November 2026
+
+Phase 5a committed as `e955544`. Phase 5b adds 8 readers, 95 live plus templates: client check-in
+reader, churn-risk reader, business health check, difficult client responder, lift progression
+reader, sales objection handler, scope-of-practice check and weight trend reader. They update live
+as inputs change (one settled `tool_calculate` per read) and include copyable messages in
+warm, direct or no-nonsense tones where relevant. Decision logic is in
+`packages/calculators/src/readers.ts` (series parsing, least-squares trend, red-flag and
+exit-intent scanning, scoring); all words are in `apps/web/src/content/tools/reader-scripts.ts`;
+widgets are in `apps/web/src/app/tools/_components/widgets/readers.tsx`. The lift and weight readers start
+empty, as in the reference, with a "Try the example" button. 105 calculator tests pass.
+Founder confirmed: Traiv check-ins capture progress photos, so copy may say so.
+Verified: typecheck, build, all 8 pages at or above reference length with matching FAQ counts and flags,
+360px clean, keyboard 0/0, browser scenarios (`handover/scripts/phase5b-scenarios.mjs`), 8-gram
+overlap reviewed (intros, titles, notes rewritten). Next: 5c generators, 5d platform tools.

@@ -66,6 +66,16 @@ import {
   TrialConversionWidget,
 } from "../_components/widgets/metrics";
 import { InjurySwapWidget, PlanBuilderWidget } from "../_components/widgets/programs";
+import {
+  BusinessHealthWidget,
+  CheckinReaderWidget,
+  ChurnRiskWidget,
+  DifficultClientWidget,
+  LiftReaderWidget,
+  ObjectionWidget,
+  ScopeWidget,
+  WeightTrendWidget,
+} from "../_components/widgets/readers";
 import { RecipeMacroWidget } from "../_components/widgets/recipe-macro";
 import { CyclePhaseWidget, FastingWidget } from "../_components/widgets/schedule";
 import {
@@ -149,6 +159,14 @@ export const WIDGETS: Record<LiveSlug, ComponentType> = {
   "no-show-cost-calculator": NoShowCostWidget,
   "price-increase-calculator": PriceIncreaseWidget,
   "referral-value-calculator": ReferralValueWidget,
+  "client-check-in-reader": CheckinReaderWidget,
+  "client-churn-risk-reader": ChurnRiskWidget,
+  "coaching-business-health-check": BusinessHealthWidget,
+  "difficult-client-responder": DifficultClientWidget,
+  "lift-progression-reader": LiftReaderWidget,
+  "sales-objection-handler": ObjectionWidget,
+  "scope-of-practice-check": ScopeWidget,
+  "weight-trend-reader": WeightTrendWidget,
 
   "tdee-calculator": TdeeWidget,
   "recipe-macro-calculator": RecipeMacroWidget,

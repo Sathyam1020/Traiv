@@ -14,8 +14,11 @@ import { copy as burned } from "./copy/calories-burned-calculator";
 import { copy as caloriesPerMeal } from "./copy/calories-per-meal-calculator";
 import { copy as carbCycling } from "./copy/carb-cycling-calculator";
 import { copy as p5ClientCapacityCalculator } from "./copy/client-capacity-calculator";
+import { copy as p5ClientCheckInReader } from "./copy/client-check-in-reader";
 import { copy as p5ClientChurnRateCalculator } from "./copy/client-churn-rate-calculator";
+import { copy as p5ClientChurnRiskReader } from "./copy/client-churn-risk-reader";
 import { copy as p5ClientLtvCalculator } from "./copy/client-ltv-calculator";
+import { copy as p5CoachingBusinessHealthCheck } from "./copy/coaching-business-health-check";
 import { copy as p5CoachingPackagePricingCalculator } from "./copy/coaching-package-pricing-calculator";
 import { copy as p5CoachingProfitCalculator } from "./copy/coaching-profit-calculator";
 import { copy as coachingRate } from "./copy/coaching-rate-calculator";
@@ -26,6 +29,7 @@ import { copy as p5CustomerAcquisitionCostCalculator } from "./copy/customer-acq
 import { copy as cutLength } from "./copy/cut-length-calculator";
 import { copy as cycle } from "./copy/cycle-phase-calculator";
 import { copy as phase2Copy3 } from "./copy/deadlift-calculator";
+import { copy as p5DifficultClientResponder } from "./copy/difficult-client-responder";
 import { copy as p5DiscoveryCallCalculator } from "./copy/discovery-call-calculator";
 import { copy as phase2Copy6 } from "./copy/dots-calculator";
 import { copy as p5EmailListValueCalculator } from "./copy/email-list-value-calculator";
@@ -42,6 +46,7 @@ import { copy as intervalWalkCopy } from "./copy/interval-walking-calculator";
 import { copy as phase2Copy8 } from "./copy/ipf-gl-points-calculator";
 import { copy as keto } from "./copy/keto-macro-calculator";
 import { copy as lbmCopy } from "./copy/lean-body-mass-calculator";
+import { copy as p5LiftProgressionReader } from "./copy/lift-progression-reader";
 import { copy as macro } from "./copy/macro-calculator";
 import { copy as macroSplit } from "./copy/macro-split-by-body-type-calculator";
 import { copy as maintenance } from "./copy/maintenance-calorie-calculator";
@@ -65,6 +70,8 @@ import { copy as phase2Copy11 } from "./copy/rir-calculator";
 import { copy as phase2Copy10 } from "./copy/rpe-calculator";
 import { copy as ruckCopy } from "./copy/rucking-calorie-calculator";
 import { copy as paceCopy } from "./copy/running-pace-calculator";
+import { copy as p5SalesObjectionHandler } from "./copy/sales-objection-handler";
+import { copy as p5ScopeOfPracticeCheck } from "./copy/scope-of-practice-check";
 import { copy as phase2Copy9 } from "./copy/sinclair-calculator";
 import { copy as phase2Copy2 } from "./copy/squat-calculator";
 import { copy as steps } from "./copy/steps-to-calories-calculator";
@@ -80,6 +87,7 @@ import { copy as water } from "./copy/water-intake-calculator";
 import { copy as phase2Copy16 } from "./copy/weekly-training-volume-calculator";
 import { copy as wlpCopy } from "./copy/weight-loss-percentage-calculator";
 import { copy as phases } from "./copy/weight-loss-phase-calculator";
+import { copy as p5WeightTrendReader } from "./copy/weight-trend-reader";
 import { copy as phase2Copy5 } from "./copy/wilks-calculator";
 import { copy as phase2Copy7 } from "./copy/wilks-dots-calculator";
 import { copy as phase2Copy17 } from "./copy/workout-plan-builder";
@@ -153,6 +161,14 @@ export const COPY = {
   "no-show-cost-calculator": p5NoShowCostCalculator,
   "price-increase-calculator": p5PriceIncreaseCalculator,
   "referral-value-calculator": p5ReferralValueCalculator,
+  "client-check-in-reader": p5ClientCheckInReader,
+  "client-churn-risk-reader": p5ClientChurnRiskReader,
+  "coaching-business-health-check": p5CoachingBusinessHealthCheck,
+  "difficult-client-responder": p5DifficultClientResponder,
+  "lift-progression-reader": p5LiftProgressionReader,
+  "sales-objection-handler": p5SalesObjectionHandler,
+  "scope-of-practice-check": p5ScopeOfPracticeCheck,
+  "weight-trend-reader": p5WeightTrendReader,
 
   "tdee-calculator": tdee,
   "recipe-macro-calculator": recipeMacro,
