@@ -142,7 +142,7 @@ export const FOOTER = [
       { href: "/coaches", label: "For coaches" },
       { href: "/partnership", label: "Partnership" },
       { href: "/affiliate", label: "Refer a coach" },
-      { href: "/demo", label: "Book a demo" },
+      ...(SITE.demoUrl ? [{ href: SITE.demoUrl, label: "Book a demo" }] : []),
     ],
   },
   {

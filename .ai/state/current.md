@@ -987,3 +987,18 @@ and checks the published key before posting. The local key endpoint and mocked s
 passed. `features/free-tools/research/ai-discoverability.md` contains the release and monthly
 monitoring steps. Bing verification, real submission, live crawler checks, and baseline
 citation observations require the deployed library. Official sameAs profiles are unconfirmed.
+
+### Technical SEO pass before launch — 16 November 2026
+
+ADR 0037. The sitemap now omits `priority` and carries `lastmod` for the tools hub and all
+109 tools (`TOOLS_UPDATED` in `content/tools/registry.ts`, shared with the page's "Updated"
+date and `dateModified`) and for blog posts. `/demo` is no longer linked internally: `/gyms`
+and the 404 page's link list go straight to `SITE.demoUrl` in a new tab. `audit:seo` now
+asserts the `/demo` redirect, `lastmod` validity and no `priority`; `phase6-audit.py`
+checks rendered demo anchors only (the 404 list is in every page's RSC payload).
+`.github/workflows/seo.yml` runs the calculator tests, the build and the three crawls on PRs.
+Local result: `audit:seo` 137 routes, 0 failures; phase 6 audit 0 problems; phase 8 parity
+722 FAQs; 360px clean. Still to do after deploy: set `INDEXNOW_KEY`, verify Search Console
+and Bing, submit the sitemap once, run IndexNow, run `audit:seo` against production, add
+`sameAs` when official profiles are confirmed.
+

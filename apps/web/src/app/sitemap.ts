@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import { COMPETITORS, comparisonIsIndexable } from "@/content/competitors";
 import { FEATURES, featureIsIndexable } from "@/content/features";
 import { SITE } from "@/content/site";
-import { LIVE_TOOLS, STANDING_LEGACY } from "@/content/tools/registry";
+import { LIVE_TOOLS, STANDING_LEGACY, TOOLS_UPDATED } from "@/content/tools/registry";
 import { getPosts } from "@/lib/api";
 import { isPreview } from "@/lib/seo";
 
@@ -17,10 +17,12 @@ import { isPreview } from "@/lib/seo";
  */
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   if (isPreview) return [];
-  const at = (path: string, priority: number): MetadataRoute.Sitemap[number] => ({
+  // No `priority` or `changefreq`: Google ignores both. `lastModified` only where the date
+  // is real (a tool's copy review, a post's publication); a guessed date teaches crawlers to
+  // ignore the field everywhere.
+  const at = (path: string, lastModified?: string): MetadataRoute.Sitemap[number] => ({
     url: `${SITE.url}${path}`,
-
-    priority,
+    ...(lastModified ? { lastModified } : {}),
   });
 
   // Posts live in the database, so the sitemap has to ask for them rather than read a
@@ -29,24 +31,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const posts = await getPosts();
 
   const entries = [
-    at("/", 1),
-    at("/pricing", 0.9),
-    at("/gyms", 0.8),
-    at("/features", 0.8),
-    ...FEATURES.filter(featureIsIndexable).map((f) => at(`/features/${f.slug}`, 0.7)),
-    at("/compare", 0.8),
-    ...COMPETITORS.filter(comparisonIsIndexable).map((c) => at(`/compare/${c.slug}`, 0.8)),
-    at("/tools", 0.6),
+    at("/"),
+    at("/pricing"),
+    at("/gyms"),
+    at("/features"),
+    ...FEATURES.filter(featureIsIndexable).map((f) => at(`/features/${f.slug}`)),
+    at("/compare"),
+    ...COMPETITORS.filter(comparisonIsIndexable).map((c) => at(`/compare/${c.slug}`)),
+    at("/tools", TOOLS_UPDATED),
     // Live tools from the registry, plus the older tool pages not yet replaced by one.
-    ...LIVE_TOOLS.map((t) => at(`/tools/${t.slug}`, 0.7)),
-    ...STANDING_LEGACY.map((t) => at(`/tools/${t.slug}`, 0.7)),
+    ...LIVE_TOOLS.map((t) => at(`/tools/${t.slug}`, TOOLS_UPDATED)),
+    ...STANDING_LEGACY.map((t) => at(`/tools/${t.slug}`)),
     // Same condition as the blog index's noindex: listing a noindex page is a contradiction.
-    ...(posts.length > 0 ? [at("/blog", 0.7)] : []),
-    ...posts.map((p) => ({ ...at(`/blog/${p.slug}`, 0.6), lastModified: p.publishedAt })),
-    at("/coaches", 0.7),
-    at("/about", 0.5),
-    at("/partnership", 0.4),
-    at("/affiliate", 0.4),
+    ...(posts.length > 0 ? [at("/blog")] : []),
+    ...posts.map((p) => at(`/blog/${p.slug}`, p.publishedAt)),
+    at("/coaches"),
+    at("/about"),
+    at("/partnership"),
+    at("/affiliate"),
   ];
   return [...new Map(entries.map((entry) => [entry.url, entry])).values()];
 }

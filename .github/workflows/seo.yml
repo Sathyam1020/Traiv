@@ -1,0 +1,51 @@
+# Builds the marketing site and crawls it before merge, so a noindex page in the sitemap,
+# a wrong canonical, a broken internal link or a Markdown/FAQ mismatch fails the PR instead
+# of reaching Google. Runs against a local `next start`: no secrets, no production traffic.
+# The blog API is not reachable here, so the build sees no posts, which the site handles.
+name: SEO checks
+
+on:
+  pull_request:
+    paths:
+      - "apps/web/**"
+      - "packages/calculators/**"
+      - "packages/ui/**"
+      - "features/free-tools/**"
+      - "pnpm-lock.yaml"
+      - ".github/workflows/seo.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  seo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Calculator tests
+        run: pnpm --filter @traiv/calculators test
+      - name: Build the marketing site
+        run: pnpm --filter @traiv/web build
+      - name: Start it on port 3004
+        working-directory: apps/web
+        run: |
+          nohup pnpm start -p 3004 > /tmp/web.log 2>&1 &
+          for i in $(seq 1 60); do curl -sf http://localhost:3004/robots.txt > /dev/null && exit 0; sleep 1; done
+          cat /tmp/web.log; exit 1
+      - name: Rendered crawl (sitemap, noindex, canonical, social tags, links, redirects)
+        working-directory: apps/web
+        run: pnpm audit:seo
+        env:
+          WEB_ORIGIN: http://localhost:3004
+      - name: Tool pages (titles, descriptions, schema, link depth, UTM, demo button)
+        run: python3 -I features/free-tools/handover/scripts/phase6-audit.py http://localhost:3004
+      - name: Markdown and llms-full parity
+        run: python3 -I features/free-tools/handover/scripts/phase8-audit.py http://localhost:3004

@@ -2,6 +2,9 @@ import Link from "next/link";
 import { Container } from "@/components/layout";
 import { FOOTER } from "@/content/site";
 
+const LINK =
+  "flex items-center text-body-sm text-fg-muted transition-colors hover:text-fg pointer-coarse:min-h-11";
+
 /**
  * The page that is not there.
  *
@@ -25,12 +28,15 @@ export default function NotFound() {
             <ul className="flex flex-col gap-2 pointer-coarse:gap-0">
               {group.links.map((link) => (
                 <li key={link.href}>
-                  <Link
-                    href={link.href}
-                    className="flex items-center text-body-sm text-fg-muted transition-colors hover:text-fg pointer-coarse:min-h-11"
-                  >
-                    {link.label}
-                  </Link>
+                  {link.href.startsWith("/") ? (
+                    <Link href={link.href} className={LINK}>
+                      {link.label}
+                    </Link>
+                  ) : (
+                    <a href={link.href} target="_blank" rel="noopener noreferrer" className={LINK}>
+                      {link.label}
+                    </a>
+                  )}
                 </li>
               ))}
             </ul>

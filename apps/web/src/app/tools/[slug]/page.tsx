@@ -1,16 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SITE } from "@/content/site";
-import { LIVE_TOOLS, type LiveSlug, liveTool } from "@/content/tools/registry";
+import { LIVE_TOOLS, type LiveSlug, liveTool, TOOLS_UPDATED } from "@/content/tools/registry";
 import { pageMetadata } from "@/lib/seo";
 import { ToolPage } from "../_components/tool-page";
 import { WIDGETS } from "./widgets";
 
 /** Live tools only. Anything else under /tools/ is a 404, never an empty template. */
 export const dynamicParams = false;
-
-/** Shown as "Updated" on each page and as Article.dateModified. Bump with each copy review. */
-const UPDATED = "2026-11-15";
 
 export function generateStaticParams() {
   return LIVE_TOOLS.map((t) => ({ slug: t.slug }));
@@ -55,5 +52,5 @@ export default async function Page({ params }: { params: Promise<{ slug: string 
   const { slug } = await params;
   const tool = liveTool(slug);
   if (!tool) notFound();
-  return <ToolPage tool={tool} Widget={WIDGETS[tool.slug as LiveSlug]} updated={UPDATED} />;
+  return <ToolPage tool={tool} Widget={WIDGETS[tool.slug as LiveSlug]} updated={TOOLS_UPDATED} />;
 }

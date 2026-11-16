@@ -117,7 +117,8 @@ for u in tool_urls:
         p("no trial link")
     spec = SPEC.get(slug)
     if spec:
-        has_demo = "cal.com/sathyamsahu" in body
+        # Rendered anchors only: the 404 page's footer list sits in every page's RSC payload.
+        has_demo = 'href="https://cal.com/sathyamsahu' in body
         if has_demo != bool(spec.get("has_demo")):
             p(f"demo button {'present' if has_demo else 'missing'}, spec says {spec.get('has_demo')}")
     og = status(path + "/opengraph-image")

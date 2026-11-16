@@ -102,6 +102,18 @@ for (const [from, to] of [
   assert([301, 308].includes(r.status));
   assert.equal(new URL(r.headers.get("location"), base).pathname, to);
 }
+// /demo is a temporary redirect to the booking page, never a page of its own, so it must
+// not be linked internally (the crawl above would fail on it) or listed in the sitemap.
+const demo = await get("/demo");
+assert.equal(demo.status, 307, "/demo should redirect to the booking page");
+assert(/^https:\/\//.test(demo.headers.get("location") ?? ""), "/demo must leave the site");
+assert(!entries.some((entry) => new URL(entry).pathname === "/demo"), "/demo in sitemap");
+for (const entry of sitemap.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)) {
+  const date = Date.parse(entry[1]);
+  assert(!Number.isNaN(date), `Invalid lastmod ${entry[1]}`);
+  assert(date <= Date.now() + 86_400_000, `Future lastmod ${entry[1]}`);
+}
+assert(!sitemap.includes("<priority>"), "priority is ignored by Google; leave it out");
 assert.equal((await get("/missing-seo-audit-page")).status, 404);
 const robots = await (await get("/robots.txt")).text();
 assert(!robots.includes("Disallow: /legal/"), "Legal noindex must be crawlable");

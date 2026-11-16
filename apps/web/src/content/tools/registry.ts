@@ -330,3 +330,9 @@ export const STANDING_LEGACY = LEGACY_TOOLS.filter(
   (t) => !t.replacedBy || !liveBySlug.has(t.replacedBy),
 );
 const LEGACY_TOOL_SLUGS = new Set(STANDING_LEGACY.map((t) => t.slug));
+
+/**
+ * Shown as "Updated" on each tool page, as Article.dateModified, and as the sitemap's
+ * lastmod. Bump with each copy review so the three never disagree.
+ */
+export const TOOLS_UPDATED = "2026-11-16";

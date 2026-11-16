@@ -1,9 +1,9 @@
 import { ArrowUpRight } from "@traiv/ui/icons";
 import type { Metadata } from "next";
-import Link from "next/link";
 import { ClosingCta, PricingCards } from "@/components/marketing-sections";
 import { ProductScene } from "@/components/product-scenes";
 import { TrialLink } from "@/components/trial-link";
+import { SITE } from "@/content/site";
 import { pageMetadata } from "@/lib/seo";
 export const metadata: Metadata = pageMetadata({
   title: "Coaching software for gyms",
@@ -79,9 +79,17 @@ export default function GymsPage() {
             your gym.
           </h2>
           <p>Want to walk through your coaching setup before starting?</p>
-          <Link className="trial-link" style={{ marginTop: 24 }} href="/demo">
-            Talk to us <ArrowUpRight size={18} />
-          </Link>
+          {SITE.demoUrl ? (
+            <a
+              className="trial-link"
+              style={{ marginTop: 24 }}
+              href={SITE.demoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Talk to us <ArrowUpRight size={18} />
+            </a>
+          ) : null}
         </div>
       </section>
       <ClosingCta />
