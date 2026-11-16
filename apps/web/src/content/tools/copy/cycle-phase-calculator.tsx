@@ -5,7 +5,7 @@ import type { ToolCopy } from "../types";
 export const copy: ToolCopy = {
   title: "Cycle Phase Calculator: Your Menstrual Cycle Phase Today",
   description:
-    "Free cycle phase calculator. Enter the first day of your last period and your cycle length to see today's estimated phase, your next period and notes for training and nutrition.",
+    "Cycle phase calculator. Enter your last period's first day and cycle length to see today's estimated phase, your next period and training and nutrition notes.",
   eyebrow: "Free tool · Nutrition",
   h1: "Cycle phase calculator",
   intro: (

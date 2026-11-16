@@ -22,7 +22,7 @@ def formula_section(lift_word, example_w, example_unit):
 
 
 DATA["one-rep-max-calculator"] = dict(
-    title="One-Rep Max Calculator: Estimate Your 1RM (Epley and Brzycki)",
+    title="One-rep max calculator: estimate your 1RM (Epley, Brzycki)",
     description="Free one-rep max calculator. Enter a weight and reps to estimate your 1RM with Epley or Brzycki, plus a percentage table of working weights and expected reps.",
     eyebrow="Free tool · Strength",
     h1="One-rep max calculator",

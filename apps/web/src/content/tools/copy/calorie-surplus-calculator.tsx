@@ -5,7 +5,7 @@ import type { ToolCopy } from "../types";
 export const copy: ToolCopy = {
   title: "Calorie Surplus Calculator: Calories to Build Muscle",
   description:
-    "Free calorie surplus calculator. Get maintenance, a daily target for lean, standard or aggressive gain, a protein range and an estimated date to reach your goal weight.",
+    "Calorie surplus calculator. Get maintenance, a daily target for lean, standard or aggressive gain, a protein range and a date to reach your goal weight.",
   eyebrow: "Free tool · Nutrition",
   h1: "Calorie surplus calculator",
   intro: (

@@ -5,7 +5,7 @@ import type { ToolCopy } from "../types";
 export const copy: ToolCopy = {
   title: "Coaching Rate Calculator: What to Charge Per Client",
   description:
-    "Free coaching rate calculator. Work out your monthly price per client from your income goal, costs, hours and churn, with capacity, breakeven and an hourly figure.",
+    "Coaching rate calculator. Work out your monthly price per client from your income goal, costs, hours and churn, with capacity, breakeven and an hourly figure.",
   eyebrow: "Free tool · Coaching business",
   h1: "Coaching rate calculator",
   intro: (

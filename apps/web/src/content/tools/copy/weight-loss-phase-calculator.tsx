@@ -5,7 +5,7 @@ import type { ToolCopy } from "../types";
 export const copy: ToolCopy = {
   title: "Weight Loss Phase Calculator: A Multi-Phase Diet Plan",
   description:
-    "Free weight loss phase calculator. Build a diet in phases that recalculate your calories as you lose weight, with maintenance breaks and a realistic finish date.",
+    "Weight loss phase calculator. Build a diet in phases that recalculate your calories as you lose weight, with maintenance breaks and a realistic finish date.",
   eyebrow: "Free tool · Nutrition",
   h1: "Weight loss phase calculator",
   intro: (

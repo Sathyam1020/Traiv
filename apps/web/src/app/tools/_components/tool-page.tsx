@@ -4,7 +4,7 @@ import { Container, Section } from "@/components/layout";
 import { Breadcrumbs } from "@/components/seo-schema";
 import { SITE, TOOL_AUTHOR } from "@/content/site";
 import { PITCHES } from "@/content/tools/pitches";
-import { GROUP_LABEL, isLinkable, relatedFor } from "@/content/tools/registry";
+import { GROUP_LABEL, isLinkable, LIVE_TOOLS, relatedFor } from "@/content/tools/registry";
 import type { LiveTool } from "@/content/tools/types";
 import { DemoLink, FeatureLink, RelatedLink, ToolTrialLink } from "./links";
 import { PromptBlock } from "./prompt-block";
@@ -34,6 +34,20 @@ export function ToolPage({
   // Links to tools that haven't shipped yet are held back, and appear once they're live.
   const next = copy.next.filter((n) => isLinkable(n.href));
   const keepGoing = copy.keepGoing.filter((k) => isLinkable(k.href));
+  // A wider set from the same group, so every page links deeper into its own topic.
+  const linked = new Set([
+    ...related.map((r) => r.slug),
+    ...next.map((n) => n.href.split("/").pop()),
+  ]);
+  const unlinked = LIVE_TOOLS.filter((t) => t.slug !== tool.slug && !linked.has(t.slug));
+  const moreInGroup = [
+    ...unlinked.filter((t) => t.group === tool.group),
+    ...unlinked.filter((t) => t.group !== tool.group),
+  ].slice(0, 10);
+  const mixed = moreInGroup.some((t) => t.group !== tool.group);
+  const moreLabel = mixed
+    ? "More free tools"
+    : `More ${GROUP_LABEL[tool.group].toLowerCase()} tools`;
 
   return (
     <ToolProvider value={{ slug: tool.slug, group: tool.group, kind: tool.kind }}>
@@ -258,7 +272,7 @@ export function ToolPage({
         <Section tone="sunken">
           <Container width="wide">
             <div className="flex flex-wrap items-end justify-between gap-4">
-              <h2 className="font-display text-heading font-medium">More free calculators</h2>
+              <h2 className="font-display text-heading font-medium">More free tools</h2>
               <a
                 href="/tools"
                 className="inline-flex min-h-11 items-center gap-1.5 text-body-sm font-medium underline underline-offset-4"
@@ -277,12 +291,31 @@ export function ToolPage({
                     <span className="text-caption text-fg-subtle">{GROUP_LABEL[r.group]}</span>
                     <span className="font-display text-subheading font-semibold">{r.name}</span>
                     <span className="mt-auto inline-flex items-center gap-1.5 pt-2 text-body-sm font-medium">
-                      Open calculator <ArrowRight aria-hidden="true" className="size-4" />
+                      {r.kind === "calculator" ? "Open calculator" : "Open tool"}{" "}
+                      <ArrowRight aria-hidden="true" className="size-4" />
                     </span>
                   </RelatedLink>
                 </li>
               ))}
             </ul>
+            {moreInGroup.length > 0 ? (
+              <nav aria-label={moreLabel} className="mt-10">
+                <h3 className="text-body-sm font-medium">{moreLabel}</h3>
+                <ul className="mt-3 flex flex-wrap gap-2">
+                  {moreInGroup.map((t) => (
+                    <li key={t.slug}>
+                      <RelatedLink
+                        from={tool.slug}
+                        to={t.slug}
+                        className="inline-flex min-h-11 items-center rounded-control border border-line bg-surface px-3.5 text-body-sm transition-colors hover:bg-hover"
+                      >
+                        {t.name}
+                      </RelatedLink>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            ) : null}
           </Container>
         </Section>
       ) : null}

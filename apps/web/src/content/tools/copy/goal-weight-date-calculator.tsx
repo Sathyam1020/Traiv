@@ -5,7 +5,7 @@ import type { ToolCopy } from "../types";
 export const copy: ToolCopy = {
   title: "Goal Weight Date Calculator: When Will You Reach Your Goal?",
   description:
-    "Free goal weight date calculator. Enter your current and goal weight and a weekly rate to get a target date, the daily deficit or surplus it needs, and a safety check.",
+    "Goal weight date calculator. Enter current and goal weight and a weekly rate to get a target date, the daily deficit or surplus it needs and a safety check.",
   eyebrow: "Free tool · Nutrition",
   h1: "Goal weight date calculator",
   intro: (

@@ -5,7 +5,7 @@ import type { ToolCopy } from "../types";
 export const copy: ToolCopy = {
   title: "Personal trainer bio generator for Instagram",
   description:
-    "Get eight Instagram bio options for a personal trainer or online coach from who you help, the outcome, your method and a call to action, each within 150 characters.",
+    "Get eight Instagram bios for a personal trainer or online coach from who you help, the outcome, your method and a call to action, each within 150 characters.",
   eyebrow: "Free tool · Marketing",
   h1: "Personal trainer bio generator",
   intro: (

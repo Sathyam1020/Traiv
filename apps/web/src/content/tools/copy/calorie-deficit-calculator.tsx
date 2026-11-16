@@ -5,7 +5,7 @@ import type { ToolCopy } from "../types";
 export const copy: ToolCopy = {
   title: "Calorie Deficit Calculator: Daily Target and Goal Date",
   description:
-    "Free calorie deficit calculator. Choose a weekly rate of loss and get a daily calorie target, your deficit and a realistic goal date, with safe minimums built in.",
+    "Calorie deficit calculator. Choose a weekly rate of loss and get a daily calorie target, your deficit and a realistic goal date, with safe minimums built in.",
   eyebrow: "Free tool · Nutrition",
   h1: "Calorie deficit calculator",
   intro: (

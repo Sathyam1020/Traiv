@@ -5,7 +5,7 @@ import type { ToolCopy } from "../types";
 export const copy: ToolCopy = {
   title: "Personal Trainer Income Calculator: Monthly and Yearly Pay",
   description:
-    "Free personal trainer income calculator. Work out monthly and annual take-home from sessions or online clients, gym split and costs, with an effective hourly rate.",
+    "Personal trainer income calculator. Work out monthly and annual take-home from sessions or online clients, gym split and costs, with an effective hourly rate.",
   eyebrow: "Free tool · Coaching business",
   h1: "Personal trainer income calculator",
   intro: (

@@ -937,3 +937,15 @@ page couldn't be read, hid prices in script, contradicted itself or was quote-on
 My PT Hub, Paperbell, FitSW, Trainerize, Exercise.com and Virtuagym.
 Verified: build, all 3 pages above reference length with matching FAQ counts and flags, 360px clean, keyboard
 0/0, browser scenarios (`handover/scripts/phase5d-scenarios.mjs`). Next: Phase 6 (verification and SEO pass).
+
+### Free tools Phase 6 (verification) — 16 November 2026, in progress
+
+Crawl audit `features/free-tools/handover/scripts/phase6-audit.py`: all 110 tool pages in the sitemap,
+one h1, titles ≤ 60, descriptions 50–160 (14 shortened), canonical, JSON-LD parses with
+BreadcrumbList/FAQPage/WebApplication, ≥ 12 internal tool links (new "More … tools" list on every page),
+no broken internal links, tool trial links carry UTM, demo button matches spec, OG image responds: 0 problems.
+360px audit clean. External links: 125 checked; PubMed 203 and a few publisher 403s are bot blocks
+(CDC confirmed, DOI resolves); NICE NG246 and Diabetes Care were not re-confirmed. Lighthouse run was
+blocked by the sandbox. Attribution gap: signup stores utm_source/medium/campaign but not utm_content,
+so ad-campaign visits lose the tool (needs a schema change; founder decision).
+Left: Lighthouse, NICE/Diabetes Care link check, Search Console and Bing submission (founder accounts).

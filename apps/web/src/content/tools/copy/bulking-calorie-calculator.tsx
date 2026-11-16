@@ -5,7 +5,7 @@ import type { ToolCopy } from "../types";
 export const copy: ToolCopy = {
   title: "Bulking Calorie Calculator: Surplus, Macros and Weekly Gain",
   description:
-    "Free bulking calculator. Enter maintenance calories and body weight, choose a lean, moderate or aggressive bulk, and get daily calories, macros and projected weekly gain.",
+    "Bulking calculator. Enter maintenance calories and body weight, choose a lean, moderate or aggressive bulk, and get daily calories, macros and weekly gain.",
   eyebrow: "Free tool · Nutrition",
   h1: "Bulking calorie calculator",
   intro: (

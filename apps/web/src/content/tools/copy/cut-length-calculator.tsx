@@ -5,7 +5,7 @@ import type { ToolCopy } from "../types";
 export const copy: ToolCopy = {
   title: "Cut Length Calculator: How Long Your Cut Will Take",
   description:
-    "Free cut length calculator. Enter your weight, current and target body fat and weekly pace to see how many weeks your cut will take, how much fat to lose and when to take diet breaks.",
+    "Cut length calculator. Enter weight, current and target body fat and weekly pace to see how long your cut takes, the fat to lose and when to take diet breaks.",
   eyebrow: "Free tool · Nutrition",
   h1: "Cut length calculator",
   intro: (

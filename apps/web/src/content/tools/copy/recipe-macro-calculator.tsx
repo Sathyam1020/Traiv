@@ -5,7 +5,7 @@ import type { ToolCopy } from "../types";
 export const copy: ToolCopy = {
   title: "Recipe Macro Calculator: Per Serving and Per 100 g (2026)",
   description:
-    "Free recipe macro calculator. Enter each ingredient's grams and label macros to get calories, protein, carbs and fat for the whole dish, per serving or per 100 g.",
+    "Recipe macro calculator. Enter each ingredient's grams and label macros to get calories, protein, carbs and fat for the whole dish, per serving or per 100 g.",
   eyebrow: "Free tool · Nutrition",
   h1: "Recipe macro calculator",
   intro: (

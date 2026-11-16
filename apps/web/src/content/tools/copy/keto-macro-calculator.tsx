@@ -5,7 +5,7 @@ import type { ToolCopy } from "../types";
 export const copy: ToolCopy = {
   title: "Keto Macro Calculator: Net Carbs, Protein and Fat (2026)",
   description:
-    "Free keto macro calculator. Set a net carb limit, get protein from lean mass, and let fat fill your calories for cutting, maintaining or gaining on a ketogenic diet.",
+    "Keto macro calculator. Set a net carb limit, get protein from lean mass, and let fat fill your calories for cutting, maintaining or gaining on a ketogenic diet.",
   eyebrow: "Free tool · Nutrition",
   h1: "Keto macro calculator",
   intro: (

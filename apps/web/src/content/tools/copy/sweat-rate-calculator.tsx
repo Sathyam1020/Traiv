@@ -5,7 +5,7 @@ import type { ToolCopy } from "../types";
 export const copy: ToolCopy = {
   title: "Sweat Rate Calculator: How Much to Drink During Exercise",
   description:
-    "Free sweat rate calculator. Weigh yourself before and after training to find your hourly sweat loss, percentage of body weight lost and how much to drink next time.",
+    "Sweat rate calculator. Weigh yourself before and after training to find your hourly sweat loss, percentage of body weight lost and how much to drink next time.",
   eyebrow: "Free tool · Nutrition",
   h1: "Sweat rate calculator",
   intro: (
