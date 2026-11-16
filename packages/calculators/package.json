@@ -21,7 +21,8 @@
     "./strength": "./src/strength.ts",
     "./programs": "./src/programs.ts",
     "./body": "./src/body.ts",
-    "./cardio": "./src/cardio.ts"
+    "./cardio": "./src/cardio.ts",
+    "./metrics": "./src/metrics.ts"
   },
   "scripts": {
     "test": "node --test test/*.test.ts",

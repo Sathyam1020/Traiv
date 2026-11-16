@@ -18,7 +18,13 @@ import {
 } from "../kit";
 
 /** Every money tool gets this (ADR 0036): EUR default, plus USD, GBP and INR. Format only. */
-function CurrencyPills({ value, onChange }: { value: Currency; onChange: (c: Currency) => void }) {
+export function CurrencyPills({
+  value,
+  onChange,
+}: {
+  value: Currency;
+  onChange: (c: Currency) => void;
+}) {
   return (
     <Pills
       label="Currency"

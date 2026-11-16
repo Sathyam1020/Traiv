@@ -1,3 +1,5 @@
+import { copy as p5AdSpendBreakevenCalculator } from "./copy/ad-spend-breakeven-calculator";
+import { copy as p5AssistantCoachRoiCalculator } from "./copy/assistant-coach-roi-calculator";
 import { copy as beepCopy } from "./copy/beep-test-calculator";
 import { copy as phase2Copy1 } from "./copy/bench-press-calculator";
 import { copy as bmiCopy } from "./copy/bmi-calculator";
@@ -11,16 +13,27 @@ import { copy as surplus } from "./copy/calorie-surplus-calculator";
 import { copy as burned } from "./copy/calories-burned-calculator";
 import { copy as caloriesPerMeal } from "./copy/calories-per-meal-calculator";
 import { copy as carbCycling } from "./copy/carb-cycling-calculator";
+import { copy as p5ClientCapacityCalculator } from "./copy/client-capacity-calculator";
+import { copy as p5ClientChurnRateCalculator } from "./copy/client-churn-rate-calculator";
+import { copy as p5ClientLtvCalculator } from "./copy/client-ltv-calculator";
+import { copy as p5CoachingPackagePricingCalculator } from "./copy/coaching-package-pricing-calculator";
+import { copy as p5CoachingProfitCalculator } from "./copy/coaching-profit-calculator";
 import { copy as coachingRate } from "./copy/coaching-rate-calculator";
+import { copy as p5CoachingRevenueProjector } from "./copy/coaching-revenue-projector";
 import { copy as cooperCopy } from "./copy/cooper-test-calculator";
 import { copy as creatine } from "./copy/creatine-dosage-calculator";
+import { copy as p5CustomerAcquisitionCostCalculator } from "./copy/customer-acquisition-cost-calculator";
 import { copy as cutLength } from "./copy/cut-length-calculator";
 import { copy as cycle } from "./copy/cycle-phase-calculator";
 import { copy as phase2Copy3 } from "./copy/deadlift-calculator";
+import { copy as p5DiscoveryCallCalculator } from "./copy/discovery-call-calculator";
 import { copy as phase2Copy6 } from "./copy/dots-calculator";
+import { copy as p5EmailListValueCalculator } from "./copy/email-list-value-calculator";
 import { copy as ffmiCopy } from "./copy/ffmi-calculator";
 import { copy as fiber } from "./copy/fiber-intake-calculator";
+import { copy as p5FreeTrialConversionCalculator } from "./copy/free-trial-conversion-calculator";
 import { copy as goalDate } from "./copy/goal-weight-date-calculator";
+import { copy as p5GroupVs1on1CoachingCalculator } from "./copy/group-vs-1on1-coaching-calculator";
 import { copy as hrZoneCopy } from "./copy/heart-rate-zone-calculator";
 import { copy as idealCopy } from "./copy/ideal-weight-calculator";
 import { copy as phase2Copy18 } from "./copy/injury-exercise-swap";
@@ -35,15 +48,18 @@ import { copy as maintenance } from "./copy/maintenance-calorie-calculator";
 import { copy as maxHrCopy } from "./copy/max-heart-rate-calculator";
 import { copy as muscleCopy } from "./copy/muscle-mass-calculator";
 import { copy as navyCopy } from "./copy/navy-body-fat-calculator";
+import { copy as p5NoShowCostCalculator } from "./copy/no-show-cost-calculator";
 import { copy as phase2Copy0 } from "./copy/one-rep-max-calculator";
 import { copy as phase2Copy4 } from "./copy/overhead-press-calculator";
 import { copy as trainerIncome } from "./copy/personal-trainer-income-calculator";
 import { copy as phase2Copy14 } from "./copy/plate-loading-calculator";
+import { copy as p5PriceIncreaseCalculator } from "./copy/price-increase-calculator";
 import { copy as protein } from "./copy/protein-calculator";
 import { copy as proteinPerMeal } from "./copy/protein-per-meal-calculator";
 import { copy as raceCopy } from "./copy/race-time-predictor";
 import { copy as recipeMacro } from "./copy/recipe-macro-calculator";
 import { copy as refeed } from "./copy/refeed-day-calculator";
+import { copy as p5ReferralValueCalculator } from "./copy/referral-value-calculator";
 import { copy as reverseDiet } from "./copy/reverse-diet-calculator";
 import { copy as phase2Copy11 } from "./copy/rir-calculator";
 import { copy as phase2Copy10 } from "./copy/rpe-calculator";
@@ -121,6 +137,22 @@ export const COPY = {
   "running-pace-calculator": paceCopy,
   "rucking-calorie-calculator": ruckCopy,
   "workout-timer": timerCopy,
+  "ad-spend-breakeven-calculator": p5AdSpendBreakevenCalculator,
+  "assistant-coach-roi-calculator": p5AssistantCoachRoiCalculator,
+  "client-capacity-calculator": p5ClientCapacityCalculator,
+  "client-churn-rate-calculator": p5ClientChurnRateCalculator,
+  "client-ltv-calculator": p5ClientLtvCalculator,
+  "coaching-package-pricing-calculator": p5CoachingPackagePricingCalculator,
+  "coaching-profit-calculator": p5CoachingProfitCalculator,
+  "coaching-revenue-projector": p5CoachingRevenueProjector,
+  "customer-acquisition-cost-calculator": p5CustomerAcquisitionCostCalculator,
+  "discovery-call-calculator": p5DiscoveryCallCalculator,
+  "email-list-value-calculator": p5EmailListValueCalculator,
+  "free-trial-conversion-calculator": p5FreeTrialConversionCalculator,
+  "group-vs-1on1-coaching-calculator": p5GroupVs1on1CoachingCalculator,
+  "no-show-cost-calculator": p5NoShowCostCalculator,
+  "price-increase-calculator": p5PriceIncreaseCalculator,
+  "referral-value-calculator": p5ReferralValueCalculator,
 
   "tdee-calculator": tdee,
   "recipe-macro-calculator": recipeMacro,

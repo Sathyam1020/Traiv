@@ -47,6 +47,24 @@ import {
   WaterWidget,
 } from "../_components/widgets/intake";
 import { KetoWidget, MacroSplitWidget, MacroWidget } from "../_components/widgets/macros";
+import {
+  AdBreakevenWidget,
+  AssistantRoiWidget,
+  CacWidget,
+  ChurnRateWidget,
+  ClientCapacityWidget,
+  ClientLtvWidget,
+  DiscoveryCallWidget,
+  EmailListWidget,
+  GroupVsOneWidget,
+  NoShowCostWidget,
+  PackagePricingWidget,
+  PriceIncreaseWidget,
+  ProfitWidget,
+  ReferralValueWidget,
+  RevenueProjectorWidget,
+  TrialConversionWidget,
+} from "../_components/widgets/metrics";
 import { InjurySwapWidget, PlanBuilderWidget } from "../_components/widgets/programs";
 import { RecipeMacroWidget } from "../_components/widgets/recipe-macro";
 import { CyclePhaseWidget, FastingWidget } from "../_components/widgets/schedule";
@@ -115,6 +133,22 @@ export const WIDGETS: Record<LiveSlug, ComponentType> = {
   "running-pace-calculator": RunningPaceWidget,
   "rucking-calorie-calculator": RuckingWidget,
   "workout-timer": WorkoutTimerWidget,
+  "ad-spend-breakeven-calculator": AdBreakevenWidget,
+  "assistant-coach-roi-calculator": AssistantRoiWidget,
+  "client-capacity-calculator": ClientCapacityWidget,
+  "client-churn-rate-calculator": ChurnRateWidget,
+  "client-ltv-calculator": ClientLtvWidget,
+  "coaching-package-pricing-calculator": PackagePricingWidget,
+  "coaching-profit-calculator": ProfitWidget,
+  "coaching-revenue-projector": RevenueProjectorWidget,
+  "customer-acquisition-cost-calculator": CacWidget,
+  "discovery-call-calculator": DiscoveryCallWidget,
+  "email-list-value-calculator": EmailListWidget,
+  "free-trial-conversion-calculator": TrialConversionWidget,
+  "group-vs-1on1-coaching-calculator": GroupVsOneWidget,
+  "no-show-cost-calculator": NoShowCostWidget,
+  "price-increase-calculator": PriceIncreaseWidget,
+  "referral-value-calculator": ReferralValueWidget,
 
   "tdee-calculator": TdeeWidget,
   "recipe-macro-calculator": RecipeMacroWidget,

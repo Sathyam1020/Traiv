@@ -878,3 +878,19 @@ Verified: typecheck, production build, all 11 pages at or above reference length
 FAQ counts and section flags, 360px audit clean, keyboard 0/0 on every page, browser scenarios
 (`features/free-tools/handover/scripts/phase4-scenarios.mjs`) pass, 8-gram overlap reviewed.
 Next: Phase 5 (business).
+
+### Free tools Phase 5a (business money calculators) — 16 November 2026
+
+Phase 4 committed as `5e90b99`. Phase 5a adds 16 money calculators, 87 live plus templates: ad spend
+breakeven, assistant coach ROI, client capacity, churn rate, client LTV, package pricing, profit,
+revenue projector, CAC, discovery calls, email list value, free trial conversion, group vs 1:1,
+no-show cost, price increase and referral value. Each has the EUR/USD/GBP/INR switch (format only).
+The assistant coach tool's platform-fee toggle is "No revenue share" or "Platform takes a share" with
+a percentage; it does not claim any Traiv payment fee, because none is recorded in `.ai/`.
+Engine: `packages/calculators/src/metrics.ts` (every default reproduces the reference result,
+including the 12-month projection of €150,404); 99 calculator tests pass. Widgets:
+`apps/web/src/app/tools/_components/widgets/metrics.tsx` (`CurrencyPills` now exported from
+`widgets/business.tsx`; package extras use the shared `@traiv/ui` Checkbox).
+Verified: typecheck, build, all 16 pages at or above reference length with matching FAQ counts and
+flags, 360px audit clean, keyboard 0/0, browser scenarios (`handover/scripts/phase5a-scenarios.mjs`),
+8-gram overlap reviewed (field hints and notes reworded). Next: 5b readers, 5c generators, 5d platform tools.
