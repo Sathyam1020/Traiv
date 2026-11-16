@@ -1,6 +1,6 @@
 # Free tools: Coachway parity plan
 
-2026-11-16 · Branch `feat/free-tools-expansion` · Status: **Phases 0–5 implemented: all 109 tools live plus templates. Next: Phase 6 (verification and SEO pass), then 7 and 8.**
+2026-11-16 · Branch `feat/free-tools-expansion` · Status: **Phases 0–5 implemented on the branch. Phase 6 local verification complete for all 109 tools plus templates. Sitemap submission awaits deployment and verified account access.**
 
 Research files, kept next to this one:
 - `research/inventory.md`: all 109 tools by category, with every input, default, option,
@@ -244,7 +244,7 @@ right target searches, links from other sites, and time. Head terms like "TDEE c
 belong to sites with years of backlinks (calculator.net, Omni and similar), and Coachway
 doesn't rank for them either.
 
-**7a. Keyword research (before Phase 1 copy)**
+**7a. Keyword research**
 - For all 109 tools: search volume, keyword difficulty, current top 10, and the related
   questions people ask. Via the DataForSEO skill if its extension is connected, otherwise
   Search Console and manual SERP checks.
@@ -270,11 +270,11 @@ doesn't rank for them either.
 - Track per tool in Search Console; the pages that are close to page 1 get written deeper
   and promoted harder
 
-**7c. Embeddable widgets (approved 2026-11-15; own spec first)**
+**7c. Embeddable widgets (RPE implemented locally)**
 - An `<iframe>` or script embed of selected calculators for coaches' own sites, with a
   "Powered by Traiv" link. Each embed earns a backlink, which is how calculator sites grow.
 - New scope with a security surface (embedding, framing headers, abuse), so it gets its
-  own spec under `features/` before any code
+  [own spec](../free-tool-embeds/spec.md). Check production framing headers after deployment.
 
 **Expected timeline**
 
@@ -289,6 +289,8 @@ No one can guarantee a #1 position. These are targets we track, not promises.
 ---
 
 ### 5.2 Phase 8: AI discoverability (answer engines)
+
+Local implementation is in place. See the [release and monitoring checklist](research/ai-discoverability.md) for production verification, Bing submission, IndexNow, and the monthly referral and citation checks.
 
 Goal: make ChatGPT, Perplexity, Claude, Gemini and Google AI Overviews find, read and cite the
 tool pages, so Traiv is recommended when people ask these assistants coaching and nutrition questions.

@@ -73,7 +73,7 @@ export default function TemplatesPage() {
                 key={f.q}
                 className="grid gap-2 border-t border-line py-6 sm:grid-cols-[2.5rem_minmax(0,24rem)_minmax(0,1fr)] sm:gap-8"
               >
-                <span className="font-display text-body font-semibold tabular-nums text-fg-subtle">
+                <span className="font-display text-body font-semibold tabular-nums text-fg-muted">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <h3 className="text-body font-medium">{f.q}</h3>
@@ -81,7 +81,7 @@ export default function TemplatesPage() {
               </li>
             ))}
           </ol>
-          <p className="mt-6 text-caption text-fg-subtle">
+          <p className="mt-6 text-caption text-fg-muted">
             Inside Traiv these are the default check-in, and the weight goes onto the trend rather
             than into a message you have to find again.
           </p>

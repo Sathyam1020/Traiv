@@ -3,6 +3,8 @@
 export const SITE = {
   name: "Traiv",
   tagline: "Coaching app for trainers and gyms",
+  organizationDescription:
+    "Traiv is a coaching platform for personal trainers and gyms. Coaches build workout and nutrition plans, review client check-ins, and manage payments in one place.",
   description:
     "Workout plans, diet plans, check-ins and client payments for personal trainers and gyms. Start your 14-day free trial.",
   /** Stable production identity; preview deployments must never become canonicals. */

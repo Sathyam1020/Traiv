@@ -1,5 +1,6 @@
 "use client";
 
+import { aiReferral } from "@/lib/ai-referral";
 import { API_BASE } from "@/lib/api";
 
 /**
@@ -31,6 +32,7 @@ type Payload = {
 
 const MAX_BATCH = 20;
 let queue: Payload[] = [];
+let trackedLanding = false;
 let timer: ReturnType<typeof setTimeout> | undefined;
 
 /** Also used by `components/analytics.tsx` to carry the visit's campaign onto the signup link. */
@@ -99,11 +101,15 @@ export function track(name: EventName, props?: Record<string, string | number | 
 
 export function trackPageview() {
   if (typeof window === "undefined") return;
+  // The document referrer persists across client-side navigation. Attribute the landing only.
+  const aiSource = trackedLanding ? undefined : aiReferral(document.referrer);
+  trackedLanding = true;
   queue.push({
     name: "pageview",
     path: window.location.pathname,
     referrer: document.referrer || undefined,
     ...campaign(),
+    ...(aiSource ? { props: { aiSource } } : {}),
   });
   // Pageviews go immediately. Holding one for a second loses every visitor who bounces
   // inside that second, and those are exactly the ones worth knowing about.

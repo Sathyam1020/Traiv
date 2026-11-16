@@ -9,6 +9,7 @@ import { Nav } from "@/components/nav";
 import { StructuredData } from "@/components/structured-data";
 import { SITE } from "@/content/site";
 import { isPreview } from "@/lib/seo";
+import { MarketingShell } from "./marketing-shell";
 
 const font = DM_Sans({
   subsets: ["latin"],
@@ -48,19 +49,26 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en-IN" className={`${font.variable} traiv-marketing`}>
       <body className="bg-canvas">
-        <a href="#main-content" className="sr-only focus:not-sr-only">
-          Skip to content
-        </a>
-        <Nav />
-        {/* The capsule header floats over the page, so content starts below it. */}
-        <main id="main-content" tabIndex={-1} className="pt-20 sm:pt-24">
+        <MarketingShell
+          before={
+            <>
+              <a href="#main-content" className="sr-only focus:not-sr-only">
+                Skip to content
+              </a>
+              <Nav />
+            </>
+          }
+          after={
+            <>
+              <Footer />
+              <Toaster theme="light" />
+              <StructuredData />
+              <Analytics />
+            </>
+          }
+        >
           {children}
-        </main>
-        <Footer />
-        <Toaster theme="light" />
-        <StructuredData />
-        {/* Our own, cookieless. See src/lib/analytics.ts for why there is no banner. */}
-        <Analytics />
+        </MarketingShell>
       </body>
     </html>
   );

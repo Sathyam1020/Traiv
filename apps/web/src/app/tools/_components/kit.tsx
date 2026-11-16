@@ -53,7 +53,7 @@ export function ToolForm({
       onSubmit={(e: FormEvent) => {
         e.preventDefault();
         onSubmit?.();
-        trackCalculateSettled(tool.slug, tool.group, tool.kind, 0);
+        if (!tool.embedded) trackCalculateSettled(tool.slug, tool.group, tool.kind, 0);
       }}
       className="flex min-w-0 flex-col gap-5 rounded-surface border border-line bg-surface p-5 sm:p-7"
     >
@@ -101,7 +101,7 @@ export function Headline({
 }) {
   return (
     <div>
-      <p className="text-caption font-medium text-fg-subtle">{label}</p>
+      <p className="text-caption font-medium text-fg-muted">{label}</p>
       <p className="mt-2 font-display text-display font-medium tabular-nums">
         {value} {unit ? <span className="text-lead text-fg-muted">{unit}</span> : null}
       </p>

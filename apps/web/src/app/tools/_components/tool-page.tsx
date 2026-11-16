@@ -6,6 +6,7 @@ import { SITE, TOOL_AUTHOR } from "@/content/site";
 import { PITCHES } from "@/content/tools/pitches";
 import { GROUP_LABEL, isLinkable, LIVE_TOOLS, relatedFor } from "@/content/tools/registry";
 import type { LiveTool } from "@/content/tools/types";
+import { RpeEmbedCode } from "./embed-code";
 import { DemoLink, FeatureLink, RelatedLink, ToolTrialLink } from "./links";
 import { PromptBlock } from "./prompt-block";
 import { ToolProvider } from "./tool-context";
@@ -122,6 +123,7 @@ export function ToolPage({
       <div className="py-16 sm:py-24">
         <Container width="wide">
           <Widget />
+          {tool.slug === "rpe-calculator" && <RpeEmbedCode />}
           <div className="mt-4 rounded-surface border border-line bg-surface p-5 sm:p-6">
             {next.length > 0 ? (
               <>
@@ -160,7 +162,7 @@ export function ToolPage({
       <Section tone="sunken">
         <Container width="wide">
           <section id="short-answer" aria-labelledby="short-answer-heading">
-            <p className="text-caption font-medium text-fg-subtle">Short answer</p>
+            <p className="text-caption font-medium text-fg-muted">Short answer</p>
             <h2
               id="short-answer-heading"
               className="mt-2 font-display text-heading font-medium text-balance"

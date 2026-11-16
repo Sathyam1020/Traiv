@@ -18,7 +18,7 @@ const config: NextConfig = {
   /**
    * Baseline hardening for a static marketing site. No CSP yet: Next's inline bootstrap
    * scripts and the JSON-LD blocks need nonces or hashes, which is its own piece of work.
-   * Nothing here embeds the site in a frame or asks for camera, microphone or location.
+   * Only the dedicated RPE embed may be framed.
    */
   async headers() {
     return [
@@ -27,9 +27,12 @@ const config: NextConfig = {
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "X-Frame-Options", value: "DENY" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
         ],
+      },
+      {
+        source: "/:path((?!embeds/rpe-calculator$).*)",
+        headers: [{ key: "X-Frame-Options", value: "DENY" }],
       },
     ];
   },
@@ -42,6 +45,10 @@ const config: NextConfig = {
    * are now ordinary posts in the database; these keep every link that ever pointed at
    * the old section working, permanently, which is the only honest way to delete a URL.
    */
+  async rewrites() {
+    return [{ source: "/tools/:slug.md", destination: "/tool-markdown/:slug" }];
+  },
+
   async redirects() {
     return [
       { source: "/features/clients", destination: "/features/check-ins", permanent: true },

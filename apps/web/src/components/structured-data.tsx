@@ -19,7 +19,7 @@ export function StructuredData() {
         name: SITE.name,
         url: SITE.url,
         logo: `${SITE.url}/logo.svg`,
-        description: SITE.description,
+        description: SITE.organizationDescription,
         areaServed: "Worldwide",
       },
       {

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ClosingCta } from "@/components/marketing-sections";
 import { ProductScene } from "@/components/product-scenes";
+import { SITE } from "@/content/site";
 import { pageMetadata } from "@/lib/seo";
 export const metadata: Metadata = pageMetadata({
   title: "About Traiv",
@@ -18,10 +19,7 @@ export default function AboutPage() {
           <br />
           the work of coaching.
         </h1>
-        <p className="page-lede">
-          A plan in one file. Updates in another conversation. Progress somewhere else. Traiv brings
-          the coaching back together.
-        </p>
+        <p className="page-lede">{SITE.organizationDescription}</p>
       </section>
       <section className="marketing-section">
         <div className="traiv-content-wrap workflow-row">

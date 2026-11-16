@@ -4,7 +4,7 @@ import { createContext, type ReactNode, useContext } from "react";
 import type { ToolGroup, ToolKind } from "@/content/tools/types";
 
 /** Which tool a widget is running inside, so widgets never hard-code their own slug. */
-type ToolIdentity = { slug: string; group: ToolGroup; kind: ToolKind };
+type ToolIdentity = { slug: string; group: ToolGroup; kind: ToolKind; embedded?: boolean };
 
 const Ctx = createContext<ToolIdentity | null>(null);
 

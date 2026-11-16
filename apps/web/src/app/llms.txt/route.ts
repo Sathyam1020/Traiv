@@ -38,8 +38,9 @@ export function GET() {
     "## Free tools",
     "",
     link("All free tools", "/tools", "calculators for coaches and their clients, no signup"),
+    link("Free tool answers and FAQs", "/llms-full.txt"),
     ...LIVE_TOOLS.map((t) =>
-      link(t.name, `/tools/${t.slug}`, `${GROUP_LABEL[t.group]}. ${t.copy.description}`),
+      link(t.name, `/tools/${t.slug}.md`, `${GROUP_LABEL[t.group]}. ${t.copy.description}`),
     ),
     ...STANDING_LEGACY.map((t) => link(t.name, `/tools/${t.slug}`, t.blurb)),
     "",
@@ -47,7 +48,9 @@ export function GET() {
     "",
     link("For gyms", "/gyms"),
     link("About", "/about"),
-    `- [Book a demo](${SITE.demoUrl}): 15-minute call, booked through Cal.com`,
+    ...(SITE.demoUrl
+      ? [`- [Book a demo](${SITE.demoUrl}): 15-minute call, booked through Cal.com`]
+      : []),
     "",
   ].join("\n");
 
