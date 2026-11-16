@@ -688,6 +688,13 @@ export function CalorieCyclingWidget() {
               <Note>
                 The weekly total is unchanged; only its distribution across the days moves.
               </Note>
+              {r.floored ? (
+                <Note>
+                  With this many training days the full boost would leave rest days too low, so rest
+                  days are held at {fmt(r.rest.calories)} kcal and the training-day boost is
+                  smaller.
+                </Note>
+              ) : null}
               {r.rest.calories < 1200 ? (
                 <Warning>
                   Rest days fall below 1,200 kcal. Choose a milder boost or fewer training days.
@@ -793,7 +800,7 @@ export function CarbCyclingWidget() {
                 Protein (2.0 g/kg) and fat (0.8 g/kg) stay the same every day; only carbohydrate
                 moves.
               </Note>
-              {r.avgCarbs < 50 ? (
+              {r.tooLow ? (
                 <Warning>
                   At this calorie level there is little room for carbohydrate after protein and fat,
                   so cycling makes little difference.

@@ -20,8 +20,8 @@ export const copy: ToolCopy = {
   sources: [
     {
       label:
-        "Wing RR et al. Benefits of modest weight loss in improving cardiovascular risk factors (Diabetes Care, 2011)",
-      href: "https://diabetesjournals.org/care/article/34/7/1481/38558",
+        "Wing RR et al. Benefits of modest weight loss in improving cardiovascular risk factors in adults with type 2 diabetes (Diabetes Care, 2011)",
+      href: "https://pmc.ncbi.nlm.nih.gov/articles/PMC3120182/",
     },
     {
       label: "CDC: Steps for losing weight",

@@ -938,14 +938,52 @@ My PT Hub, Paperbell, FitSW, Trainerize, Exercise.com and Virtuagym.
 Verified: build, all 3 pages above reference length with matching FAQ counts and flags, 360px clean, keyboard
 0/0, browser scenarios (`handover/scripts/phase5d-scenarios.mjs`). Next: Phase 6 (verification and SEO pass).
 
-### Free tools Phase 6 (verification) — 16 November 2026, in progress
+### Free tools Phase 6 (verification) — 16 November 2026, local verification complete
 
 Crawl audit `features/free-tools/handover/scripts/phase6-audit.py`: all 110 tool pages in the sitemap,
 one h1, titles ≤ 60, descriptions 50–160 (14 shortened), canonical, JSON-LD parses with
 BreadcrumbList/FAQPage/WebApplication, ≥ 12 internal tool links (new "More … tools" list on every page),
 no broken internal links, tool trial links carry UTM, demo button matches spec, OG image responds: 0 problems.
-360px audit clean. External links: 125 checked; PubMed 203 and a few publisher 403s are bot blocks
-(CDC confirmed, DOI resolves); NICE NG246 and Diabetes Care were not re-confirmed. Lighthouse run was
-blocked by the sandbox. Attribution gap: signup stores utm_source/medium/campaign but not utm_content,
-so ad-campaign visits lose the tool (needs a schema change; founder decision).
-Left: Lighthouse, NICE/Diabetes Care link check, Search Console and Bing submission (founder accounts).
+360px audit clean. External links: 125 checked. Confirmed NICE NG246 and replaced the
+Diabetes Care link with the verified full text at PubMed Central. Fixed text contrast in the
+shared calculator layout and on Templates. Mobile Lighthouse scored 100 performance, 100
+accessibility, 96 best practices, and 100 SEO on Macro Calculator, Weight Loss Percentage
+Calculator, and Templates. A refused request to the local analytics endpoint explains the
+best practices deduction. The webpack production build and final 110-page crawl passed.
+Turbopack could not bind its worker port in this environment.
+
+The live sitemap at https://www.traiv.fit/sitemap.xml lists four tool URLs. Submit it in Google Search
+Console and Bing Webmaster Tools once the deployment exposes all 110. Signup still persists
+utm_source/medium/campaign only. Persisting utm_content requires a separately approved schema change.
+
+### Free tools Phase 7a (keyword research) — started
+
+`features/free-tools/research/keywords.md` maps all 109 tool pages to preliminary primary queries
+and records initial search spot checks for coaching business, RPE, and TDEE. Full per-query organic
+results, volume, difficulty, and FAQ evidence are pending. No keyword data connector was available.
+
+Phase 7a priority sampling now records six live query result sets and page targeting decisions.
+See `features/free-tools/research/priority-search-sample.md`. Market-specific rankings,
+People Also Ask, volume and difficulty remain pending.
+
+Phase 7b launch checklist, editorial prospects, and tailored outreach drafts are in
+`features/free-tools/research/distribution.md`. Sitemap submission and distribution execution
+await the public rollout. Phase 7c ships a copyable RPE iframe snippet on the canonical tool
+page. The embed was tested on a separate origin at 360px and 1280px, including keyboard
+entry/exit, live calculation parity, noindex, sitemap exclusion, and frame denial on regular
+routes. The webpack build and 110-page crawl passed. Production headers still need verification.
+
+### Free tools Phase 8 (AI discoverability) — local implementation
+
+`/llms.txt` links to the answer index and tool Markdown. `/llms-full.txt` carries short answers
+and FAQs drawn directly from page copy. All 110 tool URLs have static Markdown counterparts
+with canonical links and noindex. The Phase 8 crawl matched 722 FAQ answers and verified
+real 404s. The crawler access policy stays as approved in ADR 0036.
+
+The About page and Organization schema share the Traiv description. AI landing referrals
+from ChatGPT, Perplexity, Gemini, Copilot, and Claude are tagged on existing analytics
+pageview events. The IndexNow submission script validates paths against the live sitemap
+and checks the published key before posting. The local key endpoint and mocked submission
+passed. `features/free-tools/research/ai-discoverability.md` contains the release and monthly
+monitoring steps. Bing verification, real submission, live crawler checks, and baseline
+citation observations require the deployed library. Official sameAs profiles are unconfirmed.

@@ -160,7 +160,7 @@ D["weight-loss-percentage-calculator"] = base(
     pitch_h="See every client's progress in one place",
     pitch="In Traiv, clients log their weight in weekly check-ins and you see the trend beside their diet and training plan, so you can spot a plateau early and adjust.",
     sources=[
-        ("Wing RR et al. Benefits of modest weight loss in improving cardiovascular risk factors (Diabetes Care, 2011)", "https://diabetesjournals.org/care/article/34/7/1481/38558"),
+        ("Wing RR et al. Benefits of modest weight loss in improving cardiovascular risk factors in adults with type 2 diabetes (Diabetes Care, 2011)", "https://pmc.ncbi.nlm.nih.gov/articles/PMC3120182/"),
         ("CDC: Steps for losing weight", "https://www.cdc.gov/healthy-weight-growth/losing-weight/index.html"),
         ("NICE guideline NG246: Overweight and obesity management", "https://www.nice.org.uk/guidance/ng246"),
     ],

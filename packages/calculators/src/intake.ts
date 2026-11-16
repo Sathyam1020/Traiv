@@ -141,10 +141,21 @@ export type CycleSplit = keyof typeof CYCLE_SPLIT;
  * Protein is held constant at 30% of the average; training days run lower fat (20%),
  * rest days higher (35%).
  */
+/** A rest day never drops below 70% of the average or 1,200 kcal, whichever is higher. */
+export const REST_DAY_FLOOR = (average: number) => Math.max(1200, average * 0.7);
+
 export function calorieCycling(average: number, trainingDays: number, split: CycleSplit) {
-  const train = average * (1 + CYCLE_SPLIT[split]);
   const restDays = 7 - trainingDays;
-  const rest = restDays > 0 ? (average * 7 - train * trainingDays) / restDays : train;
+  let train = average * (1 + CYCLE_SPLIT[split]);
+  let rest = restDays > 0 ? (average * 7 - train * trainingDays) / restDays : train;
+  // With many training days the remainder left for rest days can fall below a safe level,
+  // or even below zero. Hold rest days at the floor and shrink the training-day lift instead.
+  const floor = REST_DAY_FLOOR(average);
+  const floored = restDays > 0 && rest < floor && floor <= average;
+  if (floored) {
+    rest = floor;
+    train = (average * 7 - rest * restDays) / trainingDays;
+  }
   const protein = (average * 0.3) / 4;
   return {
     train: day(train, protein, 0.2),
@@ -153,6 +164,7 @@ export function calorieCycling(average: number, trainingDays: number, split: Cyc
     restDays,
     weekCycled: train * trainingDays + rest * restDays,
     weekFlat: average * 7,
+    floored,
   };
 }
 
@@ -171,7 +183,10 @@ export function carbCycling(
 ) {
   const protein = 2.0 * weightKg;
   const fat = 0.8 * weightKg;
-  const avgCarbs = Math.max(0, (averageCalories - protein * 4 - fat * 9) / 4);
+  const rawCarbs = (averageCalories - protein * 4 - fat * 9) / 4;
+  const avgCarbs = Math.max(0, rawCarbs);
+  /** Below about 50 g a day on average there's too little carbohydrate to cycle meaningfully. */
+  const tooLow = rawCarbs < 50;
   const lowDays = 7 - trainingDays;
   const low = avgCarbs * (1 - CARB_SWING[swing]);
   const high = trainingDays > 0 ? (avgCarbs * 7 - low * lowDays) / trainingDays : avgCarbs;
@@ -184,6 +199,7 @@ export function carbCycling(
     lowDays,
     weekCycled: kcal(high) * trainingDays + kcal(low) * lowDays,
     weekFlat: averageCalories * 7,
+    tooLow,
   };
 }
 
