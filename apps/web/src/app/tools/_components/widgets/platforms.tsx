@@ -121,13 +121,13 @@ export function PlatformCostWidget() {
         <ResultPanel label="Platform prices">
           {valid ? (
             <>
-              <p className="text-caption text-fg-subtle">
+              <p className="text-caption text-fg-muted">
                 Scroll the table sideways for plan details and sources.
               </p>
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[40rem] text-body-sm">
                   <thead>
-                    <tr className="text-left text-caption text-fg-subtle">
+                    <tr className="text-left text-caption text-fg-muted">
                       {[
                         "Platform",
                         "Base per month",
@@ -243,7 +243,7 @@ export function ToolStackWidget() {
             <legend className="mb-1 text-body-sm font-medium">
               What do you pay for separately?
             </legend>
-            <p className="text-caption text-fg-subtle">
+            <p className="text-caption text-fg-muted">
               Untick any tool you don't use and edit prices to match your invoices.
             </p>
             {STACK_TOOLS.map((t) => (
@@ -258,7 +258,7 @@ export function ToolStackWidget() {
                   />
                   <label htmlFor={`st-${t.key}`} className="cursor-pointer pt-2.5">
                     {t.label}
-                    <span className="block text-caption text-fg-subtle">{t.note}</span>
+                    <span className="block text-caption text-fg-muted">{t.note}</span>
                   </label>
                 </div>
                 <NumberField

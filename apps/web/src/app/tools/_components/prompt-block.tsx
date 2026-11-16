@@ -10,7 +10,7 @@ export function PromptBlock({ prompt }: { prompt: NonNullable<ToolCopy["prompt"]
   const { slug } = useTool();
   return (
     <div className="rounded-surface border border-line bg-surface p-6 sm:p-8">
-      <p className="text-caption font-medium text-fg-subtle">Use this result with ChatGPT</p>
+      <p className="text-caption font-medium text-fg-muted">Use this result with ChatGPT</p>
       <h3 className="mt-2 font-display text-subheading font-semibold">{prompt.heading}</h3>
       <dl className="mt-5 grid gap-4 text-body-sm sm:grid-cols-2">
         <div>

@@ -247,7 +247,7 @@ export function PhasesWidget() {
               <div className="table-scroll overflow-x-auto">
                 <table className="w-full text-body-sm tabular-nums">
                   <thead>
-                    <tr className="text-left text-caption text-fg-subtle">
+                    <tr className="text-left text-caption text-fg-muted">
                       <th scope="col" className="py-2 pr-3 font-medium">
                         Phase
                       </th>

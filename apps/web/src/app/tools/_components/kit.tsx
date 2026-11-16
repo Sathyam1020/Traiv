@@ -121,7 +121,7 @@ export function Stats({ items }: { items: { label: string; value: string; note?:
     <ul className={`grid gap-3 ${cols}`}>
       {items.map((c) => (
         <li key={c.label} className="min-w-0 rounded-control border border-line bg-surface p-4">
-          <p className="text-caption font-medium text-fg-subtle">{c.label}</p>
+          <p className="text-caption font-medium text-fg-muted">{c.label}</p>
           <p className="mt-1 font-display text-lead font-medium break-words tabular-nums">
             {c.value}
           </p>

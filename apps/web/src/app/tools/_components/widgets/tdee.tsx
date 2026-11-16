@@ -200,7 +200,7 @@ function Values({ v }: { v: EnergyResult }) {
   return (
     <>
       <div>
-        <p className="text-caption font-medium text-fg-subtle">Your maintenance calories (TDEE)</p>
+        <p className="text-caption font-medium text-fg-muted">Your maintenance calories (TDEE)</p>
         <p className="mt-2 font-display text-display font-medium tabular-nums">
           {kcal(v.tdee)} <span className="text-lead text-fg-muted">kcal/day</span>
         </p>
@@ -215,7 +215,7 @@ function Values({ v }: { v: EnergyResult }) {
           { label: "Bulk", value: v.bulk, note: "300 above maintenance" },
         ].map((c) => (
           <li key={c.label} className="rounded-control border border-line bg-surface p-4">
-            <p className="text-caption font-medium text-fg-subtle">{c.label}</p>
+            <p className="text-caption font-medium text-fg-muted">{c.label}</p>
             <p className="mt-1 font-display text-lead font-medium tabular-nums">{kcal(c.value)}</p>
             <p className="text-caption text-fg-muted">{c.note}</p>
           </li>

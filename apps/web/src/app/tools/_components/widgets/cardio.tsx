@@ -850,7 +850,7 @@ export function RacePredictorWidget() {
         <ResultPanel>
           {r ? (
             <>
-              <p className="text-caption font-medium text-fg-subtle">Equivalent times {r.label}</p>
+              <p className="text-caption font-medium text-fg-muted">Equivalent times {r.label}</p>
               <Table head={["Distance", "", "Time", "Pace /km", "Pace /mi"]} rows={r.rows} />
               <Note>
                 Riegel's formula, T2 = T1 × (D2 ÷ D1)^1.06. The row marked "Your time" is the race
@@ -1529,7 +1529,7 @@ export function WorkoutTimerWidget() {
           aria-label="Workout timer"
           className="flex min-w-0 flex-col items-center justify-center gap-5 rounded-surface border border-line bg-sunken p-5 text-center sm:p-7"
         >
-          <p className="text-caption font-medium text-fg-subtle">{roundLabel}</p>
+          <p className="text-caption font-medium text-fg-muted">{roundLabel}</p>
           <p aria-live="polite" className="text-lead font-medium">
             {phase}
           </p>

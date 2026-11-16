@@ -24,7 +24,7 @@ export default function TemplatesPage() {
       />
       <header className="border-b border-line">
         <Container width="wide" className="pt-6 pb-10 sm:pt-10 sm:pb-14">
-          <p className="text-caption font-medium text-fg-subtle">Free tool · Coaching business</p>
+          <p className="text-caption font-medium text-fg-muted">Free tool · Coaching business</p>
           <h1 className="mt-3 max-w-[44rem] font-display text-display font-medium text-balance">
             Messages you can send tonight
           </h1>
@@ -47,7 +47,7 @@ export default function TemplatesPage() {
                 <header className="flex flex-wrap items-start justify-between gap-3 border-b border-line px-5 py-4 sm:px-6">
                   <div className="flex min-w-0 flex-col gap-0.5">
                     <h3 className="text-body font-semibold">{t.title}</h3>
-                    <p className="text-caption text-fg-subtle">{t.when}</p>
+                    <p className="text-caption text-fg-muted">{t.when}</p>
                   </div>
                   <CopyButton text={t.body} label={t.title} />
                 </header>
@@ -99,7 +99,7 @@ export default function TemplatesPage() {
                 key={f.q}
                 className="grid gap-2 border-t border-line py-6 sm:grid-cols-[2.5rem_minmax(0,24rem)_minmax(0,1fr)] sm:gap-8"
               >
-                <span className="font-display text-body font-semibold tabular-nums text-fg-subtle">
+                <span className="font-display text-body font-semibold tabular-nums text-fg-muted">
                   {String(i + 1).padStart(2, "0")}
                 </span>
                 <h3 className="text-body font-medium">{f.q}</h3>
@@ -134,7 +134,7 @@ export default function TemplatesPage() {
               className="inline-flex min-h-11 items-center gap-1.5 text-body-sm font-medium underline underline-offset-4"
             />
           </div>
-          <small className="text-caption text-fg-subtle">14 days free. Cancel any time.</small>
+          <small className="text-caption text-fg-muted">14 days free. Cancel any time.</small>
         </Container>
       </section>{" "}
     </>

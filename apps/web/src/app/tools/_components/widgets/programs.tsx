@@ -63,7 +63,7 @@ export function PlanBuilderWidget() {
           <ol className="flex flex-col gap-3">
             {r.plan.map((d) => (
               <li key={d.day} className="rounded-control border border-line bg-surface p-4">
-                <p className="text-caption font-medium text-fg-subtle">
+                <p className="text-caption font-medium text-fg-muted">
                   Day {d.day} · {d.title}
                 </p>
                 <ul className="mt-2 flex flex-col gap-1 text-body-sm tabular-nums">
@@ -173,7 +173,7 @@ export function InjurySwapWidget() {
                 ))}
               </ol>
               <div>
-                <p className="text-caption font-medium text-fg-subtle">
+                <p className="text-caption font-medium text-fg-muted">
                   Before trying an alternative
                 </p>
                 <ul className="mt-2 flex flex-col gap-1 text-body-sm">

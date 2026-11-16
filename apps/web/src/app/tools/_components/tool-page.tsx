@@ -62,7 +62,7 @@ export function ToolPage({
 
       <header className="border-b border-line">
         <Container width="wide" className="pt-6 pb-10 sm:pt-10 sm:pb-14">
-          <p className="text-caption font-medium text-fg-subtle">{copy.eyebrow}</p>
+          <p className="text-caption font-medium text-fg-muted">{copy.eyebrow}</p>
           <h1 className="mt-3 max-w-[44rem] font-display text-display font-medium text-balance">
             {copy.h1}
           </h1>
@@ -70,7 +70,7 @@ export function ToolPage({
             {copy.intro}
           </div>
           {TOOL_AUTHOR || copy.method || (sections.sources && copy.sources) ? (
-            <div className="mt-6 flex max-w-[42rem] flex-col gap-3 text-caption text-fg-subtle">
+            <div className="mt-6 flex max-w-[42rem] flex-col gap-3 text-caption text-fg-muted">
               {TOOL_AUTHOR || copy.method ? (
                 <p>
                   {TOOL_AUTHOR ? (
@@ -127,7 +127,7 @@ export function ToolPage({
           <div className="mt-4 rounded-surface border border-line bg-surface p-5 sm:p-6">
             {next.length > 0 ? (
               <>
-                <p className="text-caption font-medium text-fg-subtle">Next</p>
+                <p className="text-caption font-medium text-fg-muted">Next</p>
                 <ul className="mt-3 mb-4 flex flex-col gap-2">
                   {next.map((n) => (
                     <li key={n.href}>
@@ -290,7 +290,7 @@ export function ToolPage({
                     to={r.slug}
                     className="flex h-full flex-col gap-2 p-6 transition-colors hover:bg-hover"
                   >
-                    <span className="text-caption text-fg-subtle">{GROUP_LABEL[r.group]}</span>
+                    <span className="text-caption text-fg-muted">{GROUP_LABEL[r.group]}</span>
                     <span className="font-display text-subheading font-semibold">{r.name}</span>
                     <span className="mt-auto inline-flex items-center gap-1.5 pt-2 text-body-sm font-medium">
                       {r.kind === "calculator" ? "Open calculator" : "Open tool"}{" "}
@@ -348,7 +348,7 @@ export function ToolPage({
               />
             ) : null}
           </div>
-          <small className="text-caption text-fg-subtle">14 days free. Cancel any time.</small>
+          <small className="text-caption text-fg-muted">14 days free. Cancel any time.</small>
         </Container>
       </section>
     </ToolProvider>

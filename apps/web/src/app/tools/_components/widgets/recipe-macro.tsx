@@ -107,12 +107,12 @@ export function RecipeMacroWidget() {
           <h2 id={headingId} className="font-display text-subheading font-semibold">
             Build your recipe
           </h2>
-          <p className="max-w-[22rem] text-caption text-fg-subtle">
+          <p className="max-w-[22rem] text-caption text-fg-muted">
             Type protein, carbs and fat per 100 g as printed on each label.
           </p>
         </div>
 
-        <div className="mt-5 hidden grid-cols-[minmax(0,2fr)_repeat(4,minmax(0,1fr))_2.75rem] gap-2 text-caption font-medium text-fg-subtle md:grid">
+        <div className="mt-5 hidden grid-cols-[minmax(0,2fr)_repeat(4,minmax(0,1fr))_2.75rem] gap-2 text-caption font-medium text-fg-muted md:grid">
           <span>Ingredient</span>
           <span>Grams</span>
           <span>Protein /100 g</span>
@@ -148,7 +148,7 @@ export function RecipeMacroWidget() {
                 <div key={field} className="flex flex-col gap-1">
                   <label
                     htmlFor={`${r.key}-${field}`}
-                    className="text-caption text-fg-subtle md:sr-only"
+                    className="text-caption text-fg-muted md:sr-only"
                   >
                     <span className="sr-only">{`Ingredient ${i + 1}: `}</span>
                     {label}
@@ -183,7 +183,7 @@ export function RecipeMacroWidget() {
                     target?.focus();
                   });
                 }}
-                className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-control text-fg-subtle transition-colors hover:bg-hover hover:text-fg"
+                className="inline-flex min-h-11 cursor-pointer items-center justify-center rounded-control text-fg-muted transition-colors hover:bg-hover hover:text-fg"
               >
                 <X aria-hidden="true" className="size-4" />
               </button>
@@ -223,7 +223,7 @@ export function RecipeMacroWidget() {
         className="rounded-surface border border-line bg-sunken p-5 sm:p-7"
       >
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <p className="text-caption font-medium text-fg-subtle">Recipe totals</p>
+          <p className="text-caption font-medium text-fg-muted">Recipe totals</p>
           <Segmented
             label="Show totals for"
             value={view}
@@ -284,7 +284,7 @@ export function RecipeMacroWidget() {
               {round(whole.kcal)} kcal, or roughly {round(perServing.kcal)} kcal for each of{" "}
               {result.servings} serving{result.servings === 1 ? "" : "s"}.
             </p>
-            <p className="mt-2 text-caption text-fg-subtle">
+            <p className="mt-2 text-caption text-fg-muted">
               Calories are counted at 4 kcal per gram of protein and carbohydrate and 9 per gram of
               fat. The percentages show where the calories come from.
             </p>

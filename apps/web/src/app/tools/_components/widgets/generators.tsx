@@ -149,7 +149,7 @@ function Output({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-body-sm font-medium">{title}</p>
-          {meta ? <p className="text-caption text-fg-subtle">{meta}</p> : null}
+          {meta ? <p className="text-caption text-fg-muted">{meta}</p> : null}
         </div>
         <CopyButton text={text} label={title} />
       </div>
@@ -178,7 +178,7 @@ export function WritingCheckerWidget() {
     <ToolLayout
       form={
         <ToolForm label="AI writing checker">
-          <p className="text-caption text-fg-subtle">
+          <p className="text-caption text-fg-muted">
             {r.words} words · {r.sentences} sentences
           </p>
           <Field
@@ -206,7 +206,7 @@ export function WritingCheckerWidget() {
           {text.trim() ? (
             <>
               <div>
-                <p className="text-caption font-medium text-fg-subtle">
+                <p className="text-caption font-medium text-fg-muted">
                   Reads like generic AI copy
                 </p>
                 <p className="mt-1 font-display text-display font-medium tabular-nums">
@@ -240,7 +240,7 @@ export function WritingCheckerWidget() {
                     >
                       <p className="font-medium">
                         {h.tell.name}{" "}
-                        <span className="text-caption text-fg-subtle">
+                        <span className="text-caption text-fg-muted">
                           · {h.tell.points(h.spans.length)} pt
                         </span>
                       </p>
@@ -618,7 +618,7 @@ export function CaptionGeneratorWidget() {
           ) : null}
           <div className="flex flex-wrap items-center gap-2">
             <CopyButton text={captionPrompt(f)} label="ChatGPT prompt" />
-            <span className="text-caption text-fg-subtle">
+            <span className="text-caption text-fg-muted">
               Copy a full prompt with your fields, if you'd rather a model drafts them.
             </span>
           </div>
@@ -720,7 +720,7 @@ export function HookGeneratorWidget() {
           />
           <div className="flex flex-wrap items-center gap-2">
             <CopyButton text={hookPrompt(f)} label="100-hook prompt" />
-            <span className="text-caption text-fg-subtle">
+            <span className="text-caption text-fg-muted">
               A ChatGPT prompt for 100 hooks with your fields filled in.
             </span>
           </div>
@@ -736,7 +736,7 @@ export function HookGeneratorWidget() {
               <p className="text-body-sm font-medium">
                 {i + 1}. {g.name}{" "}
                 {g.fit ? (
-                  <span className="text-caption text-fg-subtle">
+                  <span className="text-caption text-fg-muted">
                     · suits {format.toLowerCase()}
                   </span>
                 ) : null}
@@ -869,7 +869,7 @@ export function BusinessNameWidget() {
       }
       result={
         <ResultPanel label="Name ideas">
-          <p className="text-caption font-medium text-fg-subtle">{list.length} name ideas</p>
+          <p className="text-caption font-medium text-fg-muted">{list.length} name ideas</p>
           <ul className="flex flex-col gap-2">
             {list.map((n) => (
               <li
@@ -878,7 +878,7 @@ export function BusinessNameWidget() {
               >
                 <div className="min-w-0">
                   <p className="text-body-sm font-medium">{n.name}</p>
-                  <p className="text-caption text-fg-subtle">{n.chars} characters</p>
+                  <p className="text-caption text-fg-muted">{n.chars} characters</p>
                 </div>
                 <div className="flex gap-2">
                   <CopyButton text={n.name} label="Name" />
@@ -953,7 +953,7 @@ export function ReelScriptWidget() {
           ) : null}
           <div className="flex flex-wrap items-center gap-2">
             <CopyButton text={reelPrompt(f)} label="ChatGPT prompt" />
-            <span className="text-caption text-fg-subtle">
+            <span className="text-caption text-fg-muted">
               A full prompt for six scripts with your fields filled in.
             </span>
           </div>

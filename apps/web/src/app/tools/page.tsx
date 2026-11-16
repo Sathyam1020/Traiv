@@ -66,7 +66,7 @@ export default function ToolsPage() {
 
       <header className="border-b border-line">
         <Container width="wide" className="pt-6 pb-12 sm:pt-10 sm:pb-16">
-          <p className="text-caption font-medium text-fg-subtle">Free tools · No signup</p>
+          <p className="text-caption font-medium text-fg-muted">Free tools · No signup</p>
           <h1 className="mt-3 max-w-[44rem] font-display text-display font-medium text-balance">
             Free calculators for coaches
           </h1>
@@ -144,7 +144,7 @@ export default function ToolsPage() {
               className="inline-flex min-h-11 items-center gap-1.5 text-body-sm font-medium underline underline-offset-4"
             />
           </div>
-          <small className="text-caption text-fg-subtle">14 days free. Cancel any time.</small>
+          <small className="text-caption text-fg-muted">14 days free. Cancel any time.</small>
         </Container>
       </section>
     </>

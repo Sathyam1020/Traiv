@@ -105,7 +105,7 @@ function Message({ title, text }: { title: string; text: string }) {
   return (
     <div className="flex flex-col gap-2 rounded-control border border-line bg-surface p-4">
       <div className="flex items-center justify-between gap-3">
-        <p className="text-caption font-medium text-fg-subtle">{title}</p>
+        <p className="text-caption font-medium text-fg-muted">{title}</p>
         <CopyButton text={text} label={title} />
       </div>
       <p className="text-body-sm whitespace-pre-line">{text}</p>
@@ -124,7 +124,7 @@ function Read({
 }) {
   return (
     <div>
-      <p className="text-caption font-medium text-fg-subtle">{label}</p>
+      <p className="text-caption font-medium text-fg-muted">{label}</p>
       <p className="mt-1 font-display text-lead font-medium">{title}</p>
       {children ? (
         <div className="mt-2 flex flex-col gap-2 text-body-sm text-fg-muted">{children}</div>
@@ -280,11 +280,11 @@ export function CheckinReaderWidget() {
               </Read>
               <dl className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-control border border-line bg-surface p-4">
-                  <dt className="text-caption font-medium text-fg-subtle">The one lever</dt>
+                  <dt className="text-caption font-medium text-fg-muted">The one lever</dt>
                   <dd className="mt-1 text-body-sm">{c.lever}</dd>
                 </div>
                 <div className="rounded-control border border-line bg-surface p-4">
-                  <dt className="text-caption font-medium text-fg-subtle">Leave alone</dt>
+                  <dt className="text-caption font-medium text-fg-muted">Leave alone</dt>
                   <dd className="mt-1 text-body-sm">{c.leave}</dd>
                 </div>
               </dl>
@@ -504,7 +504,7 @@ export function BusinessHealthWidget() {
             <ol className="flex flex-col gap-3">
               {r.leaks.map((k, i) => (
                 <li key={k} className="rounded-control border border-line bg-surface p-4">
-                  <p className="text-caption font-medium text-fg-subtle">Leak {i + 1}</p>
+                  <p className="text-caption font-medium text-fg-muted">Leak {i + 1}</p>
                   <p className="mt-1 text-body-sm font-medium">{HEALTH_FIX[k].leak}</p>
                   <p className="mt-1 text-body-sm text-fg-muted">{HEALTH_FIX[k].fix}</p>
                 </li>

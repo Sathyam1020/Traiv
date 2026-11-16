@@ -580,7 +580,7 @@ function DayCards({
     <ul className="grid gap-3 sm:grid-cols-2">
       {[a, b].map((x) => (
         <li key={x.title} className="rounded-control border border-line bg-surface p-4">
-          <p className="text-caption font-medium text-fg-subtle">
+          <p className="text-caption font-medium text-fg-muted">
             {x.title} · {x.count} {x.count === 1 ? "day" : "days"}
           </p>
           <p className="mt-1 font-display text-lead font-medium tabular-nums">

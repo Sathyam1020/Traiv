@@ -56,7 +56,7 @@ export function Table({ head, rows }: { head: string[]; rows: (string | number)[
     <div className="overflow-x-auto">
       <table className="w-full text-body-sm tabular-nums">
         <thead>
-          <tr className="text-left text-caption text-fg-subtle">
+          <tr className="text-left text-caption text-fg-muted">
             {head.map((h) => (
               <th key={h} scope="col" className="py-2 pr-3 font-medium">
                 {h}
