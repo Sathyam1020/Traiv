@@ -3,8 +3,9 @@ import assert from "node:assert/strict";
 
 const base = process.env.WEB_ORIGIN ?? "http://localhost:3104";
 const origin = process.env.SEO_CANONICAL_ORIGIN ?? "https://www.traiv.fit";
-const get = (path) =>
+const get = (path, method = "GET") =>
   fetch(new URL(path, base), {
+    method,
     redirect: "manual",
     headers: { "User-Agent": "Googlebot" },
     signal: AbortSignal.timeout(15000),
@@ -22,8 +23,27 @@ const meta = (html, key) => {
     "content",
   );
 };
+// Delivery before content: Search Console calls anything other than a plain XML document at
+// this exact URL "Couldn't fetch" (a redirect, an HTML or challenge page, a failing HEAD).
+for (const method of ["GET", "HEAD"]) {
+  const r = await get("/sitemap.xml", method);
+  assert.equal(r.status, 200, `sitemap ${method}: expected 200, no redirect`);
+  assert.match(r.headers.get("content-type") ?? "", /^(application|text)\/xml\b/, "sitemap type");
+}
 const sitemap = await (await get("/sitemap.xml")).text();
+// Google's sitemap rules (developers.google.com/search/docs/crawling-indexing/sitemaps):
+// UTF-8, the sitemaps.org namespace, absolute URLs, at most 50,000 URLs and 50 MB.
+assert(sitemap.startsWith('<?xml version="1.0" encoding="UTF-8"?>'), "sitemap declaration/BOM");
+assert(
+  sitemap.includes('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"'),
+  "sitemap namespace",
+);
+assert(!/<html|<script/i.test(sitemap), "sitemap body is HTML, not XML");
+assert(Buffer.byteLength(sitemap) <= 50 * 1024 * 1024, "sitemap over 50 MB");
 const entries = [...sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => decode(m[1]));
+assert.equal((sitemap.match(/<url>/g) ?? []).length, entries.length, "<url> without one <loc>");
+assert(entries.length <= 50_000, "sitemap over 50,000 URLs");
+for (const url of entries) assert(url.length <= 2048, `sitemap URL too long: ${url}`);
 assert.equal(entries.length, new Set(entries).size, "Duplicate sitemap URLs");
 assert(entries.length > 10, "Missing sitemap routes");
 const queue = entries.map((url) => {
@@ -115,7 +135,10 @@ for (const entry of sitemap.matchAll(/<lastmod>([^<]+)<\/lastmod>/g)) {
 }
 assert(!sitemap.includes("<priority>"), "priority is ignored by Google; leave it out");
 assert.equal((await get("/missing-seo-audit-page")).status, 404);
-const robots = await (await get("/robots.txt")).text();
+const robotsResponse = await get("/robots.txt");
+assert.equal(robotsResponse.status, 200, "robots.txt status");
+assert.match(robotsResponse.headers.get("content-type") ?? "", /^text\/plain\b/, "robots type");
+const robots = await robotsResponse.text();
 assert(!robots.includes("Disallow: /legal/"), "Legal noindex must be crawlable");
 assert(robots.includes(`${origin}/sitemap.xml`));
 if (problems.length) {
