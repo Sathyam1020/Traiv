@@ -11,11 +11,21 @@ export function JsonLd({ data }: { data: JsonLdObject }) {
   );
 }
 
-export function Breadcrumbs({ items }: { items: { name: string; path: string }[] }) {
+export function Breadcrumbs({
+  items,
+  inline = false,
+}: {
+  items: { name: string; path: string }[];
+  /** Inside a page's own container, so the trail lines up with the heading below it. */
+  inline?: boolean;
+}) {
   const trail = [{ name: "Home", path: "/" }, ...items];
   return (
     <>
-      <nav aria-label="Breadcrumb" className="traiv-content-wrap py-4 text-caption text-fg-muted">
+      <nav
+        aria-label="Breadcrumb"
+        className={`${inline ? "" : "traiv-content-wrap py-4"} text-caption text-fg-muted`}
+      >
         <ol className="flex flex-wrap items-center gap-2">
           {trail.map((item, i) => (
             <li key={item.path}>

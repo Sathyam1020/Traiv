@@ -98,18 +98,16 @@ export function PlatformCostWidget() {
               { value: "INR", label: "INR" },
             ]}
           />
-          <div className="flex min-h-11 items-center gap-2 text-body-sm">
-            <Checkbox
-              id="brand-only"
-              checked={brandedOnly}
-              onCheckedChange={(v) => setBrandedOnly(v === true)}
-              controlClassName="min-h-11 min-w-11"
-              aria-label="Hide platforms without client-app branding"
-            />
-            <label htmlFor="brand-only" className="cursor-pointer">
-              Hide platforms without client-app branding
-            </label>
-          </div>
+          {/* The component's own label: the whole row is the 44px target, and the text
+              sits beside the box instead of being pushed across the full-width row. */}
+          <Checkbox
+            id="brand-only"
+            checked={brandedOnly}
+            onCheckedChange={(v) => setBrandedOnly(v === true)}
+            label="Hide platforms without client-app branding"
+            containerClassName="min-h-11 items-center"
+            labelClassName="text-body-sm"
+          />
           <Note>
             Figures are the base monthly plan for your client count. Extras such as add-ons, tax and
             card fees aren't included, and nothing is converted. Platforms are listed by pricing

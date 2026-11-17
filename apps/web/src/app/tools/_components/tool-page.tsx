@@ -52,25 +52,24 @@ export function ToolPage({
 
   return (
     <ToolProvider value={{ slug: tool.slug, group: tool.group, kind: tool.kind }}>
-      <Breadcrumbs
-        items={[
-          { name: "Free tools", path: "/tools" },
-          { name: tool.name, path: `/tools/${tool.slug}` },
-        ]}
-      />
       <ToolSchema tool={tool} updated={updated} />
 
-      <header className="border-b border-line">
-        <Container width="wide" className="pt-6 pb-10 sm:pt-10 sm:pb-14">
-          <p className="text-caption font-medium text-fg-muted">{copy.eyebrow}</p>
-          <h1 className="mt-3 max-w-[44rem] font-display text-display font-medium text-balance">
-            {copy.h1}
-          </h1>
-          <div className="mt-5 max-w-[42rem] text-body leading-relaxed text-fg-muted">
-            {copy.intro}
-          </div>
+      {/* Hero, card and article share one column, so the page has one left edge. The
+          band's deep bottom padding is what the card overlaps. */}
+      <header className="border-b border-line bg-sunken">
+        <Container width="prose" className="pt-4 pb-28 sm:pt-6 sm:pb-36">
+          <Breadcrumbs
+            inline
+            items={[
+              { name: "Free tools", path: "/tools" },
+              { name: tool.name, path: `/tools/${tool.slug}` },
+            ]}
+          />
+          <p className="mt-6 text-caption font-medium text-fg-muted sm:mt-10">{copy.eyebrow}</p>
+          <h1 className="mt-3 font-display text-display font-medium text-balance">{copy.h1}</h1>
+          <div className="mt-5 text-body leading-relaxed text-fg-muted">{copy.intro}</div>
           {TOOL_AUTHOR || copy.method || (sections.sources && copy.sources) ? (
-            <div className="mt-6 flex max-w-[42rem] flex-col gap-3 text-caption text-fg-muted">
+            <div className="mt-6 flex flex-col gap-3 text-caption text-fg-muted">
               {TOOL_AUTHOR || copy.method ? (
                 <p>
                   {TOOL_AUTHOR ? (
@@ -120,11 +119,11 @@ export function ToolPage({
         </Container>
       </header>
 
-      <div className="py-16 sm:py-24">
-        <Container width="wide">
+      <div className="pb-16 sm:pb-24">
+        <Container width="prose" className="-mt-20 sm:-mt-24">
           <Widget />
           {tool.slug === "rpe-calculator" && <RpeEmbedCode />}
-          <div className="mt-4 rounded-surface border border-line bg-surface p-5 sm:p-6">
+          <div className="mt-6 rounded-surface border border-line bg-surface p-5 sm:p-6">
             {next.length > 0 ? (
               <>
                 <p className="text-caption font-medium text-fg-muted">Next</p>
@@ -160,7 +159,7 @@ export function ToolPage({
       </div>
 
       <Section tone="sunken">
-        <Container width="wide">
+        <Container width="prose">
           <section id="short-answer" aria-labelledby="short-answer-heading">
             <p className="text-caption font-medium text-fg-muted">Short answer</p>
             <h2
@@ -177,7 +176,7 @@ export function ToolPage({
       </Section>
 
       <Section>
-        <Container width="wide" className="flex flex-col gap-16">
+        <Container width="prose" className="flex flex-col gap-16">
           {copy.sections.map((s) => (
             <section key={s.heading}>
               <h2 className="font-display text-heading font-medium text-balance">{s.heading}</h2>
@@ -201,7 +200,7 @@ export function ToolPage({
       </Section>
 
       <Section tone="sunken">
-        <Container width="wide">
+        <Container width="prose">
           <h2 className="font-display text-heading font-medium text-balance">
             {copy.pitch.heading}
           </h2>
@@ -230,16 +229,13 @@ export function ToolPage({
       </Section>
 
       <Section>
-        <Container width="wide">
+        <Container width="prose">
           <h2 className="font-display text-heading font-medium">Frequently asked questions</h2>
           <div className="mt-8 flex flex-col">
             {copy.faq.map((f) => (
-              <div
-                key={f.q}
-                className="grid gap-2 border-t border-line py-6 sm:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] sm:gap-10"
-              >
+              <div key={f.q} className="flex flex-col gap-2 border-t border-line py-6">
                 <h3 className="text-body font-semibold">{f.q}</h3>
-                <p className="max-w-[42rem] text-body-sm leading-relaxed text-fg-muted">{f.a}</p>
+                <p className="text-body-sm leading-relaxed text-fg-muted">{f.a}</p>
               </div>
             ))}
           </div>
@@ -272,7 +268,7 @@ export function ToolPage({
 
       {related.length > 0 ? (
         <Section tone="sunken">
-          <Container width="wide">
+          <Container width="prose">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <h2 className="font-display text-heading font-medium">More free tools</h2>
               <a
@@ -282,7 +278,7 @@ export function ToolPage({
                 See all free tools <ArrowRight aria-hidden="true" className="size-4" />
               </a>
             </div>
-            <ul className="mt-8 grid gap-px overflow-hidden rounded-surface border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
+            <ul className="mt-8 grid gap-px overflow-hidden rounded-surface border border-line bg-line sm:grid-cols-2">
               {related.map((r) => (
                 <li key={r.slug} className="bg-surface">
                   <RelatedLink
@@ -325,11 +321,11 @@ export function ToolPage({
       {sections.aiLinks ? <AiResearchLinks slug={tool.slug} name={tool.name} /> : null}
 
       <section className="border-t border-line bg-surface">
-        <Container className="flex flex-col items-start gap-5 py-16 sm:py-24">
-          <h2 className="max-w-[40rem] font-display text-display font-medium text-balance">
+        <Container width="prose" className="flex flex-col items-start gap-5 py-16 sm:py-24">
+          <h2 className="font-display text-display font-medium text-balance">
             {copy.close.heading}
           </h2>
-          <p className="max-w-[38rem] text-body leading-relaxed text-fg-muted">{copy.close.body}</p>
+          <p className="text-body leading-relaxed text-fg-muted">{copy.close.body}</p>
           <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
             <ToolTrialLink
               slug={tool.slug}

@@ -25,10 +25,20 @@ import { trackCalculateSettled } from "./track";
 export type Num = number | "";
 export const n = (v: Num) => (v === "" ? Number.NaN : v);
 
-/** Two panels side by side on wide screens: the form, then the result. */
+/**
+ * One card: the form on top, the result as a tinted band at its foot. Deliberately not two
+ * columns — form and result are rarely the same height, so side by side always left one
+ * half empty and squeezed the other. The card floats over the hero's lower edge, so it
+ * carries the shadow.
+ */
+export const TOOL_CARD = "rounded-surface border border-line bg-surface shadow-raised";
+export const TOOL_CARD_FORM = "flex min-w-0 flex-col gap-5 p-5 sm:p-8";
+export const TOOL_CARD_RESULT =
+  "flex min-w-0 flex-col gap-5 rounded-b-surface border-t border-line bg-sunken p-5 sm:p-8";
+
 export function ToolLayout({ form, result }: { form: ReactNode; result: ReactNode }) {
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+    <div className={TOOL_CARD}>
       {form}
       {result}
     </div>
@@ -55,7 +65,7 @@ export function ToolForm({
         onSubmit?.();
         if (!tool.embedded) trackCalculateSettled(tool.slug, tool.group, tool.kind, 0);
       }}
-      className="flex min-w-0 flex-col gap-5 rounded-surface border border-line bg-surface p-5 sm:p-7"
+      className={TOOL_CARD_FORM}
     >
       {children}
       {submitLabel ? (
@@ -78,11 +88,7 @@ export function ResultPanel({
   children: ReactNode;
 }) {
   return (
-    <section
-      aria-live="polite"
-      aria-label={label}
-      className="flex min-w-0 flex-col gap-5 rounded-surface border border-line bg-sunken p-5 sm:p-7"
-    >
+    <section aria-live="polite" aria-label={label} className={TOOL_CARD_RESULT}>
       {children}
     </section>
   );
@@ -111,12 +117,8 @@ export function Headline({
 }
 
 export function Stats({ items }: { items: { label: string; value: string; note?: string }[] }) {
-  const cols =
-    items.length >= 4
-      ? "sm:grid-cols-2 xl:grid-cols-4"
-      : items.length === 3
-        ? "sm:grid-cols-3"
-        : "sm:grid-cols-2";
+  // The card is one fixed reading width at every viewport, so four across never fits.
+  const cols = items.length === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2";
   return (
     <ul className={`grid gap-3 ${cols}`}>
       {items.map((c) => (

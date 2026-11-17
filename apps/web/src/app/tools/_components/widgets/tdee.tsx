@@ -11,6 +11,7 @@ import {
 import type { ActivityLevel } from "@traiv/nutrition/types";
 import { type FormEvent, useState } from "react";
 import { Choice, Field, FieldGroup, NumberField } from "@/components/tool-controls";
+import { TOOL_CARD, TOOL_CARD_FORM, TOOL_CARD_RESULT } from "../kit";
 import { Segmented } from "../segmented";
 import { useTool } from "../tool-context";
 import { trackCalculateSettled } from "../track";
@@ -88,12 +89,8 @@ export function TdeeWidget() {
   }
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-      <form
-        onSubmit={submit}
-        className="flex flex-col gap-5 rounded-surface border border-line bg-surface p-5 sm:p-7"
-        aria-label="TDEE calculator"
-      >
+    <div className={TOOL_CARD}>
+      <form onSubmit={submit} className={TOOL_CARD_FORM} aria-label="TDEE calculator">
         <FieldGroup label="Units">
           <Segmented
             label="Units"
@@ -179,11 +176,7 @@ export function TdeeWidget() {
 
 function TdeeResult({ result }: { result: ReturnType<typeof energy> }) {
   return (
-    <section
-      aria-live="polite"
-      aria-label="Your result"
-      className="flex flex-col gap-5 rounded-surface border border-line bg-sunken p-5 sm:p-7"
-    >
+    <section aria-live="polite" aria-label="Your result" className={TOOL_CARD_RESULT}>
       {result.ok ? (
         <Values v={result.value} />
       ) : (
