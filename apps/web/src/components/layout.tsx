@@ -9,18 +9,28 @@ import { Reveal } from "@/components/reveal";
  * measure, so a new page is content and nothing else.
  */
 
-/** The page's measure. `wide` is for anything with a chart or a table in it. */
+/**
+ * The page's measure. `wide` is for anything with a chart or a table in it. `tool` is the
+ * free-tool page column: 64rem less the 2rem gutters is a 960px column, the width measured
+ * on Coachway's tool pages, which the founder asked these pages to match.
+ */
+const MEASURE = {
+  default: "max-w-[72rem]",
+  wide: "max-w-[76rem]",
+  prose: "max-w-[46rem]",
+  tool: "max-w-[64rem]",
+} as const;
+
 export function Container({
   children,
   width = "default",
   className = "",
 }: {
   children: ReactNode;
-  width?: "default" | "wide" | "prose";
+  width?: keyof typeof MEASURE;
   className?: string;
 }) {
-  const max =
-    width === "wide" ? "max-w-[76rem]" : width === "prose" ? "max-w-[46rem]" : "max-w-[72rem]";
+  const max = MEASURE[width];
   return <div className={`mx-auto w-full ${max} px-5 sm:px-8 ${className}`}>{children}</div>;
 }
 

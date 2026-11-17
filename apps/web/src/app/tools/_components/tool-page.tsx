@@ -57,7 +57,7 @@ export function ToolPage({
       {/* Hero, card and article share one column, so the page has one left edge. The
           band's deep bottom padding is what the card overlaps. */}
       <header className="border-b border-line bg-sunken">
-        <Container width="prose" className="pt-4 pb-28 sm:pt-6 sm:pb-36">
+        <Container width="tool" className="pt-4 pb-28 sm:pt-6 sm:pb-36">
           <Breadcrumbs
             inline
             items={[
@@ -120,7 +120,7 @@ export function ToolPage({
       </header>
 
       <div className="pb-16 sm:pb-24">
-        <Container width="prose" className="-mt-20 sm:-mt-24">
+        <Container width="tool" className="-mt-20 sm:-mt-24">
           <Widget />
           {tool.slug === "rpe-calculator" && <RpeEmbedCode />}
           <div className="mt-6 rounded-surface border border-line bg-surface p-5 sm:p-6">
@@ -159,7 +159,7 @@ export function ToolPage({
       </div>
 
       <Section tone="sunken">
-        <Container width="prose">
+        <Container width="tool">
           <section id="short-answer" aria-labelledby="short-answer-heading">
             <p className="text-caption font-medium text-fg-muted">Short answer</p>
             <h2
@@ -176,7 +176,7 @@ export function ToolPage({
       </Section>
 
       <Section>
-        <Container width="prose" className="flex flex-col gap-16">
+        <Container width="tool" className="flex flex-col gap-16">
           {copy.sections.map((s) => (
             <section key={s.heading}>
               <h2 className="font-display text-heading font-medium text-balance">{s.heading}</h2>
@@ -200,7 +200,7 @@ export function ToolPage({
       </Section>
 
       <Section tone="sunken">
-        <Container width="prose">
+        <Container width="tool">
           <h2 className="font-display text-heading font-medium text-balance">
             {copy.pitch.heading}
           </h2>
@@ -229,7 +229,7 @@ export function ToolPage({
       </Section>
 
       <Section>
-        <Container width="prose">
+        <Container width="tool">
           <h2 className="font-display text-heading font-medium">Frequently asked questions</h2>
           <div className="mt-8 flex flex-col">
             {copy.faq.map((f) => (
@@ -268,7 +268,7 @@ export function ToolPage({
 
       {related.length > 0 ? (
         <Section tone="sunken">
-          <Container width="prose">
+          <Container width="tool">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <h2 className="font-display text-heading font-medium">More free tools</h2>
               <a
@@ -278,7 +278,7 @@ export function ToolPage({
                 See all free tools <ArrowRight aria-hidden="true" className="size-4" />
               </a>
             </div>
-            <ul className="mt-8 grid gap-px overflow-hidden rounded-surface border border-line bg-line sm:grid-cols-2">
+            <ul className="mt-8 grid gap-px overflow-hidden rounded-surface border border-line bg-line sm:grid-cols-2 lg:grid-cols-3">
               {related.map((r) => (
                 <li key={r.slug} className="bg-surface">
                   <RelatedLink
@@ -321,7 +321,7 @@ export function ToolPage({
       {sections.aiLinks ? <AiResearchLinks slug={tool.slug} name={tool.name} /> : null}
 
       <section className="border-t border-line bg-surface">
-        <Container width="prose" className="flex flex-col items-start gap-5 py-16 sm:py-24">
+        <Container width="tool" className="flex flex-col items-start gap-5 py-16 sm:py-24">
           <h2 className="font-display text-display font-medium text-balance">
             {copy.close.heading}
           </h2>

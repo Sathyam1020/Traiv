@@ -1009,12 +1009,12 @@ Founder asked for Coachway's calculator layout. `ToolLayout` (`tools/_components
 card — form on top, result as a `bg-sunken` band at its foot (`TOOL_CARD*` constants; `tdee.tsx` uses
 them too) — instead of two equal columns, which left one half empty whenever form and result
 differed in height. The card overlaps the bottom of a `bg-sunken` hero band; breadcrumb, hero,
-card and article share `Container width="prose"`, so the page has one left edge. FAQ answers stack
-under questions; related tools are two across. Colours stay light: the dark hero was rejected as
+card and article share `Container width="tool"` (64rem less gutters = 960px, the column measured on Coachway's tool pages at 1280 and 1440), so the page has one left edge. `prose` (736px) was tried first and left the page looking empty at desktop widths. FAQ answers stack
+under questions; related tools are three across from `lg`. Colours stay light: the dark hero was rejected as
 off-brand in `515bf0c`, so only Coachway's layout was taken, not its palette. Card shadow is
 `shadow-raised` (`shadow-float` carries a dark-theme ring). `Breadcrumbs` gained `inline`.
 Platform cost "Hide platforms…" checkbox now uses the component's own label (the full-width
-default pushed the separate label across the row). Wide tables still scroll sideways inside the card.
-Verified: typecheck, webpack build, `audit:responsive 360 1280` clean, `audit:seo` 137/0,
+default pushed the separate label across the row). Wide tables fit at desktop and scroll sideways inside the card on phones.
+Verified: typecheck, webpack build, `audit:responsive 360 1280` clean (768 fails on every route, tool or not: ten footer links are 28px tall on touch — pre-existing, not fixed here), `audit:seo` 137/0,
 phase 6 audit 0 problems, screenshots at 1280 and emulated 360. Keyboard pass not re-run (no
 interactive markup changed apart from the checkbox).
